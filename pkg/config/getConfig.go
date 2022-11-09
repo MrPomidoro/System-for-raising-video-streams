@@ -46,9 +46,5 @@ func readFlags(cfg *Config) {
 	flag.StringVar(&cfg.Driver, "driver", cfg.Driver, "The driver parameter")
 	flag.DurationVar(&cfg.DBConnectionTimeoutSecond, "dbConnectionTimeoutSecond", cfg.DBConnectionTimeoutSecond, "The dbConnectionTimeoutSecond parameter")
 	flag.StringVar(&cfg.ConfigPath, "configPath", cfg.ConfigPath, "The configPath parameter")
-	flag.StringVar(&cfg.MqttLogin, "mqttLogin", cfg.MqttLogin, "The mqttLogin parameter")
-	flag.StringVar(&cfg.MqttPassword, "mqttPassword", cfg.MqttPassword, "The mqttPassword parameter")
-	flag.StringVar(&cfg.MqttHost, "mqttHost", cfg.MqttHost, "The mqttHost parameter")
-	flag.StringVar(&cfg.MqttDomainName, "mqttDomainName", cfg.MqttDomainName, "The mqttDomainName parameter")
 	flag.Parse()
 }

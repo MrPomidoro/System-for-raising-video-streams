@@ -6,10 +6,10 @@ import (
 
 // структура конфига
 type Config struct {
-	Logger      `yaml:"logger"`
-	Database    `yaml:"database"`
-	PathDir     `yaml:"pathDir"`
-	MqttConnect `yaml:"mqttConnect"`
+	Logger             `yaml:"logger"`
+	Database           `yaml:"database"`
+	PathDir            `yaml:"pathDir"`
+	Rtsp_simple_server `yaml:"rtsp_simple_server"`
 }
 
 type PathDir struct {
@@ -32,10 +32,8 @@ type Database struct {
 	DBConnectionTimeoutSecond time.Duration `yaml:"dbConnectionTimeoutSecond"`
 }
 
-// параметры mqtt коннекта
-type MqttConnect struct {
-	MqttLogin      string `yaml:"mqttLogin"`
-	MqttPassword   string `yaml:"mqttPassword"`
-	MqttHost       string `yaml:"mqttHost"`
-	MqttDomainName string `yaml:"mqttDomainName"`
+type Rtsp_simple_server struct {
+	Run          string        `yaml:"run"`
+	Url          string        `yaml:"url"`
+	Refresh_Time time.Duration `yaml:"refresh_time"`
 }
