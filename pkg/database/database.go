@@ -38,16 +38,16 @@ func connectToDB(dbcfg *Database) *sql.DB {
 	// подключение
 	dbSQL, err := sql.Open(dbcfg.Driver, sqlInfo)
 	if err != nil {
-		logger.LogError(dbcfg.Log, fmt.Sprintf(OpenDBErrConst, "sql"))
+		logger.LogError(dbcfg.Log, fmt.Sprintf("cannot get connect to database: %v", err))
 	}
 
 	// проверка подключения
 	time.Sleep(time.Millisecond * 3)
 	if err := dbSQL.Ping(); err == nil {
-		logger.LogDebug(dbcfg.Log, fmt.Sprintf(ConnectToDBOkConst, dbcfg.Db_name))
+		logger.LogDebug(dbcfg.Log, fmt.Sprintf("Success connect to database %s", dbcfg.Db_name))
 		return dbSQL
 	} else {
-		logger.LogError(dbcfg.Log, ConnectToDBErrConst)
+		logger.LogError(dbcfg.Log, "cannot connect to database %s")
 	}
 
 	connLatency := time.Duration(10 * time.Millisecond)
@@ -60,7 +60,7 @@ func connectToDB(dbcfg *Database) *sql.DB {
 		time.Sleep(time.Second * 3)
 	}
 
-	logger.LogError(dbcfg.Log, fmt.Sprintf(WaitForBDErrConst, connTimeout))
+	logger.LogError(dbcfg.Log, fmt.Sprintf("Time waiting of DB connection exceeded limit: %v", connTimeout))
 	return dbSQL
 }
 
@@ -68,8 +68,8 @@ func connectToDB(dbcfg *Database) *sql.DB {
 func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
 	log := logger.NewLog(cfg.LogLevel)
 	if err := dbSQL.Close(); err != nil {
-		logger.LogError(log, fmt.Sprintf(CloseDBErrConst, err))
+		logger.LogError(log, fmt.Sprintf("cannot close DB connection. Error: %v", err))
 		return
 	}
-	logger.LogDebug(log, CloseDBOkConst)
+	logger.LogDebug(log, "Established closing of connection to DB")
 }

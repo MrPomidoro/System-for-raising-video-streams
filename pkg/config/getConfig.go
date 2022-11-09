@@ -20,15 +20,15 @@ func GetConfig() *Config {
 	log := logger.NewLog(cfg.LogLevel)
 
 	if err := v.ReadInConfig(); err != nil {
-		logger.LogError(log, fmt.Sprintf(ReadConfigErrConst, err))
+		logger.LogError(log, fmt.Sprintf("cannot read config: %v", err))
 	} else {
-		logger.LogDebug(log, ReadConfigEOkConst)
+		logger.LogDebug(log, "Success read config file")
 	}
 
 	if err := v.Unmarshal(&cfg); err != nil {
-		logger.LogError(log, fmt.Sprintf(ReadConfigErrConst, err))
+		logger.LogError(log, fmt.Sprintf("cannot read config: %v", err))
 	} else {
-		logger.LogDebug(log, ReadConfigEOkConst)
+		logger.LogDebug(log, "Success read config file")
 	}
 
 	readFlags(&cfg)

@@ -11,7 +11,7 @@ import (
 func NewLog(level string) *logrus.Logger {
 	file, err := os.OpenFile(FileNameConst, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logrus.Fatalf(OpenFileErrConst, err)
+		logrus.Fatalf("can not open file for logging: %v", err)
 	}
 
 	log := &logrus.Logger{
