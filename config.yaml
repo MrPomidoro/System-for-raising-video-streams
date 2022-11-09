@@ -1,0 +1,20 @@
+logger:
+  loglevel: DEBUG
+server:
+  addr: :3312
+  readtimeout: 200ms
+  writetimeout: 200ms
+  idletimeout: 10s
+database:
+  port: 5432
+  host: 192.168.0.32
+  db_name: l3
+  user: sysadmin
+  password: w3X{77PpCR
+  driver: postgres
+  database_connect: true # разрешение на коннект
+  db_connection_timeout_second: 10s
+rtsp_simple_server:
+  run: sdfghj
+  url: http://10.100.100.228:9997 # адрес для подключения к api rtsp-simple-server
+  refresh_time: 10s # периодичность запроса и сверки
