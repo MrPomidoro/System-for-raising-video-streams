@@ -16,12 +16,12 @@ func CreateDBConnection(cfg *config.Config) *sql.DB {
 
 	dbcfg.Port = cfg.Port
 	dbcfg.Host = cfg.Host
-	dbcfg.Db_name = cfg.DbName
+	dbcfg.Db_name = cfg.Db_Name
 	dbcfg.User = cfg.User
 	dbcfg.Password = cfg.Password
 
 	dbcfg.Driver = cfg.Driver
-	dbcfg.DBConnectionTimeoutSecond = cfg.DBConnectionTimeoutSecond
+	dbcfg.DBConnectionTimeoutSecond = cfg.Db_Connection_Timeout_Second
 	dbcfg.Log = logger.NewLog(cfg.LogLevel)
 
 	return connectToDB(&dbcfg)
