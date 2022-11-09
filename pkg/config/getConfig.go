@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/Kseniya-cha/Monitoring/pkg/logger"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/spf13/viper"
 )
 
