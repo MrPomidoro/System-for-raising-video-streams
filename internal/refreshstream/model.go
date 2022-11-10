@@ -2,7 +2,7 @@ package refreshstream
 
 import "database/sql"
 
-// структура таблицы refresh_stream
+// Структура таблицы refresh_stream.
 // sql.Null* когда возможен null в столбце
 type RefreshStream struct {
 	Id            int            `json:"id" db:"id"`

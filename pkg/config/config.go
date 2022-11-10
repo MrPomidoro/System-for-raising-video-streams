@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// структура конфига
+// Структура конфига
 type Config struct {
 	Logger             `yaml:"logger"`
 	Server             `yaml:"server"`
@@ -12,12 +12,12 @@ type Config struct {
 	Rtsp_simple_server `yaml:"rtsp_simple_server"`
 }
 
-// параметры логгера
+// Параметры логгера
 type Logger struct {
 	LogLevel string `yaml:"loglevel"`
 }
 
-// параметры сервера
+// Параметры сервера
 type Server struct {
 	Addr         string        `yaml:"addr"`
 	ReadTimeout  time.Duration `yaml:"readtimeout"`
@@ -25,7 +25,7 @@ type Server struct {
 	IdleTimeout  time.Duration `yaml:"idletimeout"`
 }
 
-// параметры базы данных
+// Параметры базы данных
 type Database struct {
 	Port                         string        `yaml:"port"`
 	Host                         string        `yaml:"host"`
@@ -37,6 +37,7 @@ type Database struct {
 	Db_Connection_Timeout_Second time.Duration `yaml:"db_connection_timeout_second"`
 }
 
+// Параметры rtsp_simple_server
 type Rtsp_simple_server struct {
 	Run          string        `yaml:"run"`
 	Url          string        `yaml:"url"`

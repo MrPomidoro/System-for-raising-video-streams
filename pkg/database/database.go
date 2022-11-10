@@ -10,7 +10,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// заполняется структура из конфига, вызывается функция connectToDB()
+// Заполняется структура из конфига, вызывается функция connectToDB(),
+// дающая подключение к базе данных
 func CreateDBConnection(cfg *config.Config) *sql.DB {
 	var dbcfg Database
 
@@ -27,7 +28,7 @@ func CreateDBConnection(cfg *config.Config) *sql.DB {
 	return connectToDB(&dbcfg)
 }
 
-// подключение к базе данных
+// Функция, возвращающая подключение к базе данных
 func connectToDB(dbcfg *Database) *sql.DB {
 	var dbSQL *sql.DB
 
@@ -35,13 +36,13 @@ func connectToDB(dbcfg *Database) *sql.DB {
 		dbcfg.Host, dbcfg.Port, dbcfg.User, dbcfg.Password,
 		dbcfg.Db_name)
 
-	// подключение
+	// Подключение
 	dbSQL, err := sql.Open(dbcfg.Driver, sqlInfo)
 	if err != nil {
 		logger.LogError(dbcfg.Log, fmt.Sprintf("cannot get connect to database: %v", err))
 	}
 
-	// проверка подключения
+	// Проверка подключения
 	time.Sleep(time.Millisecond * 3)
 	if err := dbSQL.Ping(); err == nil {
 		logger.LogDebug(dbcfg.Log, fmt.Sprintf("Success connect to database %s", dbcfg.Db_name))
@@ -64,7 +65,7 @@ func connectToDB(dbcfg *Database) *sql.DB {
 	return dbSQL
 }
 
-// отключение от базы данных
+// Отключение от базы данных
 func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
 	log := logger.NewLog(cfg.LogLevel)
 	if err := dbSQL.Close(); err != nil {

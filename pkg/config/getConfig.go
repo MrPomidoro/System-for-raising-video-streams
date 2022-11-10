@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// инициализация и заполнение конфига
+// Инициализация и заполнение конфига
 func GetConfig() *Config {
 	var v = viper.New()
 	var cfg Config
@@ -19,23 +19,28 @@ func GetConfig() *Config {
 
 	log := logger.NewLog(cfg.LogLevel)
 
+	// Попытка чтения конфига
 	if err := v.ReadInConfig(); err != nil {
 		logger.LogError(log, fmt.Sprintf("cannot read config: %v", err))
 	} else {
 		logger.LogDebug(log, "Success read config file")
 	}
 
+	// Попытка заполнение структуры Config полученными данными
 	if err := v.Unmarshal(&cfg); err != nil {
 		logger.LogError(log, fmt.Sprintf("cannot read config: %v", err))
 	} else {
 		logger.LogDebug(log, "Success read config file")
 	}
 
+	// Проверка наличия параметров в командной строке
 	readFlags(&cfg)
 
 	return &cfg
 }
 
+// Реализация возможности передачи параметров конфигурационного файла
+// при запуске из командной строки
 func readFlags(cfg *Config) {
 	flag.StringVar(&cfg.LogLevel, "loglevel", cfg.LogLevel, "The loglevel parameter")
 

@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Структура с параметрами для базы данных
 type Database struct {
 	Port     string
 	Host     string

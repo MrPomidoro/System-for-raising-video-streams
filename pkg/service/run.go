@@ -17,6 +17,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Прототип приложения
 type app struct {
 	cfg                  *config.Config
 	Log                  *logrus.Logger
@@ -25,7 +26,7 @@ type app struct {
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
 }
 
-// прототип приложения
+// Функция, инициализирующая прототип приложения
 func NewApp(cfg *config.Config) *app {
 	log := logger.NewLog(cfg.LogLevel)
 	db := database.CreateDBConnection(cfg)
@@ -41,6 +42,7 @@ func NewApp(cfg *config.Config) *app {
 	}
 }
 
+// Алгоритм
 func (a *app) Run() error {
 	return nil
 }

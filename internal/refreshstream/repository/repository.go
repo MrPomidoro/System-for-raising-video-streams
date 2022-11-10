@@ -36,7 +36,7 @@ func (s refreshStreamRepository) Get(ctx context.Context) ([]refreshstream.Refre
 	}
 	defer rows.Close()
 
-	// слайс копий структур
+	// Слайс копий структур
 	refreshStreamArr := []refreshstream.RefreshStream{}
 	for rows.Next() {
 		rs := refreshstream.RefreshStream{}
