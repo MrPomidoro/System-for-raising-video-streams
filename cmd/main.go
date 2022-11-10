@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
@@ -24,12 +22,9 @@ func main() {
 		}
 	}()
 
-	go func() {
-		for {
-			database.DBPing(cfg, app.Db)
-			time.Sleep(1 * time.Second)
-		}
-	}()
+	// Проверка коннекта к базе данных
+	// и переподключение при необходимости
+	go database.DBPing(cfg, app.Db)
 
 	// Ожидание прерывающего сигнала
 	app.GracefulShutdown(app.SigChan)
