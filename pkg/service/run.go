@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -44,6 +45,16 @@ func NewApp(cfg *config.Config) *app {
 
 // Алгоритм
 func (a *app) Run() error {
+	ctx := context.Background()
+	logger.LogDebug(a.Log, "Context initializated")
+
+	req, err := a.refreshStreamUseCase.Get(ctx)
+	if err != nil {
+		logger.LogError(a.Log, fmt.Sprintf("cannot get response from database: %v", err))
+	} else {
+		logger.LogDebug(a.Log, fmt.Sprintf("Response from database:\n%v", req))
+	}
+
 	return nil
 }
 

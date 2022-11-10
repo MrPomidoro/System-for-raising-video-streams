@@ -41,7 +41,7 @@ func (s refreshStreamRepository) Get(ctx context.Context) ([]refreshstream.Refre
 	for rows.Next() {
 		rs := refreshstream.RefreshStream{}
 		err := rows.Scan(&rs.Id, &rs.Auth, &rs.Ip, &rs.Stream,
-			&rs.Portsrv, &rs.Sp, &rs.Camid, &rs.Record_status,
+			&rs.Portsrv, &rs.Sp, &rs.CamId, &rs.Record_status,
 			&rs.Stream_status, &rs.Record_state, &rs.Stream_state)
 		if err != nil {
 			logger.LogError(s.log, err)

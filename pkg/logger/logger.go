@@ -16,7 +16,7 @@ func NewLog(level string) *logrus.Logger {
 		logrus.Fatalf("can not open file for logging: %v", err)
 	}
 
-	log := &logrus.Logger{
+	return &logrus.Logger{
 		Out:   io.MultiWriter(file, os.Stdout),
 		Level: initLogLevel(level),
 		Formatter: &easy.Formatter{
@@ -24,8 +24,6 @@ func NewLog(level string) *logrus.Logger {
 			LogFormat:       ServLogFormatConst,
 		},
 	}
-
-	return log
 }
 
 // Выбор уровня логирования на основе переданной строковой переменной
