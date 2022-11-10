@@ -48,7 +48,7 @@ func connectToDB(dbcfg *Database) *sql.DB {
 		logger.LogDebug(dbcfg.Log, fmt.Sprintf("Success connect to database %s", dbcfg.Db_name))
 		return dbSQL
 	} else {
-		logger.LogError(dbcfg.Log, "cannot connect to database %s")
+		logger.LogError(dbcfg.Log, fmt.Sprintf("cannot connect to database %s", err))
 	}
 
 	connLatency := time.Duration(10 * time.Millisecond)
@@ -73,4 +73,25 @@ func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
 		return
 	}
 	logger.LogDebug(log, "Established closing of connection to DB")
+}
+
+func DBPing(cfg *config.Config, db *sql.DB) {
+
+	log := logger.NewLog(cfg.LogLevel)
+	if err := db.Ping(); err != nil {
+		logger.LogWarn(log, fmt.Sprintf("cannot connect to database %s", err))
+		logger.LogInfo(log, "try connection to database...")
+
+		var dbcfg Database
+		dbcfg.Port = cfg.Port
+		dbcfg.Host = cfg.Host
+		dbcfg.Db_name = cfg.Db_Name
+		dbcfg.User = cfg.User
+		dbcfg.Password = cfg.Password
+		dbcfg.Driver = cfg.Driver
+		dbcfg.DBConnectionTimeoutSecond = cfg.Db_Connection_Timeout_Second
+		dbcfg.Log = logger.NewLog(cfg.LogLevel)
+
+		connectToDB(&dbcfg)
+	}
 }

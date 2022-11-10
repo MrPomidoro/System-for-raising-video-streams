@@ -25,7 +25,7 @@ import (
 type app struct {
 	cfg                  *config.Config
 	Log                  *logrus.Logger
-	db                   *sql.DB
+	Db                   *sql.DB
 	SigChan              chan os.Signal
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
 	statusStreamUseCase  statusstream.StatusStreamUseCase
@@ -41,7 +41,7 @@ func NewApp(cfg *config.Config) *app {
 
 	return &app{
 		cfg:                  cfg,
-		db:                   db,
+		Db:                   db,
 		Log:                  log,
 		SigChan:              sigChan,
 		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db, log),
@@ -54,11 +54,21 @@ func (a *app) Run() error {
 	ctx := context.Background()
 	logger.LogDebug(a.Log, "Context initializated")
 
+	// Get-запрос на получение списка камер из базы данных
 	req, err := a.refreshStreamUseCase.Get(ctx)
 	if err != nil {
 		logger.LogError(a.Log, fmt.Sprintf("cannot get response from database: %v", err))
 	} else {
 		logger.LogDebug(a.Log, fmt.Sprintf("Response from database:\n%v", req))
+	}
+
+	ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
+	// Запись в базу данных результата выполнения (нужно менять)
+	err = a.statusStreamUseCase.Insert(ctx, &ssExample)
+	if err != nil {
+		logger.LogError(a.Log, "cannot insert")
+	} else {
+		logger.LogDebug(a.Log, "insert correct, 200")
 	}
 
 	return nil
@@ -76,7 +86,7 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 	select {
 	case sign := <-sig:
 		logger.LogWarn(a.Log, fmt.Sprintf("Got signal: %v, exiting", sign))
-		database.CloseDBConnection(a.cfg, a.db)
+		database.CloseDBConnection(a.cfg, a.Db)
 		time.Sleep(time.Second * 2)
 		a.StopChan(sig)
 	}

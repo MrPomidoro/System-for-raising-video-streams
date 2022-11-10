@@ -27,3 +27,76 @@
 [{125 {auth3 true} {10.2 true} {11 true} 111 {111 true} {111 true} {false true} {true true} {false true} {true true}} {126 {aaa true} {aaa true} {aaa true} bbb { true} {321 true} {true true} {true true} {true true} {true true}} {129 {222 true} { true} {222 true}  { true} {321 true} {false false} {false true} {false true} {true true}} {3 {user:pass true} { false} { false} 456 { false} { false} {false false} {false false} {false false} {false false}} {2 {auth true} {ip true} {stream true} port {sp true} {cam true} {true true} {false true} {false true} {true true}}]
 [WARNING]: (2022-11-10 10:23:22) Got signal: interrupt, exiting
 [DEBUG]: (2022-11-10 10:23:22) Established closing of connection to DB
+[DEBUG]: (2022-11-10 12:24:37) Success connect to database www
+[DEBUG]: (2022-11-10 12:24:37) app created
+[DEBUG]: (2022-11-10 12:24:37) Context initializated
+[DEBUG]: (2022-11-10 12:24:37) Received response from the database
+[DEBUG]: (2022-11-10 12:24:37) Response from database:
+[{125 {auth3 true} {10.2 true} {11 true} 111 {111 true} {111 true} {false true} {true true} {false true} {true true}} {126 {aaa true} {aaa true} {aaa true} bbb { true} {321 true} {true true} {true true} {true true} {true true}} {129 {222 true} { true} {222 true}  { true} {321 true} {false false} {false true} {false true} {true true}} {3 {user:pass true} { false} { false} 456 { false} { false} {false false} {false false} {false false} {false false}} {2 {auth true} {ip true} {stream true} port {sp true} {cam true} {true true} {false true} {false true} {true true}}]
+[DEBUG]: (2022-11-10 12:24:37) Success insert
+[DEBUG]: (2022-11-10 12:24:37) insert correct, 200
+[WARNING]: (2022-11-10 12:24:40) Got signal: interrupt, exiting
+[DEBUG]: (2022-11-10 12:24:40) Established closing of connection to DB
+[DEBUG]: (2022-11-10 14:09:44) Success connect to database www
+[DEBUG]: (2022-11-10 14:09:44) app created
+[DEBUG]: (2022-11-10 14:09:44) Context initializated
+[DEBUG]: (2022-11-10 14:09:44) Received response from the database
+[DEBUG]: (2022-11-10 14:09:44) Response from database:
+[{125 {auth3 true} {10.2 true} {11 true} 111 {111 true} {111 true} {false true} {true true} {false true} {true true}} {126 {aaa true} {aaa true} {aaa true} bbb { true} {321 true} {true true} {true true} {true true} {true true}} {129 {222 true} { true} {222 true}  { true} {321 true} {false false} {false true} {false true} {true true}} {3 {user:pass true} { false} { false} 456 { false} { false} {false false} {false false} {false false} {false false}} {2 {auth true} {ip true} {stream true} port {sp true} {cam true} {true true} {false true} {false true} {true true}}]
+[DEBUG]: (2022-11-10 14:09:44) Success insert
+[DEBUG]: (2022-11-10 14:09:44) insert correct, 200
+[WARNING]: (2022-11-10 14:09:59) Got signal: interrupt, exiting
+[DEBUG]: (2022-11-10 14:09:59) Established closing of connection to DB
+[DEBUG]: (2022-11-10 14:27:32) Success connect to database www
+[DEBUG]: (2022-11-10 14:27:32) app created
+[DEBUG]: (2022-11-10 14:27:32) Context initializated
+[DEBUG]: (2022-11-10 14:27:32) Success connect to database www
+[DEBUG]: (2022-11-10 14:27:32) Received response from the database
+[DEBUG]: (2022-11-10 14:27:32) Response from database:
+[{125 {auth3 true} {10.2 true} {11 true} 111 {111 true} {111 true} {false true} {true true} {false true} {true true}} {126 {aaa true} {aaa true} {aaa true} bbb { true} {321 true} {true true} {true true} {true true} {true true}} {129 {222 true} { true} {222 true}  { true} {321 true} {false false} {false true} {false true} {true true}} {3 {user:pass true} { false} { false} 456 { false} { false} {false false} {false false} {false false} {false false}} {2 {auth true} {ip true} {stream true} port {sp true} {cam true} {true true} {false true} {false true} {true true}}]
+[DEBUG]: (2022-11-10 14:27:32) Success insert
+[DEBUG]: (2022-11-10 14:27:32) insert correct, 200
+[WARNING]: (2022-11-10 14:27:38) Got signal: interrupt, exiting
+[DEBUG]: (2022-11-10 14:27:38) Established closing of connection to DB
+[DEBUG]: (2022-11-10 14:28:42) Success connect to database www
+[DEBUG]: (2022-11-10 14:28:42) app created
+[DEBUG]: (2022-11-10 14:28:42) Context initializated
+[DEBUG]: (2022-11-10 14:28:42) Received response from the database
+[DEBUG]: (2022-11-10 14:28:42) Response from database:
+[{125 {auth3 true} {10.2 true} {11 true} 111 {111 true} {111 true} {false true} {true true} {false true} {true true}} {126 {aaa true} {aaa true} {aaa true} bbb { true} {321 true} {true true} {true true} {true true} {true true}} {129 {222 true} { true} {222 true}  { true} {321 true} {false false} {false true} {false true} {true true}} {3 {user:pass true} { false} { false} 456 { false} { false} {false false} {false false} {false false} {false false}} {2 {auth true} {ip true} {stream true} port {sp true} {cam true} {true true} {false true} {false true} {true true}}]
+[DEBUG]: (2022-11-10 14:28:42) Success insert
+[DEBUG]: (2022-11-10 14:28:42) insert correct, 200
+[WARNING]: (2022-11-10 14:28:47) Got signal: interrupt, exiting
+[DEBUG]: (2022-11-10 14:28:47) Established closing of connection to DB
+[DEBUG]: (2022-11-10 14:29:38) Success connect to database www
+[DEBUG]: (2022-11-10 14:29:38) app created
+[DEBUG]: (2022-11-10 14:29:38) Context initializated
+[DEBUG]: (2022-11-10 14:29:38) Received response from the database
+[DEBUG]: (2022-11-10 14:29:38) Response from database:
+[{125 {auth3 true} {10.2 true} {11 true} 111 {111 true} {111 true} {false true} {true true} {false true} {true true}} {126 {aaa true} {aaa true} {aaa true} bbb { true} {321 true} {true true} {true true} {true true} {true true}} {129 {222 true} { true} {222 true}  { true} {321 true} {false false} {false true} {false true} {true true}} {3 {user:pass true} { false} { false} 456 { false} { false} {false false} {false false} {false false} {false false}} {2 {auth true} {ip true} {stream true} port {sp true} {cam true} {true true} {false true} {false true} {true true}}]
+[DEBUG]: (2022-11-10 14:29:38) Success insert
+[DEBUG]: (2022-11-10 14:29:38) insert correct, 200
+[WARNING]: (2022-11-10 14:29:53) Got signal: interrupt, exiting
+[DEBUG]: (2022-11-10 14:29:53) Established closing of connection to DB
+[WARNING]: (2022-11-10 14:29:53) cannot connect to database sql: database is closed
+[INFO]: (2022-11-10 14:29:53) try connection to database...
+[DEBUG]: (2022-11-10 14:29:53) Success connect to database www
+[WARNING]: (2022-11-10 14:29:54) cannot connect to database sql: database is closed
+[INFO]: (2022-11-10 14:29:54) try connection to database...
+[DEBUG]: (2022-11-10 14:29:54) Success connect to database www
+[DEBUG]: (2022-11-10 14:30:39) Success connect to database www
+[DEBUG]: (2022-11-10 14:30:39) app created
+[DEBUG]: (2022-11-10 14:30:39) Context initializated
+[DEBUG]: (2022-11-10 14:30:39) Received response from the database
+[DEBUG]: (2022-11-10 14:30:39) Response from database:
+[{125 {auth3 true} {10.2 true} {11 true} 111 {111 true} {111 true} {false true} {true true} {false true} {true true}} {126 {aaa true} {aaa true} {aaa true} bbb { true} {321 true} {true true} {true true} {true true} {true true}} {129 {222 true} { true} {222 true}  { true} {321 true} {false false} {false true} {false true} {true true}} {3 {user:pass true} { false} { false} 456 { false} { false} {false false} {false false} {false false} {false false}} {2 {auth true} {ip true} {stream true} port {sp true} {cam true} {true true} {false true} {false true} {true true}}]
+[DEBUG]: (2022-11-10 14:30:39) Success insert
+[DEBUG]: (2022-11-10 14:30:39) insert correct, 200
+[WARNING]: (2022-11-10 14:30:41) Got signal: interrupt, exiting
+[DEBUG]: (2022-11-10 14:30:41) Established closing of connection to DB
+[WARNING]: (2022-11-10 14:30:41) cannot connect to database sql: database is closed
+[INFO]: (2022-11-10 14:30:41) try connection to database...
+[DEBUG]: (2022-11-10 14:30:41) Success connect to database www
+[WARNING]: (2022-11-10 14:30:42) cannot connect to database sql: database is closed
+[INFO]: (2022-11-10 14:30:42) try connection to database...
+[DEBUG]: (2022-11-10 14:30:42) Success connect to database www
