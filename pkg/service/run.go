@@ -10,8 +10,11 @@ import (
 	"time"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/usecase"
+	rsrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository"
+	rsusecase "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/usecase"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
+	ssrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository"
+	ssusecase "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/usecase"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
@@ -25,21 +28,24 @@ type app struct {
 	db                   *sql.DB
 	SigChan              chan os.Signal
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
+	statusStreamUseCase  statusstream.StatusStreamUseCase
 }
 
 // Функция, инициализирующая прототип приложения
 func NewApp(cfg *config.Config) *app {
 	log := logger.NewLog(cfg.LogLevel)
 	db := database.CreateDBConnection(cfg)
-	repo := repository.NewRefreshStreamRepository(db, log)
 	sigChan := make(chan os.Signal, 1)
+	repoRS := rsrepository.NewRefreshStreamRepository(db, log)
+	repoSS := ssrepository.NewStatusStreamRepository(db, log)
 
 	return &app{
 		cfg:                  cfg,
 		db:                   db,
 		Log:                  log,
 		SigChan:              sigChan,
-		refreshStreamUseCase: usecase.NewRefreshStreamUseCase(repo, db, log),
+		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db, log),
+		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db, log),
 	}
 }
 
