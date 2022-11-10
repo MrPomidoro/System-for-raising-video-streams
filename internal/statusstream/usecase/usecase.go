@@ -24,6 +24,8 @@ func NewStatusStreamUseCase(repo statusstream.StatusStreamRepository,
 	}
 }
 
-func (s *statusStreamUseCase) Get(ctx context.Context) ([]statusstream.StatusStream, error) {
-	return s.repo.Get(ctx)
+func (s *statusStreamUseCase) Insert(ctx context.Context,
+	ss *statusstream.StatusStream) error {
+
+	return s.repo.Insert(ctx, ss)
 }

@@ -3,7 +3,10 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
+	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -19,7 +22,16 @@ func NewStatusStreamRepository(db *sql.DB, log *logrus.Logger) *statusStreamRepo
 	}
 }
 
-func (s statusStreamRepository) Insert(ctx context.Context) error {
+func (s statusStreamRepository) Insert(ctx context.Context,
+	ss *statusstream.StatusStream) error {
 
+	query := fmt.Sprintf(statusstream.InsertToStatusStream, ss.StreamId, ss.StatusResponse)
+
+	_, err := s.db.ExecContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("cannot insert: %v", err)
+	}
+
+	logger.LogDebug(s.log, "Success insert")
 	return nil
 }
