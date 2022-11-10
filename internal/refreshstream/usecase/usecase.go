@@ -11,19 +11,19 @@ import (
 type refreshStreamUseCase struct {
 	db   *sql.DB
 	log  *logrus.Logger
-	Repo refreshstream.RefreshStreamRepository // интерфейс
+	repo refreshstream.RefreshStreamRepository // интерфейс
 
 }
 
-func NewRefreshStreamUseCase(Repo refreshstream.RefreshStreamRepository,
+func NewRefreshStreamUseCase(repo refreshstream.RefreshStreamRepository,
 	db *sql.DB, log *logrus.Logger) *refreshStreamUseCase {
 	return &refreshStreamUseCase{
 		db:   db,
 		log:  log,
-		Repo: Repo,
+		repo: repo,
 	}
 }
 
 func (s *refreshStreamUseCase) Get(ctx context.Context) ([]refreshstream.RefreshStream, error) {
-	return s.Repo.Get(ctx)
+	return s.repo.Get(ctx)
 }
