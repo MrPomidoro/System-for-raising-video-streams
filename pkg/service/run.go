@@ -18,6 +18,7 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -62,14 +63,15 @@ func (a *app) Run() error {
 		logger.LogDebug(a.Log, fmt.Sprintf("Response from database:\n%v", req))
 	}
 
-	ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
-	// Запись в базу данных результата выполнения (нужно менять)
-	err = a.statusStreamUseCase.Insert(ctx, &ssExample)
-	if err != nil {
-		logger.LogError(a.Log, "cannot insert")
-	} else {
-		logger.LogDebug(a.Log, "insert correct, 200")
-	}
+	fmt.Println(rtsp.GetRtsp(a.cfg))
+	// ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
+	// // Запись в базу данных результата выполнения (нужно менять)
+	// err = a.statusStreamUseCase.Insert(ctx, &ssExample)
+	// if err != nil {
+	// 	logger.LogError(a.Log, "cannot insert")
+	// } else {
+	// 	logger.LogDebug(a.Log, "insert correct, 200")
+	// }
 
 	return nil
 }
@@ -86,8 +88,8 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 	select {
 	case sign := <-sig:
 		logger.LogWarn(a.Log, fmt.Sprintf("Got signal: %v, exiting", sign))
-		database.CloseDBConnection(a.cfg, a.Db)
 		time.Sleep(time.Second * 2)
+		database.CloseDBConnection(a.cfg, a.Db)
 		a.StopChan(sig)
 	}
 }
