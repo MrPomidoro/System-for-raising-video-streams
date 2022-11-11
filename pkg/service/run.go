@@ -74,6 +74,7 @@ func (a *app) Run() error {
 				fmt.Println(vvk) // confName, conf, source, sourceReady, tracks или readers
 				fmt.Println(vvv) // значения этих полей
 				fmt.Printf("\n")
+
 			}
 			fmt.Printf("\n")
 		}
