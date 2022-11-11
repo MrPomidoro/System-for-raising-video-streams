@@ -36,6 +36,5 @@ func GetRtsp(cfg *config.Config) Items {
 	} else {
 		logger.LogDebug(log, "Success unmarshal body")
 	}
-
 	return item
 }

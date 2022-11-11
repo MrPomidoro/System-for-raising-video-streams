@@ -41,5 +41,5 @@ type Items struct {
 	Readers     []string `json:"readers"`
 }
 
-type EmptyStruct struct {
+type Emptystruct struct {
 }
