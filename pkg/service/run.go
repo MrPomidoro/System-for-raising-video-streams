@@ -18,7 +18,6 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -56,29 +55,11 @@ func (a *app) Run() error {
 	logger.LogDebug(a.Log, "Context initializated")
 
 	// Get-запрос на получение списка камер из базы данных
-	req, err := a.refreshStreamUseCase.Get(ctx)
-	if err != nil {
-		logger.LogError(a.Log, fmt.Sprintf("cannot get response from database: %v", err))
-	} else {
-		logger.LogDebug(a.Log, fmt.Sprintf("Response from database:\n%v", req))
-	}
+	a.getReqFromBD(ctx)
 
-	rtspRes := rtsp.GetRtsp(a.cfg)
-	m := rtspRes.(map[string]interface{})
-	for _, v := range m { // v - "items", не интересно для рассмотрения
-		vm := v.(map[string]interface{})
-		for vk, vv := range vm {
-			fmt.Println(vk) // CamName
-			vvm := vv.(map[string]interface{})
-			for vvk, vvv := range vvm {
-				fmt.Println(vvk) // confName, conf, source, sourceReady, tracks или readers
-				fmt.Println(vvv) // значения этих полей
-				fmt.Printf("\n")
+	// Получение и парсинг списка потоков с rtsp-simple-server
+	a.getReqFromRtsp()
 
-			}
-			fmt.Printf("\n")
-		}
-	}
 	// ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
 	// // Запись в базу данных результата выполнения (нужно менять)
 	// err = a.statusStreamUseCase.Insert(ctx, &ssExample)
