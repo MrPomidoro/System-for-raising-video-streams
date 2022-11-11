@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
@@ -14,8 +15,6 @@ func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
 	req, err := a.refreshStreamUseCase.Get(ctx)
 	if err != nil {
 		logger.LogError(a.Log, fmt.Sprintf("cannot get response from database: %v", err))
-	} else {
-		logger.LogDebug(a.Log, fmt.Sprintf("Response from database:\n%T", req))
 	}
 	return req
 }
@@ -41,6 +40,37 @@ func (a *app) getReqFromRtsp() {
 			}
 		}
 	}
+}
+
+func (a *app) getDBAndApi(ctx context.Context) (error, []refreshstream.RefreshStream, map[string]interface{}, int, int) {
+	var lenResRTSP int
+
+	// Отправка запросов к базе и к rtsp
+	resDB := a.getReqFromDB(ctx)
+	// a.getReqFromRtsp()
+	resRTSP := rtsp.GetRtsp(a.cfg)
+
+	// resDB = []refreshstream.RefreshStream{} // проверка нулевого ответа от базы
+	// Проверка, что ответ от базы данных не пустой
+	if len(resDB) == 0 {
+		logger.LogError(a.Log, "response from database is null!")
+		return errors.New("response from database is null"), resDB, resRTSP, 0, 0
+	}
+
+	// Определение числа потоков с rtsp
+	for _, items := range resRTSP { // items - поле "items"
+		// мапа: ключ - номер камеры, значения - остальные поля этой камеры
+		camsMap := items.(map[string]interface{})
+		lenResRTSP = len(camsMap) // количество камер
+	}
+
+	// Проверка, что ответ от rtsp данных не пустой
+	if lenResRTSP == 0 {
+		logger.LogError(a.Log, "response from rtsp-simple-server is null!")
+		return errors.New("response from rtsp-simple-server is null"), a.getReqFromDB(ctx), resRTSP, 0, 0
+	}
+
+	return nil, a.getReqFromDB(ctx), resRTSP, len(resDB), lenResRTSP
 }
 
 func EqualData() error {
