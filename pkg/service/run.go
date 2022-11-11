@@ -116,6 +116,7 @@ func (a *app) Run() {
 					_, _, lenResDBLESS, lenResRTSPLESS, err := a.getDBAndApi(ctx)
 					if err != nil {
 						logger.LogError(a.Log, err)
+						continue
 					}
 					// Сравнение числа записей в базе данных и записей в rtsp
 					if lenResDBLESS > lenResRTSPLESS {
