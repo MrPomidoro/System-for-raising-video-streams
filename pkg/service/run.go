@@ -18,6 +18,7 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -54,12 +55,28 @@ func (a *app) Run() error {
 	ctx := context.Background()
 	logger.LogDebug(a.Log, "Context initializated")
 
-	// Get-запрос на получение списка камер из базы данных
-	a.getReqFromBD(ctx)
+	var lenResRTSP int
 
-	// Получение и парсинг списка потоков с rtsp-simple-server
-	a.getReqFromRtsp()
+	resDB := a.getReqFromDB(ctx)
+	resRTSP := rtsp.GetRtsp(a.cfg)
 
+	for _, items := range resRTSP { // items - поле "items"
+		// Для доступа к данным каждой камеры:
+		camsMap := items.(map[string]interface{})
+		lenResRTSP = len(camsMap)
+	}
+	if len(resDB) == lenResRTSP {
+		logger.LogDebug(a.Log, fmt.Sprintf("The number of cameras in the database = %d is equal to the number of data in RTSP = %d\n", len(resDB), lenResRTSP))
+		// funcEqual
+	} else if len(resDB) > lenResRTSP {
+		logger.LogDebug(a.Log, fmt.Sprintf("The number of cameras in the database = %d is less than the number of data in RTSP = %d\n", len(resDB), lenResRTSP))
+		// funcMore
+	} else if len(resDB) < lenResRTSP {
+		logger.LogDebug(a.Log, fmt.Sprintf("The number of cameras in the database = %d is greater than the number of data in RTSP = %d\n", len(resDB), lenResRTSP))
+		// funcLess
+	}
+
+	//
 	// ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
 	// // Запись в базу данных результата выполнения (нужно менять)
 	// err = a.statusStreamUseCase.Insert(ctx, &ssExample)
