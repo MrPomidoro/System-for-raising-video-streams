@@ -42,7 +42,7 @@ func (a *app) getReqFromRtsp() {
 	}
 }
 
-func (a *app) getDBAndApi(ctx context.Context) (error, []refreshstream.RefreshStream, map[string]interface{}, int, int) {
+func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, map[string]interface{}, int, int, error) {
 	var lenResRTSP int
 
 	// Отправка запросов к базе и к rtsp
@@ -50,11 +50,10 @@ func (a *app) getDBAndApi(ctx context.Context) (error, []refreshstream.RefreshSt
 	// a.getReqFromRtsp()
 	resRTSP := rtsp.GetRtsp(a.cfg)
 
-	// resDB = []refreshstream.RefreshStream{} // проверка нулевого ответа от базы
+	resDB = []refreshstream.RefreshStream{} // проверка нулевого ответа от базы
 	// Проверка, что ответ от базы данных не пустой
 	if len(resDB) == 0 {
-		logger.LogError(a.Log, "response from database is null!")
-		return errors.New("response from database is null"), resDB, resRTSP, 0, 0
+		return resDB, resRTSP, len(resDB), lenResRTSP, errors.New("response from database is null")
 	}
 
 	// Определение числа потоков с rtsp
@@ -66,21 +65,23 @@ func (a *app) getDBAndApi(ctx context.Context) (error, []refreshstream.RefreshSt
 
 	// Проверка, что ответ от rtsp данных не пустой
 	if lenResRTSP == 0 {
-		logger.LogError(a.Log, "response from rtsp-simple-server is null!")
-		return errors.New("response from rtsp-simple-server is null"), a.getReqFromDB(ctx), resRTSP, 0, 0
+		return a.getReqFromDB(ctx), resRTSP, len(resDB), lenResRTSP, errors.New("response from rtsp-simple-server is null")
 	}
 
-	return nil, a.getReqFromDB(ctx), resRTSP, len(resDB), lenResRTSP
+	return a.getReqFromDB(ctx), resRTSP, len(resDB), lenResRTSP, nil
 }
 
 func EqualData() error {
+	fmt.Println("run EqualData")
 	return nil
 }
 
 func LessData() error {
+	fmt.Println("run LessData")
 	return nil
 }
 
 func MoreData() error {
+	fmt.Println("run MoreData")
 	return nil
 }
