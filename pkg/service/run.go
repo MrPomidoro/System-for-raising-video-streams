@@ -67,9 +67,10 @@ func (a *app) Run() {
 
 				// Получение данных от базы данных и от rtsp
 				// err, resDB, resRTSP, lenResDB, lenResRTSP := a.getDBAndApi(ctx)
-				err, _, _, lenResDB, lenResRTSP := a.getDBAndApi(ctx)
+				_, _, lenResDB, lenResRTSP, err := a.getDBAndApi(ctx)
 				if err != nil {
 					logger.LogError(a.Log, err)
+					continue
 				}
 
 				// Сравнение числа записей в базе данных и записей в rtsp
@@ -79,7 +80,20 @@ func (a *app) Run() {
 						logger.LogError(a.Log, err)
 						continue
 					}
+
+					var identity bool
 					// Проверка одинаковости данных
+					// func
+					//
+
+					if identity {
+						continue
+					} else {
+						// если есть отличия
+						// отправка апи на изменение данных в ртсп
+						// запись в статус_стрим
+						continue
+					}
 
 				} else if lenResDB > lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
@@ -87,7 +101,9 @@ func (a *app) Run() {
 						logger.LogError(a.Log, err)
 						continue
 					}
-					//
+					// получаем список отличий
+					// апи на добавление в ртсп
+					// запись в статус_стрим
 
 				} else if lenResDB < lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
@@ -95,14 +111,24 @@ func (a *app) Run() {
 						logger.LogError(a.Log, err)
 						continue
 					}
+					// Снова запрашиваем данные с базы и с rtsp
 					time.Sleep(time.Second * 5)
-					err, _, _, _, _ := a.getDBAndApi(ctx)
+					_, _, lenResDBLESS, lenResRTSPLESS, err := a.getDBAndApi(ctx)
 					if err != nil {
 						logger.LogError(a.Log, err)
 					}
-
-					//
-
+					// Сравнение числа записей в базе данных и записей в rtsp
+					if lenResDBLESS > lenResRTSPLESS {
+						// получаем список отличий
+						// апи на добавление в ртсп
+						// запись в статус_стрим
+						continue
+					} else if lenResDBLESS < lenResRTSPLESS {
+						// получаем список отличий
+						// апи на удаление в ртсп
+						// запись в статус_стрим
+						continue
+					}
 				}
 
 				// ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
