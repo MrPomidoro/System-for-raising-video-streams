@@ -40,6 +40,3 @@ type Items struct {
 	Tracks      []string `json:"tracks"`
 	Readers     []string `json:"readers"`
 }
-
-type Emptystruct struct {
-}
