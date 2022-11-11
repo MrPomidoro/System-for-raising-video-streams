@@ -55,25 +55,30 @@ func (a *app) Run() error {
 	ctx := context.Background()
 	logger.LogDebug(a.Log, "Context initializated")
 
+	// Число потоков после выполнения запроса к rtsp
 	var lenResRTSP int
-
+	// Отправка запросов к базе и к rtsp
 	resDB := a.getReqFromDB(ctx)
 	resRTSP := rtsp.GetRtsp(a.cfg)
 
+	a.getReqFromRtsp()
+
+	// Определение числа потоков с rtsp
 	for _, items := range resRTSP { // items - поле "items"
 		// Для доступа к данным каждой камеры:
 		camsMap := items.(map[string]interface{})
 		lenResRTSP = len(camsMap)
 	}
+
 	if len(resDB) == lenResRTSP {
-		logger.LogDebug(a.Log, fmt.Sprintf("The number of cameras in the database = %d is equal to the number of data in RTSP = %d\n", len(resDB), lenResRTSP))
-		// funcEqual
+		logger.LogInfo(a.Log, fmt.Sprintf("The number of cameras in the data = %d is equal to the number of data in RTSP = %d\n", len(resDB), lenResRTSP))
+		EqualData()
 	} else if len(resDB) > lenResRTSP {
-		logger.LogDebug(a.Log, fmt.Sprintf("The number of cameras in the database = %d is less than the number of data in RTSP = %d\n", len(resDB), lenResRTSP))
-		// funcMore
+		logger.LogInfo(a.Log, fmt.Sprintf("The number of cameras in the data = %d is less than the number of data in RTSP = %d\n", len(resDB), lenResRTSP))
+		LessData()
 	} else if len(resDB) < lenResRTSP {
-		logger.LogDebug(a.Log, fmt.Sprintf("The number of cameras in the database = %d is greater than the number of data in RTSP = %d\n", len(resDB), lenResRTSP))
-		// funcLess
+		logger.LogInfo(a.Log, fmt.Sprintf("The number of cameras in the data = %d is greater than the number of data in RTSP = %d\n", len(resDB), lenResRTSP))
+		MoreData()
 	}
 
 	//

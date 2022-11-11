@@ -17,9 +17,10 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 
 	resp, err := http.Get("http://10.100.100.30:9997/v1/paths/list")
 	if err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot отправить сраный запрос на rtsp: %v", err))
+		logger.LogError(log, fmt.Sprintf("cannot to send request to rtsp: %v", err))
 		return res
 	}
+	logger.LogDebug(log, "Success send request to rtsp")
 	// logger.LogDebug(log, fmt.Sprintf("response:\n%+v", resp.Body))
 	defer resp.Body.Close()
 
@@ -29,8 +30,6 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 		return res
 	}
 	logger.LogDebug(log, "Success read body")
-
-	// fmt.Println(string(body))
 
 	err = json.Unmarshal(body, &item)
 	if err != nil {

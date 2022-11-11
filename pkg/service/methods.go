@@ -21,29 +21,36 @@ func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
 }
 
 // Вывод списка потоков с rtsp-simple-server
-// (потом будет удалена, сейчас помогает разобраться)
+// (потом будет удалена или изменена, сейчас помогает разобраться)
 func (a *app) getReqFromRtsp() {
-	var i int
+
 	rtspResultMap := rtsp.GetRtsp(a.cfg)
 
-	for _, items := range rtspResultMap { // items - поле "items"
+	for key, items := range rtspResultMap { // items - значение поля "items"
+		fmt.Printf("%T\n", rtspResultMap[key])
 		// Для доступа к данным каждой камеры:
 		camsMap := items.(map[string]interface{})
-		fmt.Println(len(camsMap))
 
-		for camName, _ := range camsMap { // camFields
-			i++
-			fmt.Println(camName) // camName - номер камеры
+		for _, camFields := range camsMap { //
+			// fmt.Println(camName) // camName - номер каждой камеры
 			// Для доступа к данным полей камеры:
-			// camFieldsMap := camFields.(map[string]interface{})
-			// for fields, _ := range camFieldsMap { //valOfFields
-			// 	fmt.Println(fields) // поля confName, conf, source, sourceReady, tracks, readers
-			// fmt.Printf("type: %T; value: %v\n\n", valOfFields, valOfFields) // значения этих полей
-			// }
+			camFieldsMap := camFields.(map[string]interface{})
+			for fields, _ := range camFieldsMap { //valOfFields
+				fmt.Println(fields) // поля confName, conf, source, sourceReady, tracks, readers
+				// fmt.Printf("type: %T; value: %v\n\n", valOfFields, valOfFields) // значения этих полей
+			}
 		}
 	}
 }
 
-func (a *app) comparisonResultsRtspDb(ctx context.Context) {
+func EqualData() error {
+	return nil
+}
 
+func LessData() error {
+	return nil
+}
+
+func MoreData() error {
+	return nil
 }
