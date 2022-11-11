@@ -18,7 +18,6 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -61,49 +60,49 @@ func (a *app) Run() {
 		tick := time.NewTicker(a.cfg.Refresh_Time)
 		defer tick.Stop()
 		for {
+			fmt.Println("")
 			select {
 			// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 			case <-tick.C:
-				// Число потоков после выполнения запроса к rtsp
-				var lenResRTSP int
 
-				// Отправка запросов к базе и к rtsp
-				resDB := a.getReqFromDB(ctx)
-				// a.getReqFromRtsp()
-				resRTSP := rtsp.GetRtsp(a.cfg)
-
-				// resDB = []refreshstream.RefreshStream{} // проверка нулевого ответа от базы
-				// Проверка, что ответ от базы данных не пустой
-				if len(resDB) == 0 {
-					logger.LogError(a.Log, "response from database is null!")
-					continue
+				// Получение данных от базы данных и от rtsp
+				// err, resDB, resRTSP, lenResDB, lenResRTSP := a.getDBAndApi(ctx)
+				err, _, _, lenResDB, lenResRTSP := a.getDBAndApi(ctx)
+				if err != nil {
+					logger.LogError(a.Log, err)
 				}
 
-				// Определение числа потоков с rtsp
-				for _, items := range resRTSP { // items - поле "items"
-					// мапа: ключ - номер камеры, значения - остальные поля этой камеры
-					camsMap := items.(map[string]interface{})
-					lenResRTSP = len(camsMap) // количество камер
-				}
-
-				if len(resDB) == lenResRTSP {
-					logger.LogInfo(a.Log, fmt.Sprintf("The number of cameras in the data = %d is equal to the number of data in RTSP = %d", len(resDB), lenResRTSP))
+				// Сравнение числа записей в базе данных и записей в rtsp
+				if lenResDB == lenResRTSP {
+					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 					if err := EqualData(); err != nil {
 						logger.LogError(a.Log, err)
 						continue
 					}
-				} else if len(resDB) > lenResRTSP {
-					logger.LogInfo(a.Log, fmt.Sprintf("The number of cameras in the data = %d is greater than the number of data in RTSP = %d", len(resDB), lenResRTSP))
+					// Проверка одинаковости данных
+
+				} else if lenResDB > lenResRTSP {
+					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 					if err := LessData(); err != nil {
 						logger.LogError(a.Log, err)
 						continue
 					}
-				} else if len(resDB) < lenResRTSP {
-					logger.LogInfo(a.Log, fmt.Sprintf("The number of cameras in the data = %d is less than the number of data in RTSP = %d", len(resDB), lenResRTSP))
+					//
+
+				} else if lenResDB < lenResRTSP {
+					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 					if err := MoreData(); err != nil {
 						logger.LogError(a.Log, err)
 						continue
 					}
+					time.Sleep(time.Second * 5)
+					err, _, _, _, _ := a.getDBAndApi(ctx)
+					if err != nil {
+						logger.LogError(a.Log, err)
+					}
+
+					//
+
 				}
 
 				// ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
