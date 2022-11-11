@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/service"
 )
@@ -20,6 +21,10 @@ func main() {
 			logger.LogFatal(app.Log, err)
 		}
 	}()
+
+	// Проверка коннекта к базе данных
+	// и переподключение при необходимости
+	go database.DBPing(cfg, app.Db)
 
 	// Ожидание прерывающего сигнала
 	app.GracefulShutdown(app.SigChan)

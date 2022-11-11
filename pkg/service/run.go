@@ -10,11 +10,15 @@ import (
 	"time"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/usecase"
+	rsrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository"
+	rsusecase "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/usecase"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
+	ssrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository"
+	ssusecase "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/usecase"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,24 +26,27 @@ import (
 type app struct {
 	cfg                  *config.Config
 	Log                  *logrus.Logger
-	db                   *sql.DB
+	Db                   *sql.DB
 	SigChan              chan os.Signal
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
+	statusStreamUseCase  statusstream.StatusStreamUseCase
 }
 
 // Функция, инициализирующая прототип приложения
 func NewApp(cfg *config.Config) *app {
 	log := logger.NewLog(cfg.LogLevel)
 	db := database.CreateDBConnection(cfg)
-	repo := repository.NewRefreshStreamRepository(db, log)
 	sigChan := make(chan os.Signal, 1)
+	repoRS := rsrepository.NewRefreshStreamRepository(db, log)
+	repoSS := ssrepository.NewStatusStreamRepository(db, log)
 
 	return &app{
 		cfg:                  cfg,
-		db:                   db,
+		Db:                   db,
 		Log:                  log,
 		SigChan:              sigChan,
-		refreshStreamUseCase: usecase.NewRefreshStreamUseCase(repo, db, log),
+		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db, log),
+		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db, log),
 	}
 }
 
@@ -48,12 +55,23 @@ func (a *app) Run() error {
 	ctx := context.Background()
 	logger.LogDebug(a.Log, "Context initializated")
 
+	// Get-запрос на получение списка камер из базы данных
 	req, err := a.refreshStreamUseCase.Get(ctx)
 	if err != nil {
 		logger.LogError(a.Log, fmt.Sprintf("cannot get response from database: %v", err))
 	} else {
 		logger.LogDebug(a.Log, fmt.Sprintf("Response from database:\n%v", req))
 	}
+
+	fmt.Println(rtsp.GetRtsp(a.cfg))
+	// ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
+	// // Запись в базу данных результата выполнения (нужно менять)
+	// err = a.statusStreamUseCase.Insert(ctx, &ssExample)
+	// if err != nil {
+	// 	logger.LogError(a.Log, "cannot insert")
+	// } else {
+	// 	logger.LogDebug(a.Log, "insert correct, 200")
+	// }
 
 	return nil
 }
@@ -70,8 +88,8 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 	select {
 	case sign := <-sig:
 		logger.LogWarn(a.Log, fmt.Sprintf("Got signal: %v, exiting", sign))
-		database.CloseDBConnection(a.cfg, a.db)
 		time.Sleep(time.Second * 2)
+		database.CloseDBConnection(a.cfg, a.Db)
 		a.StopChan(sig)
 	}
 }
