@@ -63,7 +63,21 @@ func (a *app) Run() error {
 		logger.LogDebug(a.Log, fmt.Sprintf("Response from database:\n%v", req))
 	}
 
-	fmt.Println(rtsp.GetRtsp(a.cfg))
+	rtspRes := rtsp.GetRtsp(a.cfg)
+	m := rtspRes.(map[string]interface{})
+	for _, v := range m { // v - "items", не интересно для рассмотрения
+		vm := v.(map[string]interface{})
+		for vk, vv := range vm {
+			fmt.Println(vk) // CamName
+			vvm := vv.(map[string]interface{})
+			for vvk, vvv := range vvm {
+				fmt.Println(vvk) // confName, conf, source, sourceReady, tracks или readers
+				fmt.Println(vvv) // значения этих полей
+				fmt.Printf("\n")
+			}
+			fmt.Printf("\n")
+		}
+	}
 	// ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
 	// // Запись в базу данных результата выполнения (нужно менять)
 	// err = a.statusStreamUseCase.Insert(ctx, &ssExample)
