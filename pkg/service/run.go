@@ -91,11 +91,6 @@ func (a *app) Run() error {
 	return nil
 }
 
-// Метод структуры app, закрывающий канал
-func (a *app) StopChan(sig chan<- os.Signal) {
-	close(sig)
-}
-
 // Метод для корректного завершения работы программы
 // при получении прерывающего сигнала
 func (a *app) GracefulShutdown(sig chan os.Signal) {
@@ -105,6 +100,6 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 		logger.LogWarn(a.Log, fmt.Sprintf("Got signal: %v, exiting", sign))
 		time.Sleep(time.Second * 2)
 		database.CloseDBConnection(a.cfg, a.Db)
-		a.StopChan(sig)
+		close(a.SigChan)
 	}
 }
