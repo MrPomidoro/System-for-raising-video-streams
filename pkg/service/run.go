@@ -18,6 +18,7 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,26 +51,74 @@ func NewApp(cfg *config.Config) *app {
 }
 
 // Алгоритм
-func (a *app) Run() error {
+func (a *app) Run() {
+	// Инициализация контекста
 	ctx := context.Background()
 	logger.LogDebug(a.Log, "Context initializated")
 
-	// Get-запрос на получение списка камер из базы данных
-	a.getReqFromBD(ctx)
+	go func() {
+		// Канал для периодического выполнения алгоритма
+		tick := time.NewTicker(a.cfg.Refresh_Time) //a.cfg.Refresh_Time
+		defer tick.Stop()
+		for {
+			fmt.Println("tick")
+			select {
+			// Выполняется периодически через установленный в конфигурационном файле промежуток времени
+			case <-tick.C:
+				fmt.Println("tock")
+				// Число потоков после выполнения запроса к rtsp
+				var lenResRTSP int
 
-	// Получение и парсинг списка потоков с rtsp-simple-server
-	a.getReqFromRtsp()
+				// Отправка запросов к базе и к rtsp
+				resDB := a.getReqFromDB(ctx)
+				// a.getReqFromRtsp()
+				resRTSP := rtsp.GetRtsp(a.cfg)
 
-	// ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
-	// // Запись в базу данных результата выполнения (нужно менять)
-	// err = a.statusStreamUseCase.Insert(ctx, &ssExample)
-	// if err != nil {
-	// 	logger.LogError(a.Log, "cannot insert")
-	// } else {
-	// 	logger.LogDebug(a.Log, "insert correct, 200")
-	// }
+				// resDB = []refreshstream.RefreshStream{} // проверка нулевого ответа от базы
+				// Проверка, что ответ от базы данных не пустой
+				if len(resDB) == 0 {
+					logger.LogError(a.Log, "response from database is null!")
+					continue
+				}
 
-	return nil
+				// Определение числа потоков с rtsp
+				for _, items := range resRTSP { // items - поле "items"
+					// мапа: ключ - номер камеры, значения - остальные поля этой камеры
+					camsMap := items.(map[string]interface{})
+					lenResRTSP = len(camsMap) // количество камер
+				}
+
+				if len(resDB) == lenResRTSP {
+					logger.LogInfo(a.Log, fmt.Sprintf("The number of cameras in the data = %d is equal to the number of data in RTSP = %d", len(resDB), lenResRTSP))
+					if err := EqualData(); err != nil {
+						logger.LogError(a.Log, err)
+						continue
+					}
+				} else if len(resDB) > lenResRTSP {
+					logger.LogInfo(a.Log, fmt.Sprintf("The number of cameras in the data = %d is greater than the number of data in RTSP = %d", len(resDB), lenResRTSP))
+					if err := LessData(); err != nil {
+						logger.LogError(a.Log, err)
+						continue
+					}
+				} else if len(resDB) < lenResRTSP {
+					logger.LogInfo(a.Log, fmt.Sprintf("The number of cameras in the data = %d is less than the number of data in RTSP = %d", len(resDB), lenResRTSP))
+					if err := MoreData(); err != nil {
+						logger.LogError(a.Log, err)
+						continue
+					}
+				}
+
+				// ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
+				// // Запись в базу данных результата выполнения (нужно менять)
+				// err = a.statusStreamUseCase.Insert(ctx, &ssExample)
+				// if err != nil {
+				// 	logger.LogError(a.Log, "cannot insert")
+				// } else {
+				// 	logger.LogDebug(a.Log, "insert correct, 200")
+				// }
+			}
+		}
+	}()
 }
 
 // Метод для корректного завершения работы программы
