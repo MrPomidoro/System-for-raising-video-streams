@@ -58,14 +58,12 @@ func (a *app) Run() {
 
 	go func() {
 		// Канал для периодического выполнения алгоритма
-		tick := time.NewTicker(a.cfg.Refresh_Time) //a.cfg.Refresh_Time
+		tick := time.NewTicker(a.cfg.Refresh_Time)
 		defer tick.Stop()
 		for {
-			fmt.Println("tick")
 			select {
 			// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 			case <-tick.C:
-				fmt.Println("tock")
 				// Число потоков после выполнения запроса к rtsp
 				var lenResRTSP int
 
