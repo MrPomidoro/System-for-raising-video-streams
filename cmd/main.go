@@ -16,11 +16,7 @@ func main() {
 	logger.LogDebug(app.Log, "app created")
 
 	// Запуск алгоритма в отдельной горутине
-	go func() {
-		if err := app.Run(); err != nil {
-			logger.LogFatal(app.Log, err)
-		}
-	}()
+	go app.Run()
 
 	// Проверка коннекта к базе данных
 	// и переподключение при необходимости
