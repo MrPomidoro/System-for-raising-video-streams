@@ -50,7 +50,7 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 	// a.getReqFromRtsp()
 	resRTSP := rtsp.GetRtsp(a.cfg)
 
-	resDB = []refreshstream.RefreshStream{} // проверка нулевого ответа от базы
+	// resDB = []refreshstream.RefreshStream{} // проверка нулевого ответа от базы
 	// Проверка, что ответ от базы данных не пустой
 	if len(resDB) == 0 {
 		return resDB, resRTSP, len(resDB), lenResRTSP, "400", errors.New("response from database is null")
@@ -65,10 +65,10 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 
 	// Проверка, что ответ от rtsp данных не пустой
 	if lenResRTSP == 0 {
-		return a.getReqFromDB(ctx), resRTSP, len(resDB), lenResRTSP, "500", errors.New("response from rtsp-simple-server is null")
+		return resDB, resRTSP, len(resDB), lenResRTSP, "500", errors.New("response from rtsp-simple-server is null")
 	}
 
-	return a.getReqFromDB(ctx), resRTSP, len(resDB), lenResRTSP, "200", nil
+	return resDB, resRTSP, len(resDB), lenResRTSP, "200", nil
 }
 
 func EqualData() error {
