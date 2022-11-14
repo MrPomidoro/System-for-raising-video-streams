@@ -24,14 +24,15 @@ func NewRefreshStreamRepository(db *sql.DB, logStC *logrus.Logger) *refreshStrea
 
 func (s refreshStreamRepository) Get(ctx context.Context) ([]refreshstream.RefreshStream, error) {
 
-	// Формирование строки запроса
-	template := refreshstream.SELECT_COL_FROM_TBL
-	chose := "*"
-	tbl := `public."refresh_stream"`
-	query := fmt.Sprintf(template, chose, tbl)
+	/*
+		template := refreshstream.SELECT_COL_FROM_TBL
+		chose := "*"
+		tbl := `public."refresh_stream"`
+		query := fmt.Sprintf(template, chose, tbl)
+	*/
 
 	// Выполнение запроса
-	rows, err := s.db.QueryContext(ctx, query)
+	rows, err := s.db.QueryContext(ctx, refreshstream.QUERY)
 	if err != nil {
 		logger.LogErrorStatusCode(s.logStC, fmt.Sprintf("cannot get: %v", err), "Get", "400")
 		return nil, err
@@ -44,7 +45,7 @@ func (s refreshStreamRepository) Get(ctx context.Context) ([]refreshstream.Refre
 		rs := refreshstream.RefreshStream{}
 		err := rows.Scan(&rs.Id, &rs.Auth, &rs.Ip, &rs.Stream,
 			&rs.Portsrv, &rs.Sp, &rs.CamId, &rs.Record_status,
-			&rs.Stream_status, &rs.Record_state, &rs.Stream_state)
+			&rs.Stream_status, &rs.Record_state, &rs.Stream_state, &rs.Protocol)
 		if err != nil {
 			logger.LogErrorStatusCode(s.logStC, err, "Get", "400")
 			return nil, err

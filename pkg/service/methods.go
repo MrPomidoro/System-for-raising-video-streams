@@ -16,6 +16,7 @@ func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
 	if err != nil {
 		logger.LogError(a.Log, fmt.Sprintf("cannot get response from database: %v", err))
 	}
+	fmt.Println(req)
 	return req
 }
 
