@@ -16,4 +16,5 @@ type RefreshStream struct {
 	Stream_status sql.NullBool   `json:"stream_status" db:"stream_status"`
 	Record_state  sql.NullBool   `json:"record_state" db:"record_state"`
 	Stream_state  sql.NullBool   `json:"stream_state" db:"stream_state"`
+	Protocol      sql.NullString `json:"protocol" db:"protocol"`
 }

@@ -9,3 +9,9 @@ const (
 	DELETE_FROM_TBL_WHERE_CND         = "DELETE FROM %s WHERE %s"
 	DELETE_CASCADE_FROM_TBL_WHERE_CND = "DELETE CASCADE FROM %s WHERE %s"
 )
+
+const (
+	QUERY = `SELECT *
+	FROM public."refresh_stream"
+	WHERE stream IS NOT null AND stream_state = true`
+)

@@ -16,7 +16,7 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 	var item interface{}
 	var res map[string]interface{}
 
-	resp, err := http.Get("http://10.100.100.30:9997/v1/paths/list")
+	resp, err := http.Get("http://10.100.100.228:9997/v1/paths/list")
 	if err != nil {
 		logger.LogErrorStatusCode(logStC, fmt.Sprintf("cannot to send request to rtsp: %v", err), "Get", "500")
 		return res
