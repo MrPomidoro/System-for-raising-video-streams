@@ -36,3 +36,17 @@ func LogDebug(log *logrus.Logger, msg interface{}) {
 func LogTrace(log *logrus.Logger, msg interface{}) {
 	log.Tracef(fmt.Sprintf("%v", msg))
 }
+
+//
+
+// Выводит сообщение msg на уровне "Info" с указанием статус кода и вызванного метода
+func LogInfoStatusCode(log *logrus.Logger, msg interface{}, method, status string) {
+	log.WithField("meth", method).WithField("status", status).Printf(fmt.Sprintf("%v", msg))
+}
+
+// Выводит сообщение msg на уровне "Error" с указанием статус кода и вызванного метода
+func LogErrorStatusCode(log *logrus.Logger, msg interface{}, method, status string) {
+	log.WithField("meth", method).WithField("status", status).Errorf(fmt.Sprintf("%v", msg))
+}
+
+// func LogSMTH(log *logrus.Logger, msg interface{}, method, status string)

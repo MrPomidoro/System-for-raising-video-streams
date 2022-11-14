@@ -6,19 +6,15 @@ import (
 	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
-	"github.com/sirupsen/logrus"
 )
 
 type statusStreamRepository struct {
-	db  *sql.DB
-	log *logrus.Logger
+	db *sql.DB
 }
 
-func NewStatusStreamRepository(db *sql.DB, log *logrus.Logger) *statusStreamRepository {
+func NewStatusStreamRepository(db *sql.DB) *statusStreamRepository {
 	return &statusStreamRepository{
-		db:  db,
-		log: log,
+		db: db,
 	}
 }
 
@@ -32,6 +28,5 @@ func (s statusStreamRepository) Insert(ctx context.Context,
 		return fmt.Errorf("cannot insert: %v", err)
 	}
 
-	logger.LogDebug(s.log, "Success insert")
 	return nil
 }

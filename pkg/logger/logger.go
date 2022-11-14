@@ -26,6 +26,23 @@ func NewLog(level string) *logrus.Logger {
 	}
 }
 
+// Логгер для запросов, выводящий статус-код и вызванный метод
+func NewLogStatCode(level string) *logrus.Logger {
+	file, err := os.OpenFile(FileNameConst, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		logrus.Fatalf("cannot open file for logging: %v", err)
+	}
+
+	return &logrus.Logger{
+		Out:   io.MultiWriter(file, os.Stdout),
+		Level: initLogLevel(level),
+		Formatter: &easy.Formatter{
+			TimestampFormat: ServTimestampFormatConst,
+			LogFormat:       ServLogFormatStatusCodeConst,
+		},
+	}
+}
+
 // Выбор уровня логирования на основе переданной строковой переменной
 func initLogLevel(level string) logrus.Level {
 	switch level {
