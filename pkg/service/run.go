@@ -82,16 +82,19 @@ func (a *app) Run() {
 					}
 
 					var identity bool
-					// Проверка одинаковости данных
-					// func
-					//
+					/*
+						Проверка одинаковости данных
+						func
+					*/
 
 					if identity {
 						continue
 					} else {
-						// если есть отличия
-						// отправка апи на изменение данных в ртсп
-						// запись в статус_стрим
+						/*
+							если есть отличия
+							отправка апи на изменение данных в ртсп
+							запись в статус_стрим
+						*/
 						continue
 					}
 
@@ -101,9 +104,11 @@ func (a *app) Run() {
 						logger.LogError(a.Log, err)
 						continue
 					}
-					// получаем список отличий
-					// апи на добавление в ртсп
-					// запись в статус_стрим
+					/*
+						получаем список отличий
+						апи на добавление в ртсп
+						запись в статус_стрим
+					*/
 
 				} else if lenResDB < lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
@@ -111,35 +116,43 @@ func (a *app) Run() {
 						logger.LogError(a.Log, err)
 						continue
 					}
-					// Снова запрашиваем данные с базы и с rtsp
+
 					time.Sleep(time.Second * 5)
+					// Снова запрашиваем данные с базы и с rtsp
 					_, _, lenResDBLESS, lenResRTSPLESS, err := a.getDBAndApi(ctx)
 					if err != nil {
 						logger.LogError(a.Log, err)
 						continue
 					}
+
 					// Сравнение числа записей в базе данных и записей в rtsp
 					if lenResDBLESS > lenResRTSPLESS {
-						// получаем список отличий
-						// апи на добавление в ртсп
-						// запись в статус_стрим
+						/*
+							получаем список отличий
+							апи на добавление в ртсп
+							запись в статус_стрим
+						*/
 						continue
 					} else if lenResDBLESS < lenResRTSPLESS {
-						// получаем список отличий
-						// апи на удаление в ртсп
-						// запись в статус_стрим
+						/*
+							получаем список отличий
+							апи на удаление в ртсп
+							запись в статус_стрим
+						*/
 						continue
 					}
 				}
 
-				// ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
-				// // Запись в базу данных результата выполнения (нужно менять)
-				// err = a.statusStreamUseCase.Insert(ctx, &ssExample)
-				// if err != nil {
-				// 	logger.LogError(a.Log, "cannot insert")
-				// } else {
-				// 	logger.LogDebug(a.Log, "insert correct, 200")
-				// }
+				/*
+					ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
+					// Запись в базу данных результата выполнения (нужно менять)
+					err = a.statusStreamUseCase.Insert(ctx, &ssExample)
+					if err != nil {
+						logger.LogError(a.Log, "cannot insert")
+					} else {
+						logger.LogDebug(a.Log, "insert correct, 200")
+					}
+				*/
 			}
 		}
 	}()

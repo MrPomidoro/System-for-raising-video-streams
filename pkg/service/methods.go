@@ -10,7 +10,7 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
 )
 
-// Get-запрос на получение списка камер из базы данных
+// Get запрос на получение списка камер из базы данных
 func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
 	req, err := a.refreshStreamUseCase.Get(ctx)
 	if err != nil {
@@ -22,7 +22,6 @@ func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
 // Вывод списка потоков с rtsp-simple-server
 // (потом будет удалена или изменена, сейчас помогает разобраться)
 func (a *app) getReqFromRtsp() {
-
 	rtspResultMap := rtsp.GetRtsp(a.cfg)
 
 	for key, items := range rtspResultMap { // items - значение поля "items"
@@ -42,6 +41,7 @@ func (a *app) getReqFromRtsp() {
 	}
 }
 
+// Получение спискоа камер с бд и с rtsp
 func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, map[string]interface{}, int, int, error) {
 	var lenResRTSP int
 
