@@ -69,8 +69,8 @@ func (a *app) Run() {
 			case <-tick.C:
 
 				// Получение данных от базы данных и от rtsp
-				// err, resDB, resRTSP, lenResDB, lenResRTSP := a.getDBAndApi(ctx)
-				_, _, lenResDB, lenResRTSP, stCode, err := a.getDBAndApi(ctx)
+				// dataDB, dataRTSP, lenResDB, lenResRTSP, statusCode err := a.getDBAndApi(ctx)
+				dataDB, dataRTSP, lenResDB, lenResRTSP, stCode, err := a.getDBAndApi(ctx)
 				if err != nil {
 					logger.LogErrorStatusCode(a.LogStatusCode, err, "Get", stCode)
 					continue
@@ -84,11 +84,12 @@ func (a *app) Run() {
 					// 	continue
 					// }
 
-					var identity bool
+					// var identity bool
 					/*
 						Проверка одинаковости данных по стримам
-						func
 					*/
+					identity := CheckIdentity(dataDB, dataRTSP)
+					fmt.Println(identity)
 
 					if identity {
 						continue
@@ -120,6 +121,7 @@ func (a *app) Run() {
 					// 	logger.LogError(a.Log, err)
 					// 	continue
 					// }
+					fmt.Println(CheckIdentity(dataDB, dataRTSP))
 
 					time.Sleep(time.Second * 5)
 
