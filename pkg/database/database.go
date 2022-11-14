@@ -24,6 +24,7 @@ func CreateDBConnection(cfg *config.Config) *sql.DB {
 	dbcfg.Driver = cfg.Driver
 	dbcfg.DBConnectionTimeoutSecond = cfg.Db_Connection_Timeout_Second
 	dbcfg.Log = logger.NewLog(cfg.LogLevel)
+	dbcfg.LogStCode = logger.NewLogStatCode(cfg.LogLevel)
 
 	return connectToDB(&dbcfg)
 }
@@ -39,16 +40,16 @@ func connectToDB(dbcfg *Database) *sql.DB {
 	// Подключение
 	dbSQL, err := sql.Open(dbcfg.Driver, sqlInfo)
 	if err != nil {
-		logger.LogError(dbcfg.Log, fmt.Sprintf("cannot get connect to database: %v", err))
+		logger.LogError(dbcfg.Log, fmt.Sprintf("{Status code - 400} - cannot get connect to database: %v", err))
 	}
 
 	// Проверка подключения
 	time.Sleep(time.Millisecond * 3)
 	if err := dbSQL.Ping(); err == nil {
-		logger.LogDebug(dbcfg.Log, fmt.Sprintf("Success connect to database %s", dbcfg.Db_name))
+		logger.LogInfo(dbcfg.Log, fmt.Sprintf("{Status code - 200} - Success connect to database %s", dbcfg.Db_name))
 		return dbSQL
 	} else {
-		logger.LogError(dbcfg.Log, fmt.Sprintf("cannot connect to database %s", err))
+		logger.LogError(dbcfg.Log, fmt.Sprintf("{Status code - 400} - cannot connect to database: %s", err))
 	}
 
 	connLatency := time.Duration(10 * time.Millisecond)
@@ -61,7 +62,7 @@ func connectToDB(dbcfg *Database) *sql.DB {
 		time.Sleep(time.Second * 3)
 	}
 
-	logger.LogError(dbcfg.Log, fmt.Sprintf("Time waiting of DB connection exceeded limit: %v", connTimeout))
+	logger.LogError(dbcfg.Log, fmt.Sprintf("{Status code - 400} - Time waiting of DB connection exceeded limit: %v", connTimeout))
 	return dbSQL
 }
 
@@ -69,10 +70,10 @@ func connectToDB(dbcfg *Database) *sql.DB {
 func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
 	log := logger.NewLog(cfg.LogLevel)
 	if err := dbSQL.Close(); err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot close DB connection. Error: %v", err))
+		logger.LogError(log, fmt.Sprintf("{Status code - 400} - cannot close DB connection. Error: %v", err))
 		return
 	}
-	logger.LogDebug(log, "Established closing of connection to DB")
+	logger.LogDebug(log, "{Status code - 200} - Established closing of connection to DB")
 }
 
 func DBPing(cfg *config.Config, db *sql.DB) {
@@ -80,7 +81,7 @@ func DBPing(cfg *config.Config, db *sql.DB) {
 	for {
 		log := logger.NewLog(cfg.LogLevel)
 		if err := db.Ping(); err != nil {
-			logger.LogWarn(log, fmt.Sprintf("cannot connect to database %s", err))
+			logger.LogWarn(log, fmt.Sprintf("{Status code - 400} - cannot connect to database %s", err))
 			logger.LogInfo(log, "try connection to database...")
 
 			var dbcfg Database

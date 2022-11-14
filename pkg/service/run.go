@@ -25,6 +25,7 @@ import (
 type app struct {
 	cfg                  *config.Config
 	Log                  *logrus.Logger
+	LogStatusCode        *logrus.Logger
 	Db                   *sql.DB
 	SigChan              chan os.Signal
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
@@ -34,15 +35,17 @@ type app struct {
 // Функция, инициализирующая прототип приложения
 func NewApp(cfg *config.Config) *app {
 	log := logger.NewLog(cfg.LogLevel)
+	logStatCode := logger.NewLogStatCode(cfg.LogLevel)
 	db := database.CreateDBConnection(cfg)
 	sigChan := make(chan os.Signal, 1)
-	repoRS := rsrepository.NewRefreshStreamRepository(db, log)
-	repoSS := ssrepository.NewStatusStreamRepository(db, log)
+	repoRS := rsrepository.NewRefreshStreamRepository(db, logStatCode)
+	repoSS := ssrepository.NewStatusStreamRepository(db)
 
 	return &app{
 		cfg:                  cfg,
 		Db:                   db,
 		Log:                  log,
+		LogStatusCode:        logStatCode,
 		SigChan:              sigChan,
 		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db, log),
 		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db, log),
@@ -67,9 +70,9 @@ func (a *app) Run() {
 
 				// Получение данных от базы данных и от rtsp
 				// err, resDB, resRTSP, lenResDB, lenResRTSP := a.getDBAndApi(ctx)
-				_, _, lenResDB, lenResRTSP, err := a.getDBAndApi(ctx)
+				_, _, lenResDB, lenResRTSP, stCode, err := a.getDBAndApi(ctx)
 				if err != nil {
-					logger.LogError(a.Log, err)
+					logger.LogErrorStatusCode(a.LogStatusCode, err, "Get", stCode)
 					continue
 				}
 
@@ -119,9 +122,9 @@ func (a *app) Run() {
 
 					time.Sleep(time.Second * 5)
 					// Снова запрашиваем данные с базы и с rtsp
-					_, _, lenResDBLESS, lenResRTSPLESS, err := a.getDBAndApi(ctx)
+					_, _, lenResDBLESS, lenResRTSPLESS, stCode, err := a.getDBAndApi(ctx)
 					if err != nil {
-						logger.LogError(a.Log, err)
+						logger.LogErrorStatusCode(a.LogStatusCode, err, "Get", stCode)
 						continue
 					}
 
@@ -148,9 +151,9 @@ func (a *app) Run() {
 					// Запись в базу данных результата выполнения (нужно менять)
 					err = a.statusStreamUseCase.Insert(ctx, &ssExample)
 					if err != nil {
-						logger.LogError(a.Log, "cannot insert")
+						logger.LogErrorStatusCode(a.LogStatusCode, "cannot insert", "Post", "400")
 					} else {
-						logger.LogDebug(a.Log, "insert correct, 200")
+						logger.LogInfoStatusCode(a.LogStatusCode, "Success insert", "Post", "200")
 					}
 				*/
 			}

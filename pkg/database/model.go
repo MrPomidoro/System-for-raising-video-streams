@@ -17,4 +17,5 @@ type Database struct {
 	Driver                    string
 	DBConnectionTimeoutSecond time.Duration
 	Log                       *logrus.Logger
+	LogStCode                 *logrus.Logger
 }

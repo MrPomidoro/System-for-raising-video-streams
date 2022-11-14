@@ -42,7 +42,7 @@ func (a *app) getReqFromRtsp() {
 }
 
 // Получение спискоа камер с бд и с rtsp
-func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, map[string]interface{}, int, int, error) {
+func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, map[string]interface{}, int, int, string, error) {
 	var lenResRTSP int
 
 	// Отправка запросов к базе и к rtsp
@@ -53,7 +53,7 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 	resDB = []refreshstream.RefreshStream{} // проверка нулевого ответа от базы
 	// Проверка, что ответ от базы данных не пустой
 	if len(resDB) == 0 {
-		return resDB, resRTSP, len(resDB), lenResRTSP, errors.New("response from database is null")
+		return resDB, resRTSP, len(resDB), lenResRTSP, "400", errors.New("response from database is null")
 	}
 
 	// Определение числа потоков с rtsp
@@ -65,10 +65,10 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 
 	// Проверка, что ответ от rtsp данных не пустой
 	if lenResRTSP == 0 {
-		return a.getReqFromDB(ctx), resRTSP, len(resDB), lenResRTSP, errors.New("response from rtsp-simple-server is null")
+		return a.getReqFromDB(ctx), resRTSP, len(resDB), lenResRTSP, "500", errors.New("response from rtsp-simple-server is null")
 	}
 
-	return a.getReqFromDB(ctx), resRTSP, len(resDB), lenResRTSP, nil
+	return a.getReqFromDB(ctx), resRTSP, len(resDB), lenResRTSP, "200", nil
 }
 
 func EqualData() error {

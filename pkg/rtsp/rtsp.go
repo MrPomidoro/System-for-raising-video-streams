@@ -11,16 +11,17 @@ import (
 )
 
 func GetRtsp(cfg *config.Config) map[string]interface{} {
+	logStC := logger.NewLogStatCode(cfg.LogLevel)
 	log := logger.NewLog(cfg.LogLevel)
 	var item interface{}
 	var res map[string]interface{}
 
 	resp, err := http.Get("http://10.100.100.30:9997/v1/paths/list")
 	if err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot to send request to rtsp: %v", err))
+		logger.LogErrorStatusCode(logStC, fmt.Sprintf("cannot to send request to rtsp: %v", err), "Get", "500")
 		return res
 	}
-	logger.LogDebug(log, "Success send request to rtsp")
+	logger.LogInfoStatusCode(logStC, "Success send Get request to rtsp", "Get", "200")
 	// logger.LogDebug(log, fmt.Sprintf("response:\n%+v", resp.Body))
 	defer resp.Body.Close()
 
