@@ -19,9 +19,9 @@ type Logger struct {
 
 // Параметры сервера
 type Server struct {
-	Server_Port  string        `yaml:"server_port"`
-	Server_Host  string        `yaml:"server_host"`
-	Addr         string        `yaml:"addr"`
+	Server_Port string `yaml:"server_port"`
+	Server_Host string `yaml:"server_host"`
+	// Addr         string        `yaml:"addr"`
 	ReadTimeout  time.Duration `yaml:"readtimeout"`
 	WriteTimeout time.Duration `yaml:"writetimeout"`
 	IdleTimeout  time.Duration `yaml:"idletimeout"`
