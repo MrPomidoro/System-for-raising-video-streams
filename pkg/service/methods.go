@@ -51,21 +51,30 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 	return resDB, resRTSP, len(resDB), lenResRTSP, "200", nil
 }
 
+/*
+Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
+возвращающая true, если количество камер в базе и в rtsp одинаковое
+*/
 func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) bool {
+
 	// Счётчик для подсчёта совпадающих стримов камер
 	var count int
+
 	// Перебор элементов списка структур
 	for _, camDB := range dataDB {
+
 		// Перебор элементов мапы
 		for _, camsRTSP := range dataRTSP {
+
 			// Для возможности извлечения данных
 			camsRTSPMap := camsRTSP.(map[string]interface{})
+
 			// camRTSP - стрим камеры
 			for camRTSP := range camsRTSPMap {
-				// Если stream из базы данных совпадает с rtsp, счётчик увеличивается
+				// Если stream из базы данных совпадает с rtsp, счётчики увеличиваются
 				if camDB.Stream.String == camRTSP {
-					fmt.Printf("camera from db (%s) is camera from rtsp (%s)\n", camDB.Stream.String, camRTSP)
 					count++
+					break
 				}
 			}
 		}
@@ -77,6 +86,61 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 	} else {
 		return false
 	}
+}
+
+/*
+Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
+возвращающая списки отличающихся камер:
+камеры, отсутствующие в rtsp, но имеющиеся в базе, добавить в rtsp,
+лишние - удалить из rtsp
+*/
+func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) ([]string, []string) {
+	/*
+		Слайсы с отличающимися элементами:
+		лишние камеры из rtsp нужно удалить,
+		отсутствующие в rtsp, но имеющиеся в базе - добавить
+	*/
+	var resSliceRemove []string
+	var resSliceAdd []string
+
+	// Перебор элементов списка структур
+	for _, camDB := range dataDB {
+		// Счетчик для проверки вхождения камеры бд в список с rtsp
+		var isUniqueDB int
+
+		// Перебор элементов мапы
+		for _, camsRTSP := range dataRTSP {
+
+			// Для возможности извлечения данных
+			camsRTSPMap := camsRTSP.(map[string]interface{})
+
+			// Счетчик для проверки вхождения камеры rtsp в список с бд
+			var isUniqueRTSP int
+			// Переменная для фиксации стрима камеры
+			var cam string
+
+			// camRTSP - стрим камеры
+			for camRTSP := range camsRTSPMap {
+				cam = camRTSP
+				// Если stream из базы данных совпадает с rtsp, счётчики увеличиваются
+				if camDB.Stream.String == camRTSP {
+					isUniqueRTSP++
+					isUniqueDB++
+					break
+				}
+			}
+			// Если значение счётчика ненулевое, камера добавляется в список на удаление
+			if isUniqueRTSP == 0 {
+				resSliceRemove = append(resSliceRemove, cam)
+			}
+		}
+		// Если значение счётчика ненулевое, камера добавляется в список на добавление
+		if isUniqueDB == 0 {
+			resSliceAdd = append(resSliceAdd, camDB.Stream.String)
+		}
+	}
+
+	return resSliceAdd, resSliceRemove
 }
 
 func EqualData() error {

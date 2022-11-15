@@ -89,7 +89,8 @@ func (a *app) Run() {
 						Проверка одинаковости данных по стримам
 					*/
 					identity := CheckIdentity(dataDB, dataRTSP)
-					fmt.Println(identity)
+					resSliceAdd, resSliceRemove := GetDifferenceElements(dataDB, dataRTSP)
+					fmt.Printf("data is identity: %t\nelement should added: %v\nelement should removed: %v\n", identity, resSliceAdd, resSliceRemove)
 
 					if identity {
 						continue
