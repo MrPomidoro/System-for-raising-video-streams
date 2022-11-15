@@ -1,6 +1,7 @@
 package rtsp
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -50,6 +51,9 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 }
 
 func PostRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
+	// Парсинг URL
+	URLPost := fmt.Sprintf(URLPostConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
+
 	// Парсинг поля RunOnReady
 	runOnReady := fmt.Sprintf(RunOnReadyConst, cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
 
@@ -63,10 +67,21 @@ func PostRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
 	// Заполнение структуры PathAdd для отправления Post запроса
 	postStruct := PathAdd{RunOnReadRestart: true, ReadIPs: []string{camDB.Ip.String},
 		RunOnReady: runOnReady, ReadUser: login, ReadPass: pass, SourceProtocol: camDB.Protocol.String}
-	postJson, _ := json.Marshal(postStruct)
-	fmt.Println(string(postJson))
 
-	// URLPost := fmt.Sprintf(URLPostConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
-	// resp, err := http.
+	postMap := map[string]map[string]PathAdd{camDB.Stream.String: {"conf": postStruct}}
+
+	// Маршалинг в json
+	postJson, err := json.Marshal(postMap)
+	if err != nil {
+		return fmt.Errorf("cannot marshal structure to json, %v", err)
+	}
+	fmt.Println(string(postJson))
+	postJsonStr := []byte(postJson)
+
+	_, err = http.NewRequest("POST", URLPost, bytes.NewBuffer(postJsonStr))
+	if err != nil {
+		return fmt.Errorf("cannot complete post request, %v", err)
+	}
+
 	return nil
 }

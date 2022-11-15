@@ -108,31 +108,34 @@ func (a *app) Run() {
 							// Цикл для извлечения данных из структуры выбранной камеры
 							for _, camDB := range dataDB {
 								if camDB.Stream.String == elemAdd {
-									err = rtsp.PostRTSP(camDB, a.cfg)
+									rtsp.PostRTSP(camDB, a.cfg)
 
-									// 	// Запись в базу данных результата выполнения
-									// if err != nil {
-									// 	insertStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
-									// 	err = a.statusStreamUseCase.Insert(ctx, &insertStatusStream)
-									// 	if err != nil {
-									// 		logger.LogErrorStatusCode(a.LogStatusCode,
-									// 			"cannot insert to table status_stream", "Post", "400")
-									// 	} else {
-									// 		logger.LogInfoStatusCode(a.LogStatusCode,
-									// 			"Success insert to table status_stream", "Post", "200")
-									// 	}
-									// } else {
-									// 	// Запись в базу данных результата выполнения
-									// 	insertStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
-									// 	err = a.statusStreamUseCase.Insert(ctx, &insertStatusStream)
-									// 	if err != nil {
-									// 		logger.LogErrorStatusCode(a.LogStatusCode,
-									// 			"cannot insert to table status_stream", "Post", "400")
-									// 	} else {
-									// 		logger.LogInfoStatusCode(a.LogStatusCode,
-									// 			"Success insert to table status_stream", "Post", "200")
-									// 	}
-									// }
+									/*
+										// Запись в базу данных результата выполнения
+										if err != nil {
+											logger.LogErrorStatusCode(a.LogStatusCode, err, "Post", "500")
+											insertStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
+											err = a.statusStreamUseCase.Insert(ctx, &insertStatusStream)
+											if err != nil {
+												logger.LogErrorStatusCode(a.LogStatusCode,
+													"cannot insert to table status_stream", "Post", "400")
+											} else {
+												logger.LogInfoStatusCode(a.LogStatusCode,
+													"Success insert to table status_stream", "Post", "200")
+											}
+										} else {
+											// Запись в базу данных результата выполнения
+											insertStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+											err = a.statusStreamUseCase.Insert(ctx, &insertStatusStream)
+											if err != nil {
+												logger.LogErrorStatusCode(a.LogStatusCode,
+													"cannot insert to table status_stream", "Post", "400")
+											} else {
+												logger.LogInfoStatusCode(a.LogStatusCode,
+													"Success insert to table status_stream", "Post", "200")
+											}
+										}
+									*/
 
 									continue
 								}
@@ -219,8 +222,8 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 	select {
 	case sign := <-sig:
 		logger.LogWarn(a.Log, fmt.Sprintf("Got signal: %v, exiting", sign))
-		time.Sleep(time.Second * 2)
 		database.CloseDBConnection(a.cfg, a.Db)
+		time.Sleep(time.Second * 2)
 		close(a.SigChan)
 	}
 }
