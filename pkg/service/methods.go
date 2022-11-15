@@ -102,42 +102,64 @@ func getDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[st
 	*/
 	var resSliceRemove []string
 	var resSliceAdd []string
+	var camNameRTSP string
+	var doubleRemove int
 
-	// Перебор элементов списка структур
-	for _, camDB := range dataDB {
-		// Счетчик для проверки вхождения камеры бд в список с rtsp
-		var isUniqueDB int
+	// Перебор элементов мапы
+	for _, camsRTSP := range dataRTSP {
+		// Для возможности извлечения данных
+		camsRTSPMap := camsRTSP.(map[string]interface{})
+		// camRTSP - стрим камеры
+		for camRTSP := range camsRTSPMap {
+			camNameRTSP = camRTSP
+			// Перебор элементов списка структур
+			for _, camDB := range dataDB {
 
-		// Перебор элементов мапы
-		for _, camsRTSP := range dataRTSP {
-
-			// Для возможности извлечения данных
-			camsRTSPMap := camsRTSP.(map[string]interface{})
-
-			// Счетчик для проверки вхождения камеры rtsp в список с бд
-			var isUniqueRTSP int
-			// Переменная для фиксации стрима камеры
-			var cam string
-
-			// camRTSP - стрим камеры
-			for camRTSP := range camsRTSPMap {
-				cam = camRTSP
-				// Если stream из базы данных совпадает с rtsp, счётчики увеличиваются
-				if camDB.Stream.String == camRTSP {
-					isUniqueRTSP++
-					isUniqueDB++
+				if camDB.Stream.String == camNameRTSP {
+					doubleRemove++
 					break
 				}
 			}
+
 			// Если значение счётчика ненулевое, камера добавляется в список на удаление
-			if isUniqueRTSP == 0 {
-				resSliceRemove = append(resSliceRemove, cam)
+			if doubleRemove == 0 {
+				resSliceRemove = append(resSliceRemove, camNameRTSP)
+			}
+
+			// fmt.Printf("cam: %s - doubleRemove: %d - resSliceRemove: %v\n", camNameRTSP, doubleRemove, resSliceRemove)
+			doubleRemove = 0
+		}
+	}
+
+	//
+
+	var doubleAppend int
+	var camNameDB string
+
+	// Перебор элементов списка структур
+	for _, camDB := range dataDB {
+
+		camNameDB = camDB.Stream.String
+
+		// Перебор элементов мапы
+		for _, camsRTSP := range dataRTSP {
+			// Для возможности извлечения данных
+			camsRTSPMap := camsRTSP.(map[string]interface{})
+			// camRTSP - стрим камеры
+			for camRTSP := range camsRTSPMap {
+				// Если stream из базы данных совпадает с rtsp, счётчики увеличиваются
+				if camNameDB == camRTSP {
+					doubleAppend++
+					break
+				}
 			}
 		}
 		// Если значение счётчика ненулевое, камера добавляется в список на добавление
-		if isUniqueDB == 0 {
-			resSliceAdd = append(resSliceAdd, camDB.Stream.String)
+		if doubleAppend == 0 {
+			resSliceAdd = append(resSliceAdd, camNameDB)
 		}
+		// fmt.Printf("cam: %s - doubleAppend: %d - resSliceAdd: %v\n", camNameDB, doubleAppend, resSliceAdd)
+		doubleAppend = 0
 	}
 
 	return resSliceAdd, resSliceRemove
