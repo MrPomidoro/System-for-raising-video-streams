@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -18,6 +19,8 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -60,7 +63,7 @@ func (a *app) Run() {
 
 	go func() {
 		// Канал для периодического выполнения алгоритма
-		tick := time.NewTicker(time.Second * 4) //a.cfg.Refresh_Time)
+		tick := time.NewTicker(time.Second * 3) //a.cfg.Refresh_Time)
 		defer tick.Stop()
 		for {
 			fmt.Println("")
@@ -76,6 +79,7 @@ func (a *app) Run() {
 				}
 
 				// Сравнение числа записей в базе данных и записей в rtsp
+
 				/*
 					Если данных в базе столько же, сколько в rtsp:
 					проверка, одинаковые ли записи:
@@ -89,16 +93,62 @@ func (a *app) Run() {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
 					// Проверка одинаковости данных по стримам
-					identity := checkIdentity(dataDB, dataRTSP)
+					identity := methods.CheckIdentity(dataDB, dataRTSP)
 
 					if identity {
+						logger.LogInfo(a.Log, "Data is identity, waiting...")
 						continue
 					} else {
-						resSliceAdd, resSliceRemove := getDifferenceElements(dataDB, dataRTSP)
-						logger.LogInfo(a.Log, fmt.Sprintf("Data is identity: %t\nElements to be added: %v\nElements to be removed: %v", identity, resSliceAdd, resSliceRemove))
+						resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
+						logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
+							resSliceAdd, resSliceRemove))
 
+						// Перебор всех камер, которые нужно добавить
+						for _, elemAdd := range resSliceAdd {
+							// Цикл для извлечения данных из структуры выбранной камеры
+							for _, camDB := range dataDB {
+								if camDB.Stream.String == elemAdd {
+									err = rtsp.PostRTSP(camDB, a.cfg)
+
+									// 	// Запись в базу данных результата выполнения
+									// if err != nil {
+									// 	insertStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
+									// 	err = a.statusStreamUseCase.Insert(ctx, &insertStatusStream)
+									// 	if err != nil {
+									// 		logger.LogErrorStatusCode(a.LogStatusCode,
+									// 			"cannot insert to table status_stream", "Post", "400")
+									// 	} else {
+									// 		logger.LogInfoStatusCode(a.LogStatusCode,
+									// 			"Success insert to table status_stream", "Post", "200")
+									// 	}
+									// } else {
+									// 	// Запись в базу данных результата выполнения
+									// 	insertStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+									// 	err = a.statusStreamUseCase.Insert(ctx, &insertStatusStream)
+									// 	if err != nil {
+									// 		logger.LogErrorStatusCode(a.LogStatusCode,
+									// 			"cannot insert to table status_stream", "Post", "400")
+									// 	} else {
+									// 		logger.LogInfoStatusCode(a.LogStatusCode,
+									// 			"Success insert to table status_stream", "Post", "200")
+									// 	}
+									// }
+
+									continue
+								}
+								// if err != nil {
+								// 	logger.LogErrorStatusCode(a.LogStatusCode, fmt.Sprintf("cannot to send Post request to rtsp: %v", err), "Get", "500")
+								// 	continue
+								// }
+								// logger.LogInfoStatusCode(a.LogStatusCode, "Send Post request to rtsp", "Post", "200")
+								// // Отложенное закрытие тела ответа
+								// defer resp.Body.Close()
+							}
+						}
 						continue
 					}
+
+					//
 					/*
 						Если данных в базе больше, чем в rtsp:
 						получение списка отличий;
@@ -108,9 +158,10 @@ func (a *app) Run() {
 				} else if lenResDB > lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
-					resSliceAdd, resSliceRemove := getDifferenceElements(dataDB, dataRTSP)
-					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v\nElements to be removed: %v", resSliceAdd, resSliceRemove))
+					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
+					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
 
+					//
 					/*
 						Если данных в базе меньше, чем в rtsp:
 						получение списка отличий;
@@ -172,4 +223,44 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 		database.CloseDBConnection(a.cfg, a.Db)
 		close(a.SigChan)
 	}
+}
+
+// Get запрос на получение списка камер из базы данных
+func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
+	req, err := a.refreshStreamUseCase.Get(ctx)
+	if err != nil {
+		logger.LogError(a.Log, fmt.Sprintf("cannot get response from database: %v", err))
+	}
+	return req
+}
+
+/*
+Получение спискоа камер с бд и с rtsp
+На выходе: данные с бд, данные с rtsp, длины этих списков, статус код, ошибка
+*/
+func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, map[string]interface{}, int, int, string, error) {
+	var lenResRTSP int
+
+	// Отправка запросов к базе и к rtsp
+	resDB := a.getReqFromDB(ctx)
+	resRTSP := rtsp.GetRtsp(a.cfg)
+
+	// Проверка, что ответ от базы данных не пустой
+	if len(resDB) == 0 {
+		return resDB, resRTSP, len(resDB), lenResRTSP, "400", errors.New("response from database is null")
+	}
+
+	// Определение числа потоков с rtsp
+	for _, items := range resRTSP { // items - поле "items"
+		// мапа: ключ - номер камеры, значения - остальные поля этой камеры
+		camsMap := items.(map[string]interface{})
+		lenResRTSP = len(camsMap) // количество камер
+	}
+
+	// Проверка, что ответ от rtsp данных не пустой
+	if lenResRTSP == 0 {
+		return resDB, resRTSP, len(resDB), lenResRTSP, "500", errors.New("response from rtsp-simple-server is null")
+	}
+
+	return resDB, resRTSP, len(resDB), lenResRTSP, "200", nil
 }
