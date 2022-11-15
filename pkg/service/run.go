@@ -96,10 +96,6 @@ func (a *app) Run() {
 					} else {
 						resSliceAdd, resSliceRemove := getDifferenceElements(dataDB, dataRTSP)
 						logger.LogInfo(a.Log, fmt.Sprintf("Data is identity: %t\nElements to be added: %v\nElements to be removed: %v", identity, resSliceAdd, resSliceRemove))
-						/*
-							отправка апи на изменение данных в ртсп;
-							запись в статус_стрим
-						*/
 
 						continue
 					}
@@ -113,7 +109,7 @@ func (a *app) Run() {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
 					resSliceAdd, resSliceRemove := getDifferenceElements(dataDB, dataRTSP)
-					logger.LogInfo(a.Log, fmt.Sprintf("element should added: %v\nelement should removed: %v\n", resSliceAdd, resSliceRemove))
+					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v\nElements to be removed: %v", resSliceAdd, resSliceRemove))
 
 					/*
 						Если данных в базе меньше, чем в rtsp:
