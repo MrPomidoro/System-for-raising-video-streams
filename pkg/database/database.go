@@ -82,7 +82,7 @@ func DBPing(cfg *config.Config, db *sql.DB) {
 		log := logger.NewLog(cfg.LogLevel)
 		if err := db.Ping(); err != nil {
 			logger.LogWarn(log, fmt.Sprintf("{Status code - 400} - cannot connect to database %s", err))
-			logger.LogInfo(log, "try connection to database...")
+			logger.LogInfo(log, "try connect to database...")
 
 			var dbcfg Database
 			dbcfg.Port = cfg.Port

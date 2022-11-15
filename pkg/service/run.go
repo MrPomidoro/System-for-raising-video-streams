@@ -63,7 +63,7 @@ func (a *app) Run() {
 
 	go func() {
 		// Канал для периодического выполнения алгоритма
-		tick := time.NewTicker(time.Second * 3) //a.cfg.Refresh_Time)
+		tick := time.NewTicker(time.Second * 5) //a.cfg.Refresh_Time)
 		defer tick.Stop()
 		for {
 			fmt.Println("")

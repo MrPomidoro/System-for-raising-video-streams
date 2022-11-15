@@ -1,6 +1,6 @@
 package rtsp
 
-type PathAdd struct {
+type Conf struct {
 	Source                     string   `json:"source"`
 	SourceProtocol             string   `json:"sourceProtocol"`
 	SourceAnyPortEnable        bool     `json:"sourceAnyPortEnable"`
