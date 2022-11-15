@@ -2,7 +2,7 @@ logger:
   loglevel: DEBUG
 server:
   server_host: 10.100.100.228
-  server_port: 
+  server_port: :9997
   addr: :3312
   readtimeout: 200ms
   writetimeout: 200ms
