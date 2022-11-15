@@ -51,8 +51,6 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 }
 
 func PostRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
-	// Парсинг URL
-	URLPost := fmt.Sprintf(URLPostConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
 
 	// Парсинг поля RunOnReady
 	runOnReady := fmt.Sprintf(RunOnReadyConst, cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
@@ -64,11 +62,25 @@ func PostRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
 		login, pass = logPass[0], logPass[1]
 	}
 
-	// Заполнение структуры PathAdd для отправления Post запроса
-	postStruct := PathAdd{RunOnReadRestart: true, ReadIPs: []string{camDB.Ip.String},
+	// Заполнение структуры Conf для отправления Post запроса
+	postStruct := Conf{RunOnReadRestart: true, ReadIPs: []string{camDB.Ip.String},
 		RunOnReady: runOnReady, ReadUser: login, ReadPass: pass, SourceProtocol: camDB.Protocol.String}
 
-	postMap := map[string]map[string]PathAdd{camDB.Stream.String: {"conf": postStruct}}
+	// fmt.Printf("%#v\n\n", postStruct)
+
+	// Формирование мапы
+	fieldsMap := make(map[string]interface{})
+	fieldsMap["conf"] = postStruct
+	fieldsMap["confName"] = camDB.Stream.String
+	fieldsMap["source"] = ""
+	fieldsMap["sourceReady"] = false
+	fieldsMap["tracks"] = []string{}
+	fieldsMap["readers"] = []string{}
+
+	postMap := make(map[string]map[string]interface{})
+	postMap[camDB.Stream.String] = fieldsMap
+
+	// fmt.Printf("%#v\n\n", postMap)
 
 	// Маршалинг в json
 	postJson, err := json.Marshal(postMap)
@@ -76,9 +88,11 @@ func PostRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
 		return fmt.Errorf("cannot marshal structure to json, %v", err)
 	}
 	fmt.Println(string(postJson))
-	postJsonStr := []byte(postJson)
 
-	_, err = http.NewRequest("POST", URLPost, bytes.NewBuffer(postJsonStr))
+	// Парсинг URL
+	URLPost := fmt.Sprintf(URLPostConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
+	// Запрос
+	_, err = http.NewRequest("POST", URLPost, bytes.NewBuffer(postJson))
 	if err != nil {
 		return fmt.Errorf("cannot complete post request, %v", err)
 	}
