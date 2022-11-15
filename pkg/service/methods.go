@@ -55,7 +55,7 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 возвращающая true, если количество камер в базе и в rtsp одинаковое
 */
-func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) bool {
+func checkIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) bool {
 
 	// Счётчик для подсчёта совпадающих стримов камер
 	var count int
@@ -91,10 +91,10 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 /*
 Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 возвращающая списки отличающихся камер:
-камеры, отсутствующие в rtsp, но имеющиеся в базе, добавить в rtsp,
-лишние - удалить из rtsp
+камеры, отсутствующие в rtsp, но имеющиеся в базе, нужно добавить в rtsp,
+камеры, имеющиеся в rtsp, но отсутствующие в базе, - удалить из rtsp
 */
-func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) ([]string, []string) {
+func getDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) ([]string, []string) {
 	/*
 		Слайсы с отличающимися элементами:
 		лишние камеры из rtsp нужно удалить,
@@ -141,41 +141,4 @@ func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[st
 	}
 
 	return resSliceAdd, resSliceRemove
-}
-
-func EqualData() error {
-	fmt.Println("run EqualData")
-	return nil
-}
-
-func LessData() error {
-	fmt.Println("run LessData")
-	return nil
-}
-
-func MoreData() error {
-	fmt.Println("run MoreData")
-	return nil
-}
-
-// Вывод списка потоков с rtsp-simple-server
-// (потом будет удалена или изменена, сейчас помогает разобраться)
-func (a *app) getReqFromRtsp() {
-	rtspResultMap := rtsp.GetRtsp(a.cfg)
-
-	for key, items := range rtspResultMap { // items - значение поля "items"
-		fmt.Printf("%T\n", rtspResultMap[key])
-		// Для доступа к данным каждой камеры:
-		camsMap := items.(map[string]interface{})
-
-		for _, camFields := range camsMap { //
-			// fmt.Println(camName) // camName - номер каждой камеры
-			// Для доступа к данным полей камеры:
-			camFieldsMap := camFields.(map[string]interface{})
-			for fields, _ := range camFieldsMap { //valOfFields
-				fmt.Println(fields) // поля confName, conf, source, sourceReady, tracks, readers
-				// fmt.Printf("type: %T; value: %v\n\n", valOfFields, valOfFields) // значения этих полей
-			}
-		}
-	}
 }
