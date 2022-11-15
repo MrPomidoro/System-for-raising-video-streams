@@ -60,7 +60,7 @@ func (a *app) Run() {
 
 	go func() {
 		// Канал для периодического выполнения алгоритма
-		tick := time.NewTicker(time.Second * 4) //a.cfg.Refresh_Time)
+		tick := time.NewTicker(time.Second * 3) //a.cfg.Refresh_Time)
 		defer tick.Stop()
 		for {
 			fmt.Println("")
@@ -76,6 +76,7 @@ func (a *app) Run() {
 				}
 
 				// Сравнение числа записей в базе данных и записей в rtsp
+
 				/*
 					Если данных в базе столько же, сколько в rtsp:
 					проверка, одинаковые ли записи:
@@ -92,13 +93,16 @@ func (a *app) Run() {
 					identity := checkIdentity(dataDB, dataRTSP)
 
 					if identity {
+						logger.LogInfo(a.Log, "Data is identity, waiting...")
 						continue
 					} else {
 						resSliceAdd, resSliceRemove := getDifferenceElements(dataDB, dataRTSP)
-						logger.LogInfo(a.Log, fmt.Sprintf("Data is identity: %t\nElements to be added: %v\nElements to be removed: %v", identity, resSliceAdd, resSliceRemove))
+						logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
 
 						continue
 					}
+
+					//
 					/*
 						Если данных в базе больше, чем в rtsp:
 						получение списка отличий;
@@ -109,8 +113,9 @@ func (a *app) Run() {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
 					resSliceAdd, resSliceRemove := getDifferenceElements(dataDB, dataRTSP)
-					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v\nElements to be removed: %v", resSliceAdd, resSliceRemove))
+					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
 
+					//
 					/*
 						Если данных в базе меньше, чем в rtsp:
 						получение списка отличий;
