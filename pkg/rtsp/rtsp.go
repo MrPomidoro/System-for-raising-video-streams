@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
+	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 )
@@ -17,14 +19,14 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 	var res map[string]interface{}
 
 	// Формирование URL для get запроса
-	URLGet := fmt.Sprintf("http://%s%s/v1/paths/list", cfg.Server_Host, cfg.Server_Port)
+	URLGet := fmt.Sprintf(URLGetConst, cfg.Server_Host, cfg.Server_Port)
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	if err != nil {
-		logger.LogErrorStatusCode(logStC, fmt.Sprintf("cannot to send request to rtsp: %v", err), "Get", "500")
+		logger.LogErrorStatusCode(logStC, fmt.Sprintf("cannot received response from rtsp: %v", err), "Get", "500")
 		return res
 	}
-	logger.LogInfoStatusCode(logStC, "Received response from the rtsp", "Get", "200")
+	logger.LogInfoStatusCode(logStC, "Received response from rtsp", "Get", "200")
 	// Отложенное закрытие тела ответа
 	defer resp.Body.Close()
 
@@ -45,4 +47,26 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 
 	res = item.(map[string]interface{})
 	return res
+}
+
+func PostRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
+	// Парсинг поля RunOnReady
+	runOnReady := fmt.Sprintf(RunOnReadyConst, cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+
+	// Парсинг логина и пароля
+	var login, pass string
+	logPass := strings.Split(camDB.Auth.String, ":")
+	if len(logPass) == 2 {
+		login, pass = logPass[0], logPass[1]
+	}
+
+	// Заполнение структуры PathAdd для отправления Post запроса
+	postStruct := PathAdd{RunOnReadRestart: true, ReadIPs: []string{camDB.Ip.String},
+		RunOnReady: runOnReady, ReadUser: login, ReadPass: pass, SourceProtocol: camDB.Protocol.String}
+	postJson, _ := json.Marshal(postStruct)
+	fmt.Println(string(postJson))
+
+	// URLPost := fmt.Sprintf(URLPostConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
+	// resp, err := http.
+	return nil
 }

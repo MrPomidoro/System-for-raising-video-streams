@@ -100,8 +100,51 @@ func (a *app) Run() {
 						continue
 					} else {
 						resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-						logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
+						logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
+							resSliceAdd, resSliceRemove))
 
+						// Перебор всех камер, которые нужно добавить
+						for _, elemAdd := range resSliceAdd {
+							// Цикл для извлечения данных из структуры выбранной камеры
+							for _, camDB := range dataDB {
+								if camDB.Stream.String == elemAdd {
+									err = rtsp.PostRTSP(camDB, a.cfg)
+
+									// 	// Запись в базу данных результата выполнения
+									// if err != nil {
+									// 	insertStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
+									// 	err = a.statusStreamUseCase.Insert(ctx, &insertStatusStream)
+									// 	if err != nil {
+									// 		logger.LogErrorStatusCode(a.LogStatusCode,
+									// 			"cannot insert to table status_stream", "Post", "400")
+									// 	} else {
+									// 		logger.LogInfoStatusCode(a.LogStatusCode,
+									// 			"Success insert to table status_stream", "Post", "200")
+									// 	}
+									// } else {
+									// 	// Запись в базу данных результата выполнения
+									// 	insertStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+									// 	err = a.statusStreamUseCase.Insert(ctx, &insertStatusStream)
+									// 	if err != nil {
+									// 		logger.LogErrorStatusCode(a.LogStatusCode,
+									// 			"cannot insert to table status_stream", "Post", "400")
+									// 	} else {
+									// 		logger.LogInfoStatusCode(a.LogStatusCode,
+									// 			"Success insert to table status_stream", "Post", "200")
+									// 	}
+									// }
+
+									continue
+								}
+								// if err != nil {
+								// 	logger.LogErrorStatusCode(a.LogStatusCode, fmt.Sprintf("cannot to send Post request to rtsp: %v", err), "Get", "500")
+								// 	continue
+								// }
+								// logger.LogInfoStatusCode(a.LogStatusCode, "Send Post request to rtsp", "Post", "200")
+								// // Отложенное закрытие тела ответа
+								// defer resp.Body.Close()
+							}
+						}
 						continue
 					}
 
@@ -202,7 +245,6 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 	resDB := a.getReqFromDB(ctx)
 	resRTSP := rtsp.GetRtsp(a.cfg)
 
-	// resDB = []refreshstream.RefreshStream{} // проверка нулевого ответа от базы
 	// Проверка, что ответ от базы данных не пустой
 	if len(resDB) == 0 {
 		return resDB, resRTSP, len(resDB), lenResRTSP, "400", errors.New("response from database is null")
