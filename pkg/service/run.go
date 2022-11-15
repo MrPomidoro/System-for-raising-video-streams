@@ -79,25 +79,16 @@ func (a *app) Run() {
 				// Сравнение числа записей в базе данных и записей в rtsp
 				if lenResDB == lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
-					// if err := EqualData(); err != nil {
-					// 	logger.LogError(a.Log, err)
-					// 	continue
-					// }
 
-					// var identity bool
-					/*
-						Проверка одинаковости данных по стримам
-					*/
+					// Проверка одинаковости данных по стримам
 					identity := CheckIdentity(dataDB, dataRTSP)
-					resSliceAdd, resSliceRemove := GetDifferenceElements(dataDB, dataRTSP)
-					fmt.Printf("data is identity: %t\nelement should added: %v\nelement should removed: %v\n", identity, resSliceAdd, resSliceRemove)
 
 					if identity {
 						continue
-
 					} else {
+						resSliceAdd, resSliceRemove := GetDifferenceElements(dataDB, dataRTSP)
+						logger.LogInfo(a.Log, fmt.Sprintf("data is identity: %t\nelement should added: %v\nelement should removed: %v\n", identity, resSliceAdd, resSliceRemove))
 						/*
-							если есть отличия:
 							отправка апи на изменение данных в ртсп;
 							запись в статус_стрим
 						*/
