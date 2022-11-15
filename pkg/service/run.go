@@ -76,6 +76,15 @@ func (a *app) Run() {
 				}
 
 				// Сравнение числа записей в базе данных и записей в rtsp
+				/*
+					Если данных в базе столько же, сколько в rtsp:
+					проверка, одинаковые ли записи:
+					- если одинаковые, завершение и ожидание следующего запуска программы;
+					- если различаются:
+						- получение списка отличий,
+						- отправка API,
+						- запись в status_stream.
+				*/
 				if lenResDB == lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
@@ -86,24 +95,32 @@ func (a *app) Run() {
 						continue
 					} else {
 						resSliceAdd, resSliceRemove := getDifferenceElements(dataDB, dataRTSP)
-						logger.LogInfo(a.Log, fmt.Sprintf("data is identity: %t\nelement should added: %v\nelement should removed: %v", identity, resSliceAdd, resSliceRemove))
+						logger.LogInfo(a.Log, fmt.Sprintf("Data is identity: %t\nElements to be added: %v\nElements to be removed: %v", identity, resSliceAdd, resSliceRemove))
 						/*
 							отправка апи на изменение данных в ртсп;
 							запись в статус_стрим
 						*/
+
 						continue
 					}
-
+					/*
+						Если данных в базе больше, чем в rtsp:
+						получение списка отличий;
+						API на добавление в ртсп;
+						запись в status_stream
+					*/
 				} else if lenResDB > lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
-					/*
-						получаем список отличий;
-						апи на добавление в ртсп;
-						запись в статус_стрим
-					*/
+
 					resSliceAdd, resSliceRemove := getDifferenceElements(dataDB, dataRTSP)
 					logger.LogInfo(a.Log, fmt.Sprintf("element should added: %v\nelement should removed: %v\n", resSliceAdd, resSliceRemove))
 
+					/*
+						Если данных в базе меньше, чем в rtsp:
+						получение списка отличий;
+						API на добавление в ртсп;
+						запись в status_stream
+					*/
 				} else if lenResDB < lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
@@ -115,7 +132,7 @@ func (a *app) Run() {
 						continue
 					}
 
-					// Сравнение числа записей в базе данных и записей в rtsp
+					// Сравнение числа записей в базе данных и записей в rtsp после нового запроса
 					if lenResDBLESS > lenResRTSPLESS {
 						/*
 							получаем список отличий;
