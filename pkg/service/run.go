@@ -69,7 +69,6 @@ func (a *app) Run() {
 			case <-tick.C:
 
 				// Получение данных от базы данных и от rtsp
-				// dataDB, dataRTSP, lenResDB, lenResRTSP, statusCode err := a.getDBAndApi(ctx)
 				dataDB, dataRTSP, lenResDB, lenResRTSP, stCode, err := a.getDBAndApi(ctx)
 				if err != nil {
 					logger.LogErrorStatusCode(a.LogStatusCode, err, "Get", stCode)
@@ -77,62 +76,59 @@ func (a *app) Run() {
 				}
 
 				// Сравнение числа записей в базе данных и записей в rtsp
+				/*
+					Если данных в базе столько же, сколько в rtsp:
+					проверка, одинаковые ли записи:
+					- если одинаковые, завершение и ожидание следующего запуска программы;
+					- если различаются:
+						- получение списка отличий,
+						- отправка API,
+						- запись в status_stream.
+				*/
 				if lenResDB == lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
-					// if err := EqualData(); err != nil {
-					// 	logger.LogError(a.Log, err)
-					// 	continue
-					// }
 
-					// var identity bool
-					/*
-						Проверка одинаковости данных по стримам
-					*/
-					identity := CheckIdentity(dataDB, dataRTSP)
-					fmt.Println(identity)
+					// Проверка одинаковости данных по стримам
+					identity := checkIdentity(dataDB, dataRTSP)
 
 					if identity {
 						continue
-
 					} else {
-						/*
-							если есть отличия:
-							отправка апи на изменение данных в ртсп;
-							запись в статус_стрим
-						*/
+						resSliceAdd, resSliceRemove := getDifferenceElements(dataDB, dataRTSP)
+						logger.LogInfo(a.Log, fmt.Sprintf("Data is identity: %t\nElements to be added: %v\nElements to be removed: %v", identity, resSliceAdd, resSliceRemove))
+
 						continue
 					}
-
+					/*
+						Если данных в базе больше, чем в rtsp:
+						получение списка отличий;
+						API на добавление в ртсп;
+						запись в status_stream
+					*/
 				} else if lenResDB > lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
-					// if err := LessData(); err != nil {
-					// 	logger.LogError(a.Log, err)
-					// 	continue
-					// }
-					/*
-						получаем список отличий;
-						апи на добавление в ртсп;
-						запись в статус_стрим
-					*/
 
+					resSliceAdd, resSliceRemove := getDifferenceElements(dataDB, dataRTSP)
+					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v\nElements to be removed: %v", resSliceAdd, resSliceRemove))
+
+					/*
+						Если данных в базе меньше, чем в rtsp:
+						получение списка отличий;
+						API на добавление в ртсп;
+						запись в status_stream
+					*/
 				} else if lenResDB < lenResRTSP {
 					logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
-					// if err := MoreData(); err != nil {
-					// 	logger.LogError(a.Log, err)
-					// 	continue
-					// }
-					fmt.Println(CheckIdentity(dataDB, dataRTSP))
 
+					// Ожидание 5 секунд и повторный запрос данных с базы и с rtsp
 					time.Sleep(time.Second * 5)
-
-					// Снова запрашиваем данные с базы и с rtsp
 					_, _, lenResDBLESS, lenResRTSPLESS, stCode, err := a.getDBAndApi(ctx)
 					if err != nil {
 						logger.LogErrorStatusCode(a.LogStatusCode, err, "Get", stCode)
 						continue
 					}
 
-					// Сравнение числа записей в базе данных и записей в rtsp
+					// Сравнение числа записей в базе данных и записей в rtsp после нового запроса
 					if lenResDBLESS > lenResRTSPLESS {
 						/*
 							получаем список отличий;

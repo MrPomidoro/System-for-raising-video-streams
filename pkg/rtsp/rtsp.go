@@ -16,13 +16,16 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 	var item interface{}
 	var res map[string]interface{}
 
-	resp, err := http.Get("http://10.100.100.228:9997/v1/paths/list")
+	// Формирование URL для get запроса
+	URLGet := fmt.Sprintf("http://%s%s/v1/paths/list", cfg.Server_Host, cfg.Server_Port)
+	// Get запрос и обработка ошибки
+	resp, err := http.Get(URLGet)
 	if err != nil {
 		logger.LogErrorStatusCode(logStC, fmt.Sprintf("cannot to send request to rtsp: %v", err), "Get", "500")
 		return res
 	}
-	logger.LogInfoStatusCode(logStC, "Success send Get request to rtsp", "Get", "200")
-	// logger.LogDebug(log, fmt.Sprintf("response:\n%+v", resp.Body))
+	logger.LogInfoStatusCode(logStC, "Received response from the rtsp", "Get", "200")
+	// Отложенное закрытие тела ответа
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
