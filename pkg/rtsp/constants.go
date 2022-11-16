@@ -8,5 +8,8 @@ const (
 	URLGetConst = "http://%s%s/v1/paths/list"
 
 	// 1 - host, 2 - port из конфига, 3 - стрим камеры из базы/rtsp
-	URLPostConst = "http://%s%s/v1/config/paths/add/%s"
+	URLPostAddConst = "http://%s%s/v1/config/paths/add/%s"
+
+	// 1 - host, 2 - port из конфига, 3 - стрим камеры из базы/rtsp
+	URLPostRemoveConst = "http://%s%s/v1/config/paths/remove/%s"
 )

@@ -62,7 +62,7 @@ func PostAddRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
 	// }
 
 	// Поле протокола не должно быть пустым
-	// По умолчанию - tcp
+	// по умолчанию - tcp
 	var protocol string = camDB.Protocol.String
 	if protocol == "" {
 		protocol = "tcp"
@@ -96,15 +96,28 @@ func PostAddRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
 			"runOnReadRestart": false
 	}`, protocol, runOnReady))
 
-	fmt.Println(string(postJson))
-
 	// Парсинг URL
-	URLPost := fmt.Sprintf(URLPostConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
+	URLPostAdd := fmt.Sprintf(URLPostAddConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
 
 	// Запрос
-	response, err := http.Post(URLPost, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
+	response, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
 	if err != nil {
-		return fmt.Errorf("cannot complete post request, %v", err)
+		return fmt.Errorf("cannot complete post request for add confif: %v", err)
+	}
+	defer response.Body.Close()
+
+	return nil
+}
+
+func PostRemoveRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
+	// Парсинг URL
+	URLPostRemove := fmt.Sprintf(URLPostRemoveConst, cfg.Server_Host, cfg.Server_Port, "test111") //camDB.Stream.String)
+
+	var buf []byte
+	// Запрос
+	response, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
+	if err != nil {
+		return fmt.Errorf("cannot complete post request for remove confif: %v", err)
 	}
 	defer response.Body.Close()
 
