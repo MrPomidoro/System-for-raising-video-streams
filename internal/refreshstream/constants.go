@@ -11,7 +11,11 @@ const (
 )
 
 const (
-	QUERY = `SELECT *
+	QUERY_STATUS_TRUE = `SELECT *
 	FROM public."refresh_stream"
-	WHERE stream IS NOT null AND stream_state = true`
+	WHERE "stream" IS NOT null AND "stream_status" = true`
+
+	QUERY_STATUS_FALSE = `SELECT *
+	FROM public."refresh_stream"
+	WHERE "stream" IS NOT null AND "stream_status" = false`
 )

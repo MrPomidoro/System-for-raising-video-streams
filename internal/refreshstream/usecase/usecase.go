@@ -24,6 +24,10 @@ func NewRefreshStreamUseCase(repo refreshstream.RefreshStreamRepository,
 	}
 }
 
-func (s *refreshStreamUseCase) Get(ctx context.Context) ([]refreshstream.RefreshStream, error) {
-	return s.repo.Get(ctx)
+func (s *refreshStreamUseCase) GetStatusTrue(ctx context.Context) ([]refreshstream.RefreshStream, error) {
+	return s.repo.GetStatusTrue(ctx)
+}
+
+func (s *refreshStreamUseCase) GetStatusFalse(ctx context.Context) ([]refreshstream.RefreshStream, error) {
+	return s.repo.GetStatusFalse(ctx)
 }

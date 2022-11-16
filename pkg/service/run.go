@@ -28,7 +28,6 @@ import (
 type app struct {
 	cfg                  *config.Config
 	Log                  *logrus.Logger
-	LogStatusCode        *logrus.Logger
 	Db                   *sql.DB
 	SigChan              chan os.Signal
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
@@ -38,17 +37,15 @@ type app struct {
 // Функция, инициализирующая прототип приложения
 func NewApp(cfg *config.Config) *app {
 	log := logger.NewLog(cfg.LogLevel)
-	logStatCode := logger.NewLogStatCode(cfg.LogLevel)
 	db := database.CreateDBConnection(cfg)
 	sigChan := make(chan os.Signal, 1)
-	repoRS := rsrepository.NewRefreshStreamRepository(db, logStatCode)
+	repoRS := rsrepository.NewRefreshStreamRepository(db)
 	repoSS := ssrepository.NewStatusStreamRepository(db)
 
 	return &app{
 		cfg:                  cfg,
 		Db:                   db,
 		Log:                  log,
-		LogStatusCode:        logStatCode,
 		SigChan:              sigChan,
 		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db, log),
 		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db, log),
@@ -57,13 +54,13 @@ func NewApp(cfg *config.Config) *app {
 
 // Алгоритм
 func (a *app) Run() {
+
 	// Инициализация контекста
 	ctx := context.Background()
-	logger.LogDebug(a.Log, "Context initializated")
 
 	go func() {
 		// Канал для периодического выполнения алгоритма
-		tick := time.NewTicker(time.Second * 5) //a.cfg.Refresh_Time)
+		tick := time.NewTicker(time.Second * 7) //a.cfg.Refresh_Time)
 		defer tick.Stop()
 		for {
 			fmt.Println("")
@@ -72,9 +69,9 @@ func (a *app) Run() {
 			<-tick.C
 
 			// Получение данных от базы данных и от rtsp
-			dataDB, dataRTSP, lenResDB, lenResRTSP, stCode, err := a.getDBAndApi(ctx)
+			dataDB, dataRTSP, lenResDB, lenResRTSP, err := a.getDBAndApi(ctx)
 			if err != nil {
-				logger.LogErrorStatusCode(a.LogStatusCode, err, "Get", stCode)
+				logger.LogError(a.Log, err)
 				continue
 			}
 
@@ -107,9 +104,8 @@ func (a *app) Run() {
 
 				// Добавление камер
 				a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-
 				// Удаление камер
-				a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP, dataDB)
+				a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
 
 				//
 				/*
@@ -127,9 +123,8 @@ func (a *app) Run() {
 
 				// Добавление камер
 				a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-
 				// Удаление камер
-				a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP, dataDB)
+				a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
 
 				//
 				/*
@@ -139,13 +134,13 @@ func (a *app) Run() {
 					запись в status_stream
 				*/
 			} else if lenResDB < lenResRTSP {
-				logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
+				logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d; waiting...", lenResDB, lenResRTSP))
 
 				// Ожидание 5 секунд и повторный запрос данных с базы и с rtsp
 				time.Sleep(time.Second * 5)
-				_, _, lenResDBLESS, lenResRTSPLESS, stCode, err := a.getDBAndApi(ctx)
+				_, _, lenResDBLESS, lenResRTSPLESS, err := a.getDBAndApi(ctx)
 				if err != nil {
-					logger.LogErrorStatusCode(a.LogStatusCode, err, "Get", stCode)
+					logger.LogError(a.Log, err)
 					continue
 				}
 
@@ -157,9 +152,8 @@ func (a *app) Run() {
 
 					// Добавление камер
 					a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-
 					// Удаление камер
-					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP, dataDB)
+					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
 
 				} else if lenResDBLESS < lenResRTSPLESS {
 					// Получение списков камер на добавление и удаление
@@ -168,9 +162,8 @@ func (a *app) Run() {
 
 					// Добавление камер
 					a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-
 					// Удаление камер
-					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP, dataDB)
+					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
 
 				} else if lenResDBLESS == lenResRTSPLESS {
 
@@ -188,17 +181,18 @@ func (a *app) Run() {
 
 					// Добавление камер
 					a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-
 					// Удаление камер
-					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP, dataDB)
+					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
 				}
 			}
 		}
 	}()
 }
 
-// Метод для корректного завершения работы программы
-// при получении прерывающего сигнала
+/*
+Метод для корректного завершения работы программы
+при получении прерывающего сигнала
+*/
 func (a *app) GracefulShutdown(sig chan os.Signal) {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	sign := <-sig
@@ -210,10 +204,12 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 
 // Get запрос на получение списка камер из базы данных
 func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
-	req, err := a.refreshStreamUseCase.Get(ctx)
+	req, err := a.refreshStreamUseCase.GetStatusTrue(ctx)
 	if err != nil {
-		logger.LogError(a.Log, fmt.Sprintf("cannot get response from database: %v", err))
+		logger.LogError(a.Log, err)
+		return req
 	}
+	logger.LogDebug(a.Log, "Received response from the database")
 	return req
 }
 
@@ -221,7 +217,8 @@ func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
 Получение списка камер с базы данных и с rtsp
 На выходе: список с бд, список с rtsp, длины этих списков, статус код, ошибка
 */
-func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, map[string]interface{}, int, int, string, error) {
+func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
+	map[string]interface{}, int, int, error) {
 	var lenResRTSP int
 
 	// Отправка запросов к базе и к rtsp
@@ -230,7 +227,7 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 
 	// Проверка, что ответ от базы данных не пустой
 	if len(resDB) == 0 {
-		return resDB, resRTSP, len(resDB), lenResRTSP, "400", errors.New("response from database is null")
+		return resDB, resRTSP, len(resDB), lenResRTSP, errors.New("response from database is null")
 	}
 
 	// Определение числа потоков с rtsp
@@ -242,10 +239,10 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 
 	// Проверка, что ответ от rtsp данных не пустой
 	if lenResRTSP == 0 {
-		return resDB, resRTSP, len(resDB), lenResRTSP, "500", errors.New("response from rtsp-simple-server is null")
+		return resDB, resRTSP, len(resDB), lenResRTSP, errors.New("response from rtsp-simple-server is null")
 	}
 
-	return resDB, resRTSP, len(resDB), lenResRTSP, "200", nil
+	return resDB, resRTSP, len(resDB), lenResRTSP, nil
 }
 
 /*
@@ -253,7 +250,8 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
-func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string, dataDB []refreshstream.RefreshStream) {
+func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
+	dataDB []refreshstream.RefreshStream) {
 	// Перебор всех элементов списка камер на добавление
 	for _, elemAdd := range resSliceAdd {
 		// Цикл для извлечения данных из структуры выбранной камеры
@@ -266,28 +264,28 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string, dataDB
 
 			// Запись в базу данных результата выполнения
 			if err != nil {
-				logger.LogErrorStatusCode(a.LogStatusCode, err, "Post", "500")
+				logger.LogError(a.Log, err)
 				insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
 				err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 				if err != nil {
-					logger.LogErrorStatusCode(a.LogStatusCode,
-						"cannot insert to table status_stream", "Post", "400")
+					logger.LogError(a.Log,
+						"cannot insert to table status_stream")
 					continue
 				}
-				logger.LogInfoStatusCode(a.LogStatusCode,
-					"Success insert to table status_stream", "Post", "200")
+				logger.LogInfo(a.Log,
+					"Success insert to table status_stream")
 			}
 
-			logger.LogInfoStatusCode(a.LogStatusCode, fmt.Sprintf("Success complete post request for add config %s", elemAdd), "Post", "200")
+			logger.LogInfo(a.Log, fmt.Sprintf("Success complete post request for add config %s", elemAdd))
 			insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
 			err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 			if err != nil {
-				logger.LogErrorStatusCode(a.LogStatusCode,
-					"cannot insert to table status_stream", "Post", "400")
+				logger.LogError(a.Log,
+					"cannot insert to table status_stream")
 				continue
 			}
-			logger.LogInfoStatusCode(a.LogStatusCode,
-				"Success insert to table status_stream", "Post", "200")
+			logger.LogInfo(a.Log,
+				"Success insert to table status_stream")
 		}
 	}
 }
@@ -298,7 +296,13 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string, dataDB
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
 func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
-	dataRTSP map[string]interface{}, dataDB []refreshstream.RefreshStream) {
+	dataRTSP map[string]interface{}) {
+
+	dataDB, err := a.refreshStreamUseCase.GetStatusFalse(ctx)
+	if err != nil {
+		logger.LogError(a.Log, err)
+		return
+	}
 
 	// Цикл для извлечения данных из структуры выбранной камеры
 	for _, camsRTSP := range dataRTSP {
@@ -310,40 +314,46 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 
 			// Перебор всех камер, которые нужно удалить
 			for _, elemRemove := range resSliceRemove {
-
 				if camRTSP != elemRemove {
 					continue
 				}
-				err := rtsp.PostRemoveRTSP(camRTSP, a.cfg)
 
-				// Запись в базу данных результата выполнения
-				if err != nil {
-					logger.LogErrorStatusCode(a.LogStatusCode, err, "Post", "500")
-					insertStructStatusStream := statusstream.StatusStream{StatusResponse: false}
-					err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-					if err != nil {
-						logger.LogErrorStatusCode(a.LogStatusCode,
-							"cannot insert to table status_stream", "Post", "400")
+				for _, camDB := range dataDB {
+					if camDB.Stream.String != elemRemove {
 						continue
 					}
-					logger.LogInfoStatusCode(a.LogStatusCode,
-						"Success insert to table status_stream", "Post", "200")
 
+					err := rtsp.PostRemoveRTSP(camRTSP, a.cfg)
+
+					// Запись в базу данных результата выполнения
+					if err != nil {
+						logger.LogError(a.Log, err)
+						insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
+						err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+						if err != nil {
+							logger.LogError(a.Log,
+								"cannot insert to table status_stream")
+							continue
+						}
+						logger.LogInfo(a.Log,
+							"Success insert to table status_stream")
+
+					}
+
+					logger.LogInfo(a.Log,
+						fmt.Sprintf("Success complete Post request for remove config %s", elemRemove))
+					insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+					err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+					if err != nil {
+						logger.LogError(a.Log,
+							"cannot insert to table status_stream")
+						continue
+					}
+					logger.LogInfo(a.Log,
+						"Success insert to table status_stream")
+
+					break
 				}
-
-				logger.LogInfoStatusCode(a.LogStatusCode,
-					fmt.Sprintf("Success complete Post request for remove config %s", elemRemove), "Post", "200")
-				insertStructStatusStream := statusstream.StatusStream{StatusResponse: true}
-				err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-				if err != nil {
-					logger.LogErrorStatusCode(a.LogStatusCode,
-						"cannot insert to table status_stream", "Post", "400")
-					continue
-				}
-				logger.LogInfoStatusCode(a.LogStatusCode,
-					"Success insert to table status_stream", "Post", "200")
-
-				break
 			}
 		}
 	}

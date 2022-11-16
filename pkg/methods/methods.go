@@ -46,17 +46,12 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 камеры, имеющиеся в rtsp, но отсутствующие в базе, - удалить из rtsp
 */
 func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) ([]string, []string) {
-	/*
-		Слайсы с отличающимися элементами:
-		лишние камеры из rtsp нужно удалить,
-		отсутствующие в rtsp, но имеющиеся в базе - добавить
-	*/
+
+	// Слайсы с отличающимися элементами:
+	// лишние камеры из rtsp нужно удалить,
+	// отсутствующие в rtsp, но имеющиеся в базе - добавить
 	var resSliceRemove []string
 	var resSliceAdd []string
-
-	// Переменные для фиксации имени
-	// var camNameRTSP string
-	// var camNameDB string
 
 	// Счётчики
 	var doubleRemove int
@@ -83,8 +78,6 @@ func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[st
 			if doubleRemove == 0 {
 				resSliceRemove = append(resSliceRemove, camRTSP)
 			}
-
-			// fmt.Printf("cam: %s - doubleRemove: %d - resSliceRemove: %v\n", camRTSP, doubleRemove, resSliceRemove)
 			doubleRemove = 0
 		}
 	}
@@ -107,11 +100,11 @@ func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[st
 				}
 			}
 		}
+
 		// Если значение счётчика ненулевое, камера добавляется в список на добавление
 		if doubleAppend == 0 {
 			resSliceAdd = append(resSliceAdd, camDB.Stream.String)
 		}
-		// fmt.Printf("cam: %s - doubleAppend: %d - resSliceAdd: %v\n", camDB.Stream.String, doubleAppend, resSliceAdd)
 		doubleAppend = 0
 	}
 
