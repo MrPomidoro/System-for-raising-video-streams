@@ -103,91 +103,11 @@ func (a *app) Run() {
 				logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
 					resSliceAdd, resSliceRemove))
 
-				// Перебор всех камер, которые нужно добавить
-				for _, elemAdd := range resSliceAdd {
-					// Цикл для извлечения данных из структуры выбранной камеры
-					for _, camDB := range dataDB {
-						if camDB.Stream.String != elemAdd {
-							continue
-						}
+				// Добавление камер
+				a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
 
-						rtsp.PostAddRTSP(camDB, a.cfg) // err =
-						fmt.Println("add", elemAdd)
-
-						// /*
-						// Запись в базу данных результата выполнения
-						if err != nil {
-							logger.LogErrorStatusCode(a.LogStatusCode, fmt.Sprintf("cannot complete post request: %v", err), "Post", "500")
-							insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
-							err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-							if err != nil {
-								logger.LogErrorStatusCode(a.LogStatusCode,
-									"cannot insert to table status_stream", "Post", "400")
-								continue
-							}
-							logger.LogInfoStatusCode(a.LogStatusCode,
-								"Success insert to table status_stream", "Post", "200")
-
-							continue
-						}
-						// Запись в базу данных результата выполнения
-						insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
-						err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-						if err != nil {
-							logger.LogErrorStatusCode(a.LogStatusCode,
-								"cannot insert to table status_stream", "Post", "400")
-							continue
-						}
-						logger.LogInfoStatusCode(a.LogStatusCode,
-							"Success insert to table status_stream", "Post", "200")
-
-						// */
-					}
-				}
-
-				// Перебор всех камер, которые нужно удалить
-				for _, elemRemove := range resSliceRemove {
-					// Цикл для извлечения данных из структуры выбранной камеры
-					for _, camDB := range dataDB {
-						if camDB.Stream.String == elemRemove {
-							continue
-						}
-
-						rtsp.PostRemoveRTSP(camDB, a.cfg) // err =
-						fmt.Println("remove", elemRemove)
-
-						// /*
-						// Запись в базу данных результата выполнения
-						if err != nil {
-							logger.LogErrorStatusCode(a.LogStatusCode, fmt.Sprintf("cannot complete post request: %v", err), "Post", "500")
-							insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
-							err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-							if err != nil {
-								logger.LogErrorStatusCode(a.LogStatusCode,
-									"cannot insert to table status_stream", "Post", "400")
-								continue
-							}
-							logger.LogInfoStatusCode(a.LogStatusCode,
-								"Success insert to table status_stream", "Post", "200")
-
-							continue
-						}
-						// Запись в базу данных результата выполнения
-						insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
-						err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-						if err != nil {
-							logger.LogErrorStatusCode(a.LogStatusCode,
-								"cannot insert to table status_stream", "Post", "400")
-							continue
-						}
-						logger.LogInfoStatusCode(a.LogStatusCode,
-							"Success insert to table status_stream", "Post", "200")
-
-						// */
-
-						break
-					}
-				}
+				// Удаление камер
+				a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP, dataDB)
 
 				//
 				/*
@@ -302,4 +222,113 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 	}
 
 	return resDB, resRTSP, len(resDB), lenResRTSP, "200", nil
+}
+
+/*
+Функция, принимающая на вход список камер, которые необходимо добавить в rtsp-simple-server,
+и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
+добавляет в таблицу status_stream запись с результатом выполнения запроса
+*/
+func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string, dataDB []refreshstream.RefreshStream) {
+	// Перебор всех элементов списка камер на добавление
+	for _, elemAdd := range resSliceAdd {
+		// Цикл для извлечения данных из структуры выбранной камеры
+		for _, camDB := range dataDB {
+			if camDB.Stream.String != elemAdd {
+				continue
+			}
+
+			err := rtsp.PostAddRTSP(camDB, a.cfg)
+			fmt.Println("add", elemAdd)
+
+			// Запись в базу данных результата выполнения
+			if err != nil {
+				logger.LogErrorStatusCode(a.LogStatusCode, err, "Post", "500")
+				insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
+				err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+				if err != nil {
+					logger.LogErrorStatusCode(a.LogStatusCode,
+						"cannot insert to table status_stream", "Post", "400")
+					continue
+				}
+				logger.LogInfoStatusCode(a.LogStatusCode,
+					"Success insert to table status_stream", "Post", "200")
+			}
+
+			logger.LogInfoStatusCode(a.LogStatusCode, fmt.Sprintf("Success complete post request for add config %s", elemAdd), "Post", "200")
+			insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+			err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+			if err != nil {
+				logger.LogErrorStatusCode(a.LogStatusCode,
+					"cannot insert to table status_stream", "Post", "400")
+				continue
+			}
+			logger.LogInfoStatusCode(a.LogStatusCode,
+				"Success insert to table status_stream", "Post", "200")
+		}
+	}
+}
+
+/*
+Функция, принимающая на вход список камер, которые необходимо удалить из rtsp-simple-server,
+и список камер из базы данных. Отправляет Post запрос к rtsp на удаление камер,
+добавляет в таблицу status_stream запись с результатом выполнения запроса
+*/
+func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
+	dataRTSP map[string]interface{}, dataDB []refreshstream.RefreshStream) {
+
+	// Цикл для извлечения данных из структуры выбранной камеры
+	for _, camsRTSP := range dataRTSP {
+		// Для возможности извлечения данных
+		camsRTSPMap := camsRTSP.(map[string]interface{})
+
+		// camRTSP - стрим камеры
+		for camRTSP := range camsRTSPMap {
+
+			// Перебор всех камер, которые нужно удалить
+			for _, elemRemove := range resSliceRemove {
+
+				if camRTSP != elemRemove {
+					continue
+				}
+				err := rtsp.PostRemoveRTSP(camRTSP, a.cfg) //
+				// if err != nil {
+				// 	logger.LogErrorStatusCode(a.LogStatusCode,
+				// 		fmt.Sprintf("cannot complete Post request for remove config %s", elemRemove), "Post", "400")
+				// 	continue
+				// }
+				// logger.LogInfoStatusCode(a.LogStatusCode,
+				// 	fmt.Sprintf("Success complete Post request for remove config %s", elemRemove), "Post", "200")
+
+				// Запись в базу данных результата выполнения
+				if err != nil {
+					logger.LogErrorStatusCode(a.LogStatusCode, err, "Post", "500")
+					insertStructStatusStream := statusstream.StatusStream{StatusResponse: false}
+					err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+					if err != nil {
+						logger.LogErrorStatusCode(a.LogStatusCode,
+							"cannot insert to table status_stream", "Post", "400")
+						continue
+					}
+					logger.LogInfoStatusCode(a.LogStatusCode,
+						"Success insert to table status_stream", "Post", "200")
+
+				}
+
+				logger.LogInfoStatusCode(a.LogStatusCode,
+					fmt.Sprintf("Success complete Post request for remove config %s", elemRemove), "Post", "200")
+				insertStructStatusStream := statusstream.StatusStream{StatusResponse: true}
+				err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+				if err != nil {
+					logger.LogErrorStatusCode(a.LogStatusCode,
+						"cannot insert to table status_stream", "Post", "400")
+					continue
+				}
+				logger.LogInfoStatusCode(a.LogStatusCode,
+					"Success insert to table status_stream", "Post", "200")
+
+				break
+			}
+		}
+	}
 }

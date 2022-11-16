@@ -102,22 +102,22 @@ func PostAddRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
 	// Запрос
 	response, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
 	if err != nil {
-		return fmt.Errorf("cannot complete post request for add confif: %v", err)
+		return fmt.Errorf("cannot complete post request for add config: %v", err)
 	}
 	defer response.Body.Close()
 
 	return nil
 }
 
-func PostRemoveRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
+func PostRemoveRTSP(camRTSP string, cfg *config.Config) error {
 	// Парсинг URL
-	URLPostRemove := fmt.Sprintf(URLPostRemoveConst, cfg.Server_Host, cfg.Server_Port, "test111") //camDB.Stream.String)
+	URLPostRemove := fmt.Sprintf(URLPostRemoveConst, cfg.Server_Host, cfg.Server_Port, camRTSP)
 
 	var buf []byte
 	// Запрос
 	response, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
 	if err != nil {
-		return fmt.Errorf("cannot complete post request for remove confif: %v", err)
+		return fmt.Errorf("cannot complete post request for remove config: %v", err)
 	}
 	defer response.Body.Close()
 
