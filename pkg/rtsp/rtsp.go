@@ -25,7 +25,7 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 		logger.LogError(log, fmt.Sprintf("cannot received response from rtsp: %v", err))
 		return res
 	}
-	logger.LogInfo(log, "Received response from rtsp")
+	logger.LogDebug(log, "Received response from rtsp")
 	// Отложенное закрытие тела ответа
 	defer resp.Body.Close()
 
