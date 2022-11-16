@@ -110,29 +110,15 @@ func (a *app) Run() {
 						if camDB.Stream.String != elemAdd {
 							continue
 						}
-						fmt.Printf("elemAdd=%s, camDB=%s\n", elemAdd, camDB.Stream.String)
 
 						rtsp.PostAddRTSP(camDB, a.cfg) // err =
-						fmt.Println("post\n")
+						fmt.Println("add", elemAdd)
 
-						/*
-							// Запись в базу данных результата выполнения
-							if err != nil {
-								logger.LogErrorStatusCode(a.LogStatusCode, fmt.Sprintf("cannot complete post request: %v", err), "Post", "500")
-								insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
-								err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-								if err != nil {
-									logger.LogErrorStatusCode(a.LogStatusCode,
-										"cannot insert to table status_stream", "Post", "400")
-									continue
-								}
-								logger.LogInfoStatusCode(a.LogStatusCode,
-									"Success insert to table status_stream", "Post", "200")
-
-								continue
-							}
-							// Запись в базу данных результата выполнения
-							insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+						// /*
+						// Запись в базу данных результата выполнения
+						if err != nil {
+							logger.LogErrorStatusCode(a.LogStatusCode, fmt.Sprintf("cannot complete post request: %v", err), "Post", "500")
+							insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
 							err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 							if err != nil {
 								logger.LogErrorStatusCode(a.LogStatusCode,
@@ -142,7 +128,64 @@ func (a *app) Run() {
 							logger.LogInfoStatusCode(a.LogStatusCode,
 								"Success insert to table status_stream", "Post", "200")
 
-						*/
+							continue
+						}
+						// Запись в базу данных результата выполнения
+						insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+						err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+						if err != nil {
+							logger.LogErrorStatusCode(a.LogStatusCode,
+								"cannot insert to table status_stream", "Post", "400")
+							continue
+						}
+						logger.LogInfoStatusCode(a.LogStatusCode,
+							"Success insert to table status_stream", "Post", "200")
+
+						// */
+					}
+				}
+
+				// Перебор всех камер, которые нужно удалить
+				for _, elemRemove := range resSliceRemove {
+					// Цикл для извлечения данных из структуры выбранной камеры
+					for _, camDB := range dataDB {
+						if camDB.Stream.String == elemRemove {
+							continue
+						}
+
+						rtsp.PostRemoveRTSP(camDB, a.cfg) // err =
+						fmt.Println("remove", elemRemove)
+
+						// /*
+						// Запись в базу данных результата выполнения
+						if err != nil {
+							logger.LogErrorStatusCode(a.LogStatusCode, fmt.Sprintf("cannot complete post request: %v", err), "Post", "500")
+							insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
+							err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+							if err != nil {
+								logger.LogErrorStatusCode(a.LogStatusCode,
+									"cannot insert to table status_stream", "Post", "400")
+								continue
+							}
+							logger.LogInfoStatusCode(a.LogStatusCode,
+								"Success insert to table status_stream", "Post", "200")
+
+							continue
+						}
+						// Запись в базу данных результата выполнения
+						insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+						err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+						if err != nil {
+							logger.LogErrorStatusCode(a.LogStatusCode,
+								"cannot insert to table status_stream", "Post", "400")
+							continue
+						}
+						logger.LogInfoStatusCode(a.LogStatusCode,
+							"Success insert to table status_stream", "Post", "200")
+
+						// */
+
+						break
 					}
 				}
 
