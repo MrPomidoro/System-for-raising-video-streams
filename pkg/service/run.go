@@ -28,7 +28,6 @@ import (
 type app struct {
 	cfg                  *config.Config
 	Log                  *logrus.Logger
-	LogStatusCode        *logrus.Logger
 	Db                   *sql.DB
 	SigChan              chan os.Signal
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
@@ -38,17 +37,15 @@ type app struct {
 // Функция, инициализирующая прототип приложения
 func NewApp(cfg *config.Config) *app {
 	log := logger.NewLog(cfg.LogLevel)
-	logStatCode := logger.NewLogStatCode(cfg.LogLevel)
 	db := database.CreateDBConnection(cfg)
 	sigChan := make(chan os.Signal, 1)
-	repoRS := rsrepository.NewRefreshStreamRepository(db, logStatCode)
+	repoRS := rsrepository.NewRefreshStreamRepository(db, log)
 	repoSS := ssrepository.NewStatusStreamRepository(db)
 
 	return &app{
 		cfg:                  cfg,
 		Db:                   db,
 		Log:                  log,
-		LogStatusCode:        logStatCode,
 		SigChan:              sigChan,
 		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db, log),
 		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db, log),
@@ -72,9 +69,9 @@ func (a *app) Run() {
 			<-tick.C
 
 			// Получение данных от базы данных и от rtsp
-			dataDB, dataRTSP, lenResDB, lenResRTSP, stCode, err := a.getDBAndApi(ctx)
+			dataDB, dataRTSP, lenResDB, lenResRTSP, err := a.getDBAndApi(ctx)
 			if err != nil {
-				logger.LogErrorStatusCode(a.LogStatusCode, err, "Get", stCode)
+				logger.LogError(a.Log, err)
 				continue
 			}
 
@@ -143,9 +140,9 @@ func (a *app) Run() {
 
 				// Ожидание 5 секунд и повторный запрос данных с базы и с rtsp
 				time.Sleep(time.Second * 5)
-				_, _, lenResDBLESS, lenResRTSPLESS, stCode, err := a.getDBAndApi(ctx)
+				_, _, lenResDBLESS, lenResRTSPLESS, err := a.getDBAndApi(ctx)
 				if err != nil {
-					logger.LogErrorStatusCode(a.LogStatusCode, err, "Get", stCode)
+					logger.LogError(a.Log, err)
 					continue
 				}
 
@@ -223,7 +220,7 @@ func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
 Получение списка камер с базы данных и с rtsp
 На выходе: список с бд, список с rtsp, длины этих списков, статус код, ошибка
 */
-func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, map[string]interface{}, int, int, string, error) {
+func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, map[string]interface{}, int, int, error) {
 	var lenResRTSP int
 
 	// Отправка запросов к базе и к rtsp
@@ -232,7 +229,7 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 
 	// Проверка, что ответ от базы данных не пустой
 	if len(resDB) == 0 {
-		return resDB, resRTSP, len(resDB), lenResRTSP, "400", errors.New("response from database is null")
+		return resDB, resRTSP, len(resDB), lenResRTSP, errors.New("response from database is null")
 	}
 
 	// Определение числа потоков с rtsp
@@ -244,10 +241,10 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 
 	// Проверка, что ответ от rtsp данных не пустой
 	if lenResRTSP == 0 {
-		return resDB, resRTSP, len(resDB), lenResRTSP, "500", errors.New("response from rtsp-simple-server is null")
+		return resDB, resRTSP, len(resDB), lenResRTSP, errors.New("response from rtsp-simple-server is null")
 	}
 
-	return resDB, resRTSP, len(resDB), lenResRTSP, "200", nil
+	return resDB, resRTSP, len(resDB), lenResRTSP, nil
 }
 
 /*
@@ -268,28 +265,28 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string, dataDB
 
 			// Запись в базу данных результата выполнения
 			if err != nil {
-				logger.LogErrorStatusCode(a.LogStatusCode, err, "Post", "500")
+				logger.LogError(a.Log, err)
 				insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
 				err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 				if err != nil {
-					logger.LogErrorStatusCode(a.LogStatusCode,
-						"cannot insert to table status_stream", "Post", "400")
+					logger.LogError(a.Log,
+						"cannot insert to table status_stream")
 					continue
 				}
-				logger.LogInfoStatusCode(a.LogStatusCode,
-					"Success insert to table status_stream", "Post", "200")
+				logger.LogInfo(a.Log,
+					"Success insert to table status_stream")
 			}
 
-			logger.LogInfoStatusCode(a.LogStatusCode, fmt.Sprintf("Success complete post request for add config %s", elemAdd), "Post", "200")
+			logger.LogInfo(a.Log, fmt.Sprintf("Success complete post request for add config %s", elemAdd))
 			insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
 			err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 			if err != nil {
-				logger.LogErrorStatusCode(a.LogStatusCode,
-					"cannot insert to table status_stream", "Post", "400")
+				logger.LogError(a.Log,
+					"cannot insert to table status_stream")
 				continue
 			}
-			logger.LogInfoStatusCode(a.LogStatusCode,
-				"Success insert to table status_stream", "Post", "200")
+			logger.LogInfo(a.Log,
+				"Success insert to table status_stream")
 		}
 	}
 }
@@ -320,30 +317,30 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 
 				// Запись в базу данных результата выполнения
 				if err != nil {
-					logger.LogErrorStatusCode(a.LogStatusCode, err, "Post", "500")
+					logger.LogError(a.Log, err)
 					insertStructStatusStream := statusstream.StatusStream{StatusResponse: false}
 					err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 					if err != nil {
-						logger.LogErrorStatusCode(a.LogStatusCode,
-							"cannot insert to table status_stream", "Post", "400")
+						logger.LogError(a.Log,
+							"cannot insert to table status_stream")
 						continue
 					}
-					logger.LogInfoStatusCode(a.LogStatusCode,
-						"Success insert to table status_stream", "Post", "200")
+					logger.LogInfo(a.Log,
+						"Success insert to table status_stream")
 
 				}
 
-				logger.LogInfoStatusCode(a.LogStatusCode,
-					fmt.Sprintf("Success complete Post request for remove config %s", elemRemove), "Post", "200")
+				logger.LogInfo(a.Log,
+					fmt.Sprintf("Success complete Post request for remove config %s", elemRemove))
 				insertStructStatusStream := statusstream.StatusStream{StatusResponse: true}
 				err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 				if err != nil {
-					logger.LogErrorStatusCode(a.LogStatusCode,
-						"cannot insert to table status_stream", "Post", "400")
+					logger.LogError(a.Log,
+						"cannot insert to table status_stream")
 					continue
 				}
-				logger.LogInfoStatusCode(a.LogStatusCode,
-					"Success insert to table status_stream", "Post", "200")
+				logger.LogInfo(a.Log,
+					"Success insert to table status_stream")
 
 				break
 			}

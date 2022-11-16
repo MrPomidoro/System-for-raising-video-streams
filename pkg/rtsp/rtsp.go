@@ -13,7 +13,6 @@ import (
 )
 
 func GetRtsp(cfg *config.Config) map[string]interface{} {
-	logStC := logger.NewLogStatCode(cfg.LogLevel)
 	log := logger.NewLog(cfg.LogLevel)
 	var item interface{}
 	var res map[string]interface{}
@@ -23,10 +22,10 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	if err != nil {
-		logger.LogErrorStatusCode(logStC, fmt.Sprintf("cannot received response from rtsp: %v", err), "Get", "500")
+		logger.LogError(log, fmt.Sprintf("cannot received response from rtsp: %v", err))
 		return res
 	}
-	logger.LogInfoStatusCode(logStC, "Received response from rtsp", "Get", "200")
+	logger.LogInfo(log, "Received response from rtsp")
 	// Отложенное закрытие тела ответа
 	defer resp.Body.Close()
 

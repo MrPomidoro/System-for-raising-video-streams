@@ -11,14 +11,14 @@ import (
 )
 
 type refreshStreamRepository struct {
-	db     *sql.DB
-	logStC *logrus.Logger
+	db  *sql.DB
+	log *logrus.Logger
 }
 
-func NewRefreshStreamRepository(db *sql.DB, logStC *logrus.Logger) *refreshStreamRepository {
+func NewRefreshStreamRepository(db *sql.DB, log *logrus.Logger) *refreshStreamRepository {
 	return &refreshStreamRepository{
-		db:     db,
-		logStC: logStC,
+		db:  db,
+		log: log,
 	}
 }
 
@@ -26,7 +26,7 @@ func (s refreshStreamRepository) GetStatusTrue(ctx context.Context) ([]refreshst
 	// Выполнение запроса
 	rows, err := s.db.QueryContext(ctx, refreshstream.QUERY_STATUS_TRUE)
 	if err != nil {
-		logger.LogErrorStatusCode(s.logStC, fmt.Sprintf("cannot complete Get request: %v", err), "Get", "400")
+		logger.LogError(s.log, fmt.Sprintf("cannot complete Get request: %v", err))
 		return nil, err
 	}
 	defer rows.Close()
@@ -39,12 +39,12 @@ func (s refreshStreamRepository) GetStatusTrue(ctx context.Context) ([]refreshst
 			&rs.Portsrv, &rs.Sp, &rs.CamId, &rs.Record_status,
 			&rs.Stream_status, &rs.Record_state, &rs.Stream_state, &rs.Protocol)
 		if err != nil {
-			logger.LogErrorStatusCode(s.logStC, err, "Get", "400")
+			logger.LogError(s.log, err)
 			return nil, err
 		}
 		refreshStreamArr = append(refreshStreamArr, rs)
 	}
-	logger.LogInfoStatusCode(s.logStC, "Received response from the database", "Get", "200")
+	logger.LogInfo(s.log, "Received response from the database")
 	return refreshStreamArr, nil
 }
 
@@ -52,7 +52,7 @@ func (s refreshStreamRepository) GetStatusFalse(ctx context.Context) ([]refreshs
 	// Выполнение запроса
 	rows, err := s.db.QueryContext(ctx, refreshstream.QUERY_STATUS_FALSE)
 	if err != nil {
-		logger.LogErrorStatusCode(s.logStC, fmt.Sprintf("cannot complete Get request: %v", err), "Get", "400")
+		logger.LogError(s.log, fmt.Sprintf("cannot complete Get request: %v", err))
 		return nil, err
 	}
 	defer rows.Close()
@@ -65,11 +65,11 @@ func (s refreshStreamRepository) GetStatusFalse(ctx context.Context) ([]refreshs
 			&rs.Portsrv, &rs.Sp, &rs.CamId, &rs.Record_status,
 			&rs.Stream_status, &rs.Record_state, &rs.Stream_state, &rs.Protocol)
 		if err != nil {
-			logger.LogErrorStatusCode(s.logStC, err, "Get", "400")
+			logger.LogError(s.log, err)
 			return nil, err
 		}
 		refreshStreamArr = append(refreshStreamArr, rs)
 	}
-	logger.LogInfoStatusCode(s.logStC, "Received response from the database", "Get", "200")
+	logger.LogInfo(s.log, "Received response from the database")
 	return refreshStreamArr, nil
 }
