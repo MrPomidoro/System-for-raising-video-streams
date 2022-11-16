@@ -57,9 +57,9 @@ func NewApp(cfg *config.Config) *app {
 
 // Алгоритм
 func (a *app) Run() {
+
 	// Инициализация контекста
 	ctx := context.Background()
-	logger.LogDebug(a.Log, "Context initializated")
 
 	go func() {
 		// Канал для периодического выполнения алгоритма
@@ -197,8 +197,10 @@ func (a *app) Run() {
 	}()
 }
 
-// Метод для корректного завершения работы программы
-// при получении прерывающего сигнала
+/*
+Метод для корректного завершения работы программы
+при получении прерывающего сигнала
+*/
 func (a *app) GracefulShutdown(sig chan os.Signal) {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	sign := <-sig
@@ -210,7 +212,7 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 
 // Get запрос на получение списка камер из базы данных
 func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
-	req, err := a.refreshStreamUseCase.Get(ctx)
+	req, err := a.refreshStreamUseCase.GetStatusTrue(ctx)
 	if err != nil {
 		logger.LogError(a.Log, fmt.Sprintf("cannot get response from database: %v", err))
 	}
