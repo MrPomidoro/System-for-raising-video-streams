@@ -134,7 +134,7 @@ func (a *app) Run() {
 					запись в status_stream
 				*/
 			} else if lenResDB < lenResRTSP {
-				logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
+				logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d; waiting...", lenResDB, lenResRTSP))
 
 				// Ожидание 5 секунд и повторный запрос данных с базы и с rtsp
 				time.Sleep(time.Second * 5)
@@ -217,7 +217,8 @@ func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
 Получение списка камер с базы данных и с rtsp
 На выходе: список с бд, список с rtsp, длины этих списков, статус код, ошибка
 */
-func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, map[string]interface{}, int, int, error) {
+func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
+	map[string]interface{}, int, int, error) {
 	var lenResRTSP int
 
 	// Отправка запросов к базе и к rtsp
@@ -249,7 +250,8 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream, m
 и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
-func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string, dataDB []refreshstream.RefreshStream) {
+func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
+	dataDB []refreshstream.RefreshStream) {
 	// Перебор всех элементов списка камер на добавление
 	for _, elemAdd := range resSliceAdd {
 		// Цикл для извлечения данных из структуры выбранной камеры
