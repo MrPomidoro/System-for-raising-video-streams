@@ -99,6 +99,8 @@ func (a *app) Run() {
 					logger.LogInfo(a.Log, "Data is identity, waiting...")
 					continue
 				}
+
+				// Получение списков камер на добавление и удаление
 				resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
 				logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
 					resSliceAdd, resSliceRemove))
@@ -119,8 +121,15 @@ func (a *app) Run() {
 			} else if lenResDB > lenResRTSP {
 				logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
+				// Получение списков камер на добавление
 				resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
 				logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
+
+				// Добавление камер
+				a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
+
+				// Удаление камер
+				a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP, dataDB)
 
 				//
 				/*
@@ -142,33 +151,48 @@ func (a *app) Run() {
 
 				// Сравнение числа записей в базе данных и записей в rtsp после нового запроса
 				if lenResDBLESS > lenResRTSPLESS {
-					/*
-						получаем список отличий;
-						апи на добавление в ртсп;
-						запись в статус_стрим
-					*/
-					continue
+					// Получение списков камер на добавление и удаление
+					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
+					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
+
+					// Добавление камер
+					a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
+
+					// Удаление камер
+					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP, dataDB)
+
 				} else if lenResDBLESS < lenResRTSPLESS {
-					/*
-						получаем список отличий;
-						апи на удаление в ртсп;
-						запись в статус_стрим
-					*/
-					continue
+					// Получение списков камер на добавление и удаление
+					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
+					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
+
+					// Добавление камер
+					a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
+
+					// Удаление камер
+					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP, dataDB)
+
+				} else if lenResDBLESS == lenResRTSPLESS {
+
+					// Проверка одинаковости данных по стримам
+					identity := methods.CheckIdentity(dataDB, dataRTSP)
+					if identity {
+						logger.LogInfo(a.Log, "Data is identity, waiting...")
+						continue
+					}
+
+					// Получение списков камер на добавление и удаление
+					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
+					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
+						resSliceAdd, resSliceRemove))
+
+					// Добавление камер
+					a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
+
+					// Удаление камер
+					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP, dataDB)
 				}
 			}
-
-			/*
-				ssExample := statusstream.StatusStream{StreamId: 3, StatusResponse: true}
-				// Запись в базу данных результата выполнения (нужно менять)
-				err = a.statusStreamUseCase.Insert(ctx, &ssExample)
-				if err != nil {
-					logger.LogErrorStatusCode(a.LogStatusCode, "cannot insert", "Post", "400")
-				} else {
-					logger.LogInfoStatusCode(a.LogStatusCode, "Success insert", "Post", "200")
-				}
-			*/
-
 		}
 	}()
 }
@@ -239,7 +263,6 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string, dataDB
 			}
 
 			err := rtsp.PostAddRTSP(camDB, a.cfg)
-			fmt.Println("add", elemAdd)
 
 			// Запись в базу данных результата выполнения
 			if err != nil {
@@ -291,14 +314,7 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 				if camRTSP != elemRemove {
 					continue
 				}
-				err := rtsp.PostRemoveRTSP(camRTSP, a.cfg) //
-				// if err != nil {
-				// 	logger.LogErrorStatusCode(a.LogStatusCode,
-				// 		fmt.Sprintf("cannot complete Post request for remove config %s", elemRemove), "Post", "400")
-				// 	continue
-				// }
-				// logger.LogInfoStatusCode(a.LogStatusCode,
-				// 	fmt.Sprintf("Success complete Post request for remove config %s", elemRemove), "Post", "200")
+				err := rtsp.PostRemoveRTSP(camRTSP, a.cfg)
 
 				// Запись в базу данных результата выполнения
 				if err != nil {
