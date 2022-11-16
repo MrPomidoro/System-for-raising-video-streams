@@ -110,42 +110,37 @@ func (a *app) Run() {
 						if camDB.Stream.String != elemAdd {
 							continue
 						}
-						rtsp.PostRTSP(camDB, a.cfg)
 
-						/*
-							// Запись в базу данных результата выполнения
+						err = rtsp.PostRTSP(camDB, a.cfg) //
+
+						// /*
+						// Запись в базу данных результата выполнения
+						if err != nil {
+							logger.LogErrorStatusCode(a.LogStatusCode, fmt.Sprintf("cannot complete post request: %v", err), "Post", "500")
+							insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
+							err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 							if err != nil {
-								logger.LogErrorStatusCode(a.LogStatusCode, err, "Post", "500")
-								insertStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
-								err = a.statusStreamUseCase.Insert(ctx, &insertStatusStream)
-								if err != nil {
-									logger.LogErrorStatusCode(a.LogStatusCode,
-										"cannot insert to table status_stream", "Post", "400")
-								} else {
-									logger.LogInfoStatusCode(a.LogStatusCode,
-										"Success insert to table status_stream", "Post", "200")
-								}
-							} else {
-								// Запись в базу данных результата выполнения
-								insertStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
-								err = a.statusStreamUseCase.Insert(ctx, &insertStatusStream)
-								if err != nil {
-									logger.LogErrorStatusCode(a.LogStatusCode,
-										"cannot insert to table status_stream", "Post", "400")
-								} else {
-									logger.LogInfoStatusCode(a.LogStatusCode,
-										"Success insert to table status_stream", "Post", "200")
-								}
+								logger.LogErrorStatusCode(a.LogStatusCode,
+									"cannot insert to table status_stream", "Post", "400")
+								continue
 							}
-						*/
+							logger.LogInfoStatusCode(a.LogStatusCode,
+								"Success insert to table status_stream", "Post", "200")
 
-						// if err != nil {
-						// 	logger.LogErrorStatusCode(a.LogStatusCode, fmt.Sprintf("cannot to send Post request to rtsp: %v", err), "Get", "500")
-						// 	continue
-						// }
-						// logger.LogInfoStatusCode(a.LogStatusCode, "Send Post request to rtsp", "Post", "200")
-						// // Отложенное закрытие тела ответа
-						// defer resp.Body.Close()
+							continue
+						}
+						// Запись в базу данных результата выполнения
+						insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+						err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+						if err != nil {
+							logger.LogErrorStatusCode(a.LogStatusCode,
+								"cannot insert to table status_stream", "Post", "400")
+							continue
+						}
+						logger.LogInfoStatusCode(a.LogStatusCode,
+							"Success insert to table status_stream", "Post", "200")
+
+						// */
 					}
 				}
 
