@@ -42,9 +42,8 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 	if err != nil {
 		logger.LogError(log, fmt.Sprintf("cannot unmarshal response: %v", err))
 		return res
-	} else {
-		logger.LogDebug(log, "Success unmarshal body")
 	}
+	logger.LogDebug(log, "Success unmarshal body")
 
 	res = item.(map[string]interface{})
 	return res
