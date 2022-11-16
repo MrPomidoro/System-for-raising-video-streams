@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
@@ -49,52 +48,65 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 	return res
 }
 
-func PostRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
+func PostAddRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
 
 	// Парсинг поля RunOnReady
 	runOnReady := fmt.Sprintf(RunOnReadyConst, cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
 
 	// Парсинг логина и пароля
-	var login, pass string
-	logPass := strings.Split(camDB.Auth.String, ":")
-	if len(logPass) == 2 {
-		login, pass = logPass[0], logPass[1]
+	// (не получается занести их в соответствующие поля, как и ip)
+	// var login, pass string
+	// logPass := strings.Split(camDB.Auth.String, ":")
+	// if len(logPass) == 2 {
+	// 	login, pass = logPass[0], logPass[1]
+	// }
+
+	// Поле протокола не должно быть пустым
+	// По умолчанию - tcp
+	var protocol string = camDB.Protocol.String
+	if protocol == "" {
+		protocol = "tcp"
 	}
 
-	// Заполнение структуры Conf для отправления Post запроса
-	postStruct := Conf{RunOnReadRestart: true, ReadIPs: []string{camDB.Ip.String},
-		RunOnReady: runOnReady, ReadUser: login, ReadPass: pass, SourceProtocol: camDB.Protocol.String}
+	// Формирование джейсона для отправки
+	postJson := []byte(fmt.Sprintf(`{
+			"source": "",
+			"sourceProtocol": "%s",
+			"sourceAnyPortEnable": false,
+			"sourceFingerprint": "",
+			"sourceOnDemand": false,
+			"sourceOnDemandStartTimeout": "10s",
+			"sourceOnDemandCloseAfter": "10s",
+			"sourceRedirect": "",
+			"disablePublisherOverride": false,
+			"fallback": "",
+			"publishUser": "",
+			"publishPass": "",
+			"readUser": "",
+			"readPass": "",
+			"runOnInit": "",
+			"runOnInitRestart": false,
+			"runOnDemand": "",
+			"runOnDemandRestart": true,
+			"runOnDemandStartTimeout": "5s",
+			"runOnDemandCloseAfter": "5s",
+			"runOnReady": "%s",
+			"runOnReadyRestart": false,
+			"runOnRead": "",
+			"runOnReadRestart": false
+	}`, protocol, runOnReady))
 
-	// fmt.Printf("%#v\n\n", postStruct)
-
-	// Формирование мапы
-	fieldsMap := make(map[string]interface{})
-	fieldsMap["conf"] = postStruct
-	fieldsMap["confName"] = camDB.Stream.String
-	fieldsMap["source"] = ""
-	fieldsMap["sourceReady"] = false
-	fieldsMap["tracks"] = []string{}
-	fieldsMap["readers"] = []string{}
-
-	postMap := make(map[string]map[string]interface{})
-	postMap[camDB.Stream.String] = fieldsMap
-
-	// fmt.Printf("%#v\n\n", postMap)
-
-	// Маршалинг в json
-	postJson, err := json.Marshal(postMap)
-	if err != nil {
-		return fmt.Errorf("cannot marshal structure to json, %v", err)
-	}
 	fmt.Println(string(postJson))
 
 	// Парсинг URL
 	URLPost := fmt.Sprintf(URLPostConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
+
 	// Запрос
-	_, err = http.NewRequest("POST", URLPost, bytes.NewBuffer(postJson))
+	response, err := http.Post(URLPost, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
 	if err != nil {
 		return fmt.Errorf("cannot complete post request, %v", err)
 	}
+	defer response.Body.Close()
 
 	return nil
 }
