@@ -91,7 +91,7 @@ func DBPing(cfg *config.Config, db *sql.DB) {
 			dbcfg.Password = cfg.Password
 			dbcfg.Driver = cfg.Driver
 			dbcfg.DBConnectionTimeoutSecond = cfg.Db_Connection_Timeout_Second
-			dbcfg.Log = logger.NewLog(cfg.LogLevel)
+			dbcfg.Log = log
 
 			connectToDB(&dbcfg)
 		}

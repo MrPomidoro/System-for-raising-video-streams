@@ -4,27 +4,29 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type rtspRepository struct {
 	cfg *config.Config
+	log *logrus.Logger
 }
 
-func NewRTSPRepository(cfg *config.Config) *rtspRepository {
+func NewRTSPRepository(cfg *config.Config, log *logrus.Logger) *rtspRepository {
 	return &rtspRepository{
 		cfg: cfg,
+		log: log,
 	}
 }
 
 func (rtsp *rtspRepository) GetRtsp() map[string]interface{} {
-	log := logger.NewLog(rtsp.cfg.LogLevel)
 	var item interface{}
 	var res map[string]interface{}
 
@@ -33,26 +35,26 @@ func (rtsp *rtspRepository) GetRtsp() map[string]interface{} {
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	if err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot received response from rtspRepository: %v", err))
+		logger.LogError(rtsp.log, fmt.Sprintf("cannot received response from rtspRepository: %v", err))
 		return res
 	}
-	logger.LogDebug(log, "Received response from rtspRepository")
+	logger.LogDebug(rtsp.log, "Received response from rtspRepository")
 	// Отложенное закрытие тела ответа
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.LogError(log, err)
+		logger.LogError(rtsp.log, err)
 		return res
 	}
-	logger.LogDebug(log, "Success read body")
+	logger.LogDebug(rtsp.log, "Success read body")
 
 	err = json.Unmarshal(body, &item)
 	if err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot unmarshal response: %v", err))
+		logger.LogError(rtsp.log, fmt.Sprintf("cannot unmarshal response: %v", err))
 		return res
 	}
-	logger.LogDebug(log, "Success unmarshal body")
+	logger.LogDebug(rtsp.log, "Success unmarshal body")
 
 	res = item.(map[string]interface{})
 	return res
@@ -157,4 +159,13 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 	defer response.Body.Close()
 
 	return nil
+}
+
+func (rtsp *rtspRepository) PostSetRTSP(camDB refreshstream.RefreshStream) {
+	logLevel := rtsp.cfg.LogLevel
+	logDestinations := "file, os.Stdout"
+	logFile := rtsp.cfg.LogFile
+	sourceProtocol := camDB.Protocol.String
+
+	fmt.Printf("logDestinations=%s, logLevel=%s, logFile=%s,sourceProtocol=%s\n", logDestinations, logLevel, logFile, sourceProtocol)
 }
