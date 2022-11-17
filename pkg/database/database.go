@@ -23,7 +23,7 @@ func CreateDBConnection(cfg *config.Config) *sql.DB {
 
 	dbcfg.Driver = cfg.Driver
 	dbcfg.DBConnectionTimeoutSecond = cfg.Db_Connection_Timeout_Second
-	dbcfg.Log = logger.NewLog(cfg.LogLevel)
+	dbcfg.Log = logger.NewLog(cfg.LogLevel, cfg.LogFile)
 
 	return connectToDB(&dbcfg)
 }
@@ -67,7 +67,7 @@ func connectToDB(dbcfg *Database) *sql.DB {
 
 // Отключение от базы данных
 func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
-	log := logger.NewLog(cfg.LogLevel)
+	log := logger.NewLog(cfg.LogLevel, cfg.LogFile)
 	if err := dbSQL.Close(); err != nil {
 		logger.LogError(log, fmt.Sprintf("cannot close DB connection. Error: %v", err))
 		return
@@ -78,7 +78,7 @@ func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
 func DBPing(cfg *config.Config, db *sql.DB) {
 
 	for {
-		log := logger.NewLog(cfg.LogLevel)
+		log := logger.NewLog(cfg.LogLevel, cfg.LogFile)
 		if err := db.Ping(); err != nil {
 			logger.LogWarn(log, fmt.Sprintf("cannot connect to database %s", err))
 			logger.LogInfo(log, "try connect to database...")
@@ -91,7 +91,7 @@ func DBPing(cfg *config.Config, db *sql.DB) {
 			dbcfg.Password = cfg.Password
 			dbcfg.Driver = cfg.Driver
 			dbcfg.DBConnectionTimeoutSecond = cfg.Db_Connection_Timeout_Second
-			dbcfg.Log = logger.NewLog(cfg.LogLevel)
+			dbcfg.Log = log
 
 			connectToDB(&dbcfg)
 		}

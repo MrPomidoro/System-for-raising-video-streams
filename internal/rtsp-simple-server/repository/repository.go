@@ -160,3 +160,12 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 
 	return nil
 }
+
+func (rtsp *rtspRepository) PostSetRTSP(camDB refreshstream.RefreshStream) {
+	logLevel := rtsp.cfg.LogLevel
+	logDestinations := "file, os.Stdout"
+	logFile := rtsp.cfg.LogFile
+	sourceProtocol := camDB.Protocol.String
+
+	fmt.Printf("logDestinations=%s, logLevel=%s, logFile=%s,sourceProtocol=%s\n", logDestinations, logLevel, logFile, sourceProtocol)
+}

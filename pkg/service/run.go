@@ -36,7 +36,7 @@ type app struct {
 
 // Функция, инициализирующая прототип приложения
 func NewApp(cfg *config.Config) *app {
-	log := logger.NewLog(cfg.LogLevel)
+	log := logger.NewLog(cfg.LogLevel, cfg.LogFile)
 	db := database.CreateDBConnection(cfg)
 	sigChan := make(chan os.Signal, 1)
 	repoRS := rsrepository.NewRefreshStreamRepository(db)
