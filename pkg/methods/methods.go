@@ -2,17 +2,17 @@ package methods
 
 import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
+	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 )
 
 /*
 Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 возвращающая true, если количество камер в базе и в rtsp одинаковое
 */
-func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) (bool, bool, []rtsp.Conf) {
+func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) (bool, bool, []rtspsimpleserver.Conf) {
 
-	var conf rtsp.Conf
-	var confArr []rtsp.Conf
+	var conf rtspsimpleserver.Conf
+	var confArr []rtspsimpleserver.Conf
 
 	// Счётчик для подсчёта совпадающих стримов камер
 	var count int
@@ -51,8 +51,6 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 					camFieldMap := camField.(map[string]interface{}) // для извлечения данных
 
 					conf.Stream = camStreamRTSP
-					// fmt.Printf("camStreamRTSP=%s, camDB.Stream.String=%s\n", camStreamRTSP, camDB.Stream.String)
-					// fmt.Printf("camFieldMap[sourceProtocol].(string) = %s, camDB.Protocol.String=%s\n", camFieldMap["sourceProtocol"].(string), camDB.Protocol.String)
 
 					// Если значение поля в rtsp отличается от значения в бд, данные из бд вносятся в структуру
 					if camFieldMap["sourceProtocol"].(string) != camDB.Protocol.String {
@@ -60,7 +58,7 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 						continue
 					}
 					identity++
-					// fmt.Println("identity int:", identity)
+
 					// парсинг поля runOnReady
 					// var runOnReadyRes string
 					// runOnReady := camFieldMap["runOnReady"].(string)

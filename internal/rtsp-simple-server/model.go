@@ -1,4 +1,4 @@
-package rtsp
+package rtspsimpleserver
 
 type Conf struct {
 	Stream                     string `json:"stream"`

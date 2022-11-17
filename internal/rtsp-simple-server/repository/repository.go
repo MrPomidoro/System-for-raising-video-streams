@@ -1,4 +1,4 @@
-package rtsp
+package repository
 
 import (
 	"bytes"
@@ -8,24 +8,35 @@ import (
 	"net/http"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
+	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 )
 
-func GetRtsp(cfg *config.Config) map[string]interface{} {
-	log := logger.NewLog(cfg.LogLevel)
+type rtspRepository struct {
+	cfg *config.Config
+}
+
+func NewRTSPRepository(cfg *config.Config) *rtspRepository {
+	return &rtspRepository{
+		cfg: cfg,
+	}
+}
+
+func (rtsp *rtspRepository) GetRtsp() map[string]interface{} {
+	log := logger.NewLog(rtsp.cfg.LogLevel)
 	var item interface{}
 	var res map[string]interface{}
 
 	// Формирование URL для get запроса
-	URLGet := fmt.Sprintf(URLGetConst, cfg.Server_Host, cfg.Server_Port)
+	URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port)
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	if err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot received response from rtsp: %v", err))
+		logger.LogError(log, fmt.Sprintf("cannot received response from rtspRepository: %v", err))
 		return res
 	}
-	logger.LogDebug(log, "Received response from rtsp")
+	logger.LogDebug(log, "Received response from rtspRepository")
 	// Отложенное закрытие тела ответа
 	defer resp.Body.Close()
 
@@ -47,10 +58,10 @@ func GetRtsp(cfg *config.Config) map[string]interface{} {
 	return res
 }
 
-func PostAddRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
+func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error {
 
 	// Парсинг поля RunOnReady
-	runOnReady := fmt.Sprintf(RunOnReadyConst, cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+	runOnReady := fmt.Sprintf(rtspsimpleserver.RunOnReadyConst, rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
 
 	// Парсинг логина и пароля
 	// (не получается занести их в соответствующие поля, как и ip)
@@ -82,7 +93,7 @@ func PostAddRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
 	}`, protocol, runOnReady))
 
 	// Парсинг URL
-	URLPostAdd := fmt.Sprintf(URLPostAddConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
+	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostAddConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camDB.Stream.String)
 
 	// Запрос
 	response, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
@@ -94,9 +105,9 @@ func PostAddRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
 	return nil
 }
 
-func PostRemoveRTSP(camRTSP string, cfg *config.Config) error {
+func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
 	// Парсинг URL
-	URLPostRemove := fmt.Sprintf(URLPostRemoveConst, cfg.Server_Host, cfg.Server_Port, camRTSP)
+	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostRemoveConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camRTSP)
 
 	var buf []byte
 	// Запрос
@@ -109,7 +120,7 @@ func PostRemoveRTSP(camRTSP string, cfg *config.Config) error {
 	return nil
 }
 
-func PostEditRTSP(camDB refreshstream.RefreshStream, cfg *config.Config, conf Conf) error {
+func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) error {
 
 	// Парсинг поля RunOnReady
 	// runOnReady := fmt.Sprintf(RunOnReadyConst, cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
@@ -136,7 +147,7 @@ func PostEditRTSP(camDB refreshstream.RefreshStream, cfg *config.Config, conf Co
 	}`, protocol))
 
 	// Парсинг URL
-	URLPostEdit := fmt.Sprintf(URLPostEditConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
+	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostEditConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camDB.Stream.String)
 
 	// Запрос
 	response, err := http.Post(URLPostEdit, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))

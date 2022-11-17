@@ -1,4 +1,4 @@
-package rtsp
+package rtspsimpleserver
 
 const (
 	// 1 - cfg.Run из конфига, 2 - port_srv, 3 - sp, 4 - cam_id из бд
