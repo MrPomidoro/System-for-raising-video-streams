@@ -43,8 +43,8 @@ func NewApp(cfg *config.Config) *app {
 		Db:                   db,
 		Log:                  log,
 		SigChan:              sigChan,
-		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db, log),
-		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db, log),
+		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db),
+		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db),
 	}
 }
 
