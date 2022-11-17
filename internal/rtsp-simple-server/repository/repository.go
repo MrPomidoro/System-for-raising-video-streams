@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
@@ -42,7 +42,7 @@ func (rtsp *rtspRepository) GetRtsp() map[string]interface{} {
 	// Отложенное закрытие тела ответа
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.LogError(rtsp.log, err)
 		return res
