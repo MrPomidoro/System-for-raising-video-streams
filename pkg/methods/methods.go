@@ -51,8 +51,6 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 					camFieldMap := camField.(map[string]interface{}) // для извлечения данных
 
 					conf.Stream = camStreamRTSP
-					// fmt.Printf("camStreamRTSP=%s, camDB.Stream.String=%s\n", camStreamRTSP, camDB.Stream.String)
-					// fmt.Printf("camFieldMap[sourceProtocol].(string) = %s, camDB.Protocol.String=%s\n", camFieldMap["sourceProtocol"].(string), camDB.Protocol.String)
 
 					// Если значение поля в rtsp отличается от значения в бд, данные из бд вносятся в структуру
 					if camFieldMap["sourceProtocol"].(string) != camDB.Protocol.String {
@@ -60,7 +58,7 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 						continue
 					}
 					identity++
-					// fmt.Println("identity int:", identity)
+
 					// парсинг поля runOnReady
 					// var runOnReadyRes string
 					// runOnReady := camFieldMap["runOnReady"].(string)
