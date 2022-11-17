@@ -23,7 +23,7 @@ import (
 // Прототип приложения
 type app struct {
 	cfg                  *config.Config
-	Log                  *logrus.Logger
+	log                  *logrus.Logger
 	Db                   *sql.DB
 	SigChan              chan os.Signal
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
@@ -41,10 +41,10 @@ func NewApp(cfg *config.Config) *app {
 	return &app{
 		cfg:                  cfg,
 		Db:                   db,
-		Log:                  log,
+		log:                  log,
 		SigChan:              sigChan,
-		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db, log),
-		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db, log),
+		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db),
+		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db),
 	}
 }
 
@@ -67,7 +67,7 @@ func (a *app) Run() {
 			// Получение данных от базы данных и от rtsp
 			dataDB, dataRTSP, lenResDB, lenResRTSP, err := a.getDBAndApi(ctx)
 			if err != nil {
-				logger.LogError(a.Log, err)
+				logger.LogError(a.log, err)
 				continue
 			}
 
@@ -83,19 +83,19 @@ func (a *app) Run() {
 					- запись в status_stream.
 			*/
 			if lenResDB == lenResRTSP {
-				logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
+				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
 				// Проверка одинаковости данных по стримам
 				identity := methods.CheckIdentity(dataDB, dataRTSP)
 
 				if identity {
-					logger.LogInfo(a.Log, "Data is identity, waiting...")
+					logger.LogInfo(a.log, "Data is identity, waiting...")
 					continue
 				}
 
 				// Получение списков камер на добавление и удаление
 				resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-				logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
+				logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
 					resSliceAdd, resSliceRemove))
 
 				// Добавление камер
@@ -115,11 +115,11 @@ func (a *app) Run() {
 					запись в status_stream
 				*/
 			} else if lenResDB > lenResRTSP {
-				logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
+				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
 				// Получение списков камер на добавление
 				resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-				logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
+				logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
 
 				// Добавление камер
 				if resSliceAdd != nil {
@@ -138,13 +138,13 @@ func (a *app) Run() {
 					запись в status_stream
 				*/
 			} else if lenResDB < lenResRTSP {
-				logger.LogInfo(a.Log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d; waiting...", lenResDB, lenResRTSP))
+				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d; waiting...", lenResDB, lenResRTSP))
 
 				// Ожидание 5 секунд и повторный запрос данных с базы и с rtsp
 				time.Sleep(time.Second * 5)
 				dataDB, dataRTSP, lenResDBLESS, lenResRTSPLESS, err := a.getDBAndApi(ctx)
 				if err != nil {
-					logger.LogError(a.Log, err)
+					logger.LogError(a.log, err)
 					continue
 				}
 
@@ -152,7 +152,7 @@ func (a *app) Run() {
 				if lenResDBLESS > lenResRTSPLESS {
 					// Получение списков камер на добавление и удаление
 					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
+					logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
 
 					// Добавление камер
 					if resSliceAdd != nil {
@@ -166,7 +166,7 @@ func (a *app) Run() {
 				} else if lenResDBLESS < lenResRTSPLESS {
 					// Получение списков камер на добавление и удаление
 					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
+					logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
 
 					// Добавление камер
 					if resSliceAdd != nil {
@@ -182,13 +182,13 @@ func (a *app) Run() {
 					// Проверка одинаковости данных по стримам
 					identity := methods.CheckIdentity(dataDB, dataRTSP)
 					if identity {
-						logger.LogInfo(a.Log, "Data is identity, waiting...")
+						logger.LogInfo(a.log, "Data is identity, waiting...")
 						continue
 					}
 
 					// Получение списков камер на добавление и удаление
 					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-					logger.LogInfo(a.Log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
+					logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
 						resSliceAdd, resSliceRemove))
 
 					// Добавление камер
