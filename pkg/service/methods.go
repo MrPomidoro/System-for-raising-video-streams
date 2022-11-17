@@ -23,7 +23,7 @@ import (
 func (a *app) GracefulShutdown(sig chan os.Signal) {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	sign := <-sig
-	logger.LogWarn(a.Log, fmt.Sprintf("Got signal: %v, exiting", sign))
+	logger.LogWarn(a.log, fmt.Sprintf("Got signal: %v, exiting", sign))
 	database.CloseDBConnection(a.cfg, a.Db)
 	time.Sleep(time.Second * 2)
 	close(a.SigChan)
@@ -33,10 +33,10 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
 	req, err := a.refreshStreamUseCase.GetStatusTrue(ctx)
 	if err != nil {
-		logger.LogError(a.Log, err)
+		logger.LogError(a.log, err)
 		return req
 	}
-	logger.LogDebug(a.Log, "Received response from the database")
+	logger.LogDebug(a.log, "Received response from the database")
 	return req
 }
 
@@ -91,27 +91,27 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 
 			// Запись в базу данных результата выполнения
 			if err != nil {
-				logger.LogError(a.Log, err)
+				logger.LogError(a.log, err)
 				insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
 				err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 				if err != nil {
-					logger.LogError(a.Log,
+					logger.LogError(a.log,
 						"cannot insert to table status_stream")
 					continue
 				}
-				logger.LogInfo(a.Log,
+				logger.LogInfo(a.log,
 					"Success insert to table status_stream")
 			}
 
-			logger.LogInfo(a.Log, fmt.Sprintf("Success complete post request for add config %s", elemAdd))
+			logger.LogInfo(a.log, fmt.Sprintf("Success complete post request for add config %s", elemAdd))
 			insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
 			err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 			if err != nil {
-				logger.LogError(a.Log,
+				logger.LogError(a.log,
 					"cannot insert to table status_stream")
 				continue
 			}
-			logger.LogInfo(a.Log,
+			logger.LogInfo(a.log,
 				"Success insert to table status_stream")
 		}
 	}
@@ -127,7 +127,7 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 
 	dataDB, err := a.refreshStreamUseCase.GetStatusFalse(ctx)
 	if err != nil {
-		logger.LogError(a.Log, err)
+		logger.LogError(a.log, err)
 		return
 	}
 
@@ -154,29 +154,29 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 
 					// Запись в базу данных результата выполнения
 					if err != nil {
-						logger.LogError(a.Log, err)
+						logger.LogError(a.log, err)
 						insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
 						err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 						if err != nil {
-							logger.LogError(a.Log,
+							logger.LogError(a.log,
 								"cannot insert to table status_stream")
 							continue
 						}
-						logger.LogInfo(a.Log,
+						logger.LogInfo(a.log,
 							"Success insert to table status_stream")
 
 					}
 
-					logger.LogInfo(a.Log,
+					logger.LogInfo(a.log,
 						fmt.Sprintf("Success complete Post request for remove config %s", elemRemove))
 					insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
 					err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 					if err != nil {
-						logger.LogError(a.Log,
+						logger.LogError(a.log,
 							"cannot insert to table status_stream")
 						continue
 					}
-					logger.LogInfo(a.Log,
+					logger.LogInfo(a.log,
 						"Success insert to table status_stream")
 
 					break

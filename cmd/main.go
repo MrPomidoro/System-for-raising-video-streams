@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/service"
 )
 
@@ -13,7 +12,6 @@ func main() {
 
 	// Инициализация прототипа приложения
 	app := service.NewApp(cfg)
-	logger.LogDebug(app.Log, "app created")
 
 	// Запуск алгоритма в отдельной горутине
 	go app.Run()
