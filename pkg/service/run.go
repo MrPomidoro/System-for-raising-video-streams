@@ -10,6 +10,9 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rsrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository"
 	rsusecase "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/usecase"
+	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
+	rtsprepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server/repository"
+	rtspusecase "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server/usecase"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
 	ssrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository"
 	ssusecase "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/usecase"
@@ -28,6 +31,7 @@ type app struct {
 	SigChan              chan os.Signal
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
 	statusStreamUseCase  statusstream.StatusStreamUseCase
+	rtspUseCase          rtspsimpleserver.RTSPUseCase
 }
 
 // Функция, инициализирующая прототип приложения
@@ -37,6 +41,7 @@ func NewApp(cfg *config.Config) *app {
 	sigChan := make(chan os.Signal, 1)
 	repoRS := rsrepository.NewRefreshStreamRepository(db)
 	repoSS := ssrepository.NewStatusStreamRepository(db)
+	repoRTSP := rtsprepository.NewRTSPRepository(cfg)
 
 	return &app{
 		cfg:                  cfg,
@@ -45,6 +50,7 @@ func NewApp(cfg *config.Config) *app {
 		SigChan:              sigChan,
 		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db),
 		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db),
+		rtspUseCase:          rtspusecase.NewRTSPUseCase(repoRTSP),
 	}
 }
 
