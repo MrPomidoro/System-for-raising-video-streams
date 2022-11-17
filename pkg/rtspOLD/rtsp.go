@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
+	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 )
@@ -109,7 +110,7 @@ func PostRemoveRTSP(camRTSP string, cfg *config.Config) error {
 	return nil
 }
 
-func PostEditRTSP(camDB refreshstream.RefreshStream, cfg *config.Config, conf Conf) error {
+func PostEditRTSP(camDB refreshstream.RefreshStream, cfg *config.Config, conf rtspsimpleserver.Conf) error {
 
 	// Парсинг поля RunOnReady
 	// runOnReady := fmt.Sprintf(RunOnReadyConst, cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)

@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
+	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
+	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtspOLD"
 )
 
 /*
@@ -191,7 +192,7 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
-func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtsp.Conf, dataDB []refreshstream.RefreshStream) {
+func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.Conf, dataDB []refreshstream.RefreshStream) {
 	for _, camDB := range dataDB {
 		for _, conf := range confArr {
 			if camDB.Stream.String != conf.Stream {
