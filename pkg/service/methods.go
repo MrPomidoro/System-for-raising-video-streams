@@ -191,7 +191,8 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
-func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.Conf, dataDB []refreshstream.RefreshStream) {
+func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.Conf,
+	dataDB []refreshstream.RefreshStream) {
 	for _, camDB := range dataDB {
 		for _, conf := range confArr {
 			if camDB.Stream.String != conf.Stream {

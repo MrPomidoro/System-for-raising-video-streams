@@ -41,7 +41,7 @@ func NewApp(cfg *config.Config) *app {
 	sigChan := make(chan os.Signal, 1)
 	repoRS := rsrepository.NewRefreshStreamRepository(db)
 	repoSS := ssrepository.NewStatusStreamRepository(db)
-	repoRTSP := rtsprepository.NewRTSPRepository(cfg)
+	repoRTSP := rtsprepository.NewRTSPRepository(cfg, log)
 
 	return &app{
 		cfg:                  cfg,
