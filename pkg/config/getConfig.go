@@ -17,7 +17,7 @@ func GetConfig() *Config {
 	v.SetConfigType("yaml")
 	v.AddConfigPath("./")
 
-	log := logger.NewLog(cfg.LogLevel, cfg.LogFile)
+	log := logger.NewLog(cfg.LogLevel)
 
 	// Попытка чтения конфига
 	if err := v.ReadInConfig(); err != nil {
@@ -43,7 +43,6 @@ func GetConfig() *Config {
 // при запуске из командной строки
 func readFlags(cfg *Config) {
 	flag.StringVar(&cfg.LogLevel, "loglevel", cfg.LogLevel, "The level of logging parameter")
-	flag.StringVar(&cfg.LogFile, "logfile", cfg.LogFile, "The file for logging parameter")
 
 	flag.StringVar(&cfg.Server_Host, "server_host", cfg.Server_Host, "The host of server parameter")
 	flag.StringVar(&cfg.Server_Port, "server_port", cfg.Server_Port, "The port of server parameter")

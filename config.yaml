@@ -1,6 +1,5 @@
 logger:
   loglevel: DEBUG
-  logfile: out.log
 server:
   server_host: 10.100.100.228
   server_port: :9997

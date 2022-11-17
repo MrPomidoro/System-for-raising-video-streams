@@ -10,10 +10,10 @@ import (
 
 // Функция для инициализации логгера с настраиваемым уровнем логирования
 // на основе данных из конфига
-func NewLog(level, fileName string) *logrus.Logger {
-	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+func NewLog(level string) *logrus.Logger {
+	file, err := os.OpenFile("out.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logrus.Fatalf("can not open file for logging: %v", err)
+		logrus.Errorf("can not open file for logging: %v", err)
 	}
 
 	return &logrus.Logger{
