@@ -1,15 +1,23 @@
 package methods
 
-import "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
+import (
+	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtsp"
+)
 
 /*
 Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 возвращающая true, если количество камер в базе и в rtsp одинаковое
 */
-func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) bool {
+func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) (bool, bool, []rtsp.Conf) {
+
+	var conf rtsp.Conf
+	var confArr []rtsp.Conf
 
 	// Счётчик для подсчёта совпадающих стримов камер
 	var count int
+	// Счётчик для подсчёта камер, у которых совпадают поля
+	var identity int
 
 	// Перебор элементов списка структур
 	for _, camDB := range dataDB {
@@ -20,23 +28,69 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 			// Для возможности извлечения данных
 			camsRTSPMap := camsRTSP.(map[string]interface{})
 
-			// camRTSP - стрим камеры
-			for camRTSP := range camsRTSPMap {
-				// Если stream из базы данных совпадает с rtsp, счётчики увеличиваются
-				if camDB.Stream.String == camRTSP {
-					count++
-					break
+			// camStreamRTSP - стрим камеры
+			for camStreamRTSP := range camsRTSPMap {
+
+				// Если stream из базы данных не совпадает с rtsp, итерация пропускается
+				if camDB.Stream.String != camStreamRTSP {
+					continue
 				}
+				// Если совпадает - увеличивается счётчик количества совпадающих стримов
+				count++
+
+				camFields := camsRTSPMap[camStreamRTSP]            // все поля камеры (conf, confName, source etc)
+				camFieldsMap := camFields.(map[string]interface{}) // для извлечения данных
+
+				// camFieldName - имя поля ("sourceProtocol"), camField - значение ("tcp")
+				for camFieldName, camField := range camFieldsMap {
+					// рассматриваем только поле conf
+					if camFieldName != "conf" {
+						continue
+					}
+
+					camFieldMap := camField.(map[string]interface{}) // для извлечения данных
+
+					conf.Stream = camStreamRTSP
+					// fmt.Printf("camStreamRTSP=%s, camDB.Stream.String=%s\n", camStreamRTSP, camDB.Stream.String)
+					// fmt.Printf("camFieldMap[sourceProtocol].(string) = %s, camDB.Protocol.String=%s\n", camFieldMap["sourceProtocol"].(string), camDB.Protocol.String)
+
+					// Если значение поля в rtsp отличается от значения в бд, данные из бд вносятся в структуру
+					if camFieldMap["sourceProtocol"].(string) != camDB.Protocol.String {
+						conf.SourceProtocol = camDB.Protocol.String
+						continue
+					}
+					identity++
+					// fmt.Println("identity int:", identity)
+					// парсинг поля runOnReady
+					// var runOnReadyRes string
+					// runOnReady := camFieldMap["runOnReady"].(string)
+					// runOnReadyArr := strings.Split(runOnReady, " --")
+					// for i, elemRunOnReadyArr := range runOnReadyArr {
+					// 	elemRunOnReadyArrArr := strings.Split(elemRunOnReadyArr, " ")
+					// 	if elemRunOnReadyArrArr[0] == "port" {
+					// 		if elemRunOnReadyArrArr[1] != camDB.Portsrv {
+					// 			runOnReadyRes
+					// 		}
+					// 	}
+					// }
+
+				}
+				break
+
 			}
+			confArr = append(confArr, conf)
 		}
 	}
 
 	// Если счётчик равен длине списка с базы данных, данные совпадают
-	if count == len(dataDB) {
-		return true
-	} else {
-		return false
+	if count != len(dataDB) {
+		return false, false, confArr
+	} else if count == len(dataDB) && identity == len(dataDB) {
+		return true, true, confArr
+	} else if count == len(dataDB) && identity != len(dataDB) {
+		return true, false, confArr
 	}
+	return false, false, confArr
 }
 
 /*

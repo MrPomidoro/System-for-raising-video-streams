@@ -185,3 +185,49 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 		}
 	}
 }
+
+/*
+Функция, принимающая на вход список камер, которые необходимо изменить в rtsp-simple-server,
+и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
+добавляет в таблицу status_stream запись с результатом выполнения запроса
+*/
+func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtsp.Conf, dataDB []refreshstream.RefreshStream) {
+	for _, camDB := range dataDB {
+		for _, conf := range confArr {
+			if camDB.Stream.String != conf.Stream {
+				continue
+			}
+
+			if conf.SourceProtocol == "" {
+				continue
+			}
+
+			err := rtsp.PostEditRTSP(camDB, a.cfg, conf)
+
+			// Запись в базу данных результата выполнения
+			if err != nil {
+				logger.LogError(a.log, err)
+				insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
+				err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+				if err != nil {
+					logger.LogError(a.log,
+						"cannot insert to table status_stream")
+					continue
+				}
+				logger.LogInfo(a.log,
+					"Success insert to table status_stream")
+			}
+
+			logger.LogInfo(a.log, fmt.Sprintf("Success complete post request for edit config %s", camDB.Stream.String))
+			insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+			err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+			if err != nil {
+				logger.LogError(a.log,
+					"cannot insert to table status_stream")
+				continue
+			}
+			logger.LogInfo(a.log,
+				"Success insert to table status_stream")
+		}
+	}
+}
