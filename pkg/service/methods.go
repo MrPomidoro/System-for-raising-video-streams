@@ -14,7 +14,6 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
-	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/rtspOLD"
 )
 
 /*
@@ -51,7 +50,7 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 
 	// Отправка запросов к базе и к rtsp
 	resDB := a.getReqFromDB(ctx)
-	resRTSP := rtsp.GetRtsp(a.cfg)
+	resRTSP := a.rtspUseCase.GetRtsp()
 
 	// Проверка, что ответ от базы данных не пустой
 	if len(resDB) == 0 {
@@ -88,7 +87,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 				continue
 			}
 
-			err := rtsp.PostAddRTSP(camDB, a.cfg)
+			err := a.rtspUseCase.PostAddRTSP(camDB)
 
 			// Запись в базу данных результата выполнения
 			if err != nil {
@@ -151,7 +150,7 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 						continue
 					}
 
-					err := rtsp.PostRemoveRTSP(camRTSP, a.cfg)
+					err := a.rtspUseCase.PostRemoveRTSP(camRTSP)
 
 					// Запись в базу данных результата выполнения
 					if err != nil {
@@ -203,7 +202,7 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 				continue
 			}
 
-			err := rtsp.PostEditRTSP(camDB, a.cfg, conf)
+			err := a.rtspUseCase.PostEditRTSP(camDB, conf)
 
 			// Запись в базу данных результата выполнения
 			if err != nil {
