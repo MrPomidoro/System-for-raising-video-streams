@@ -86,13 +86,18 @@ func (a *app) Run() {
 				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
 				// Проверка одинаковости данных по стримам
-				identity := methods.CheckIdentity(dataDB, dataRTSP)
+				isEqualCount, identity, confArr := methods.CheckIdentity(dataDB, dataRTSP)
 
-				if identity {
+				if isEqualCount && identity {
 					logger.LogInfo(a.log, "Data is identity, waiting...")
+					continue
+				} else if isEqualCount && !identity {
+					logger.LogInfo(a.log, "Count of data is same, but the field values are different")
+					a.editCamerasToRTSP(ctx, confArr, dataDB)
 					continue
 				}
 
+				logger.LogInfo(a.log, "Count of data is different")
 				// Получение списков камер на добавление и удаление
 				resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
 				logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
@@ -180,11 +185,17 @@ func (a *app) Run() {
 				} else if lenResDBLESS == lenResRTSPLESS {
 
 					// Проверка одинаковости данных по стримам
-					identity := methods.CheckIdentity(dataDB, dataRTSP)
-					if identity {
+					isEqualCount, identity, confArr := methods.CheckIdentity(dataDB, dataRTSP)
+					if isEqualCount && identity {
 						logger.LogInfo(a.log, "Data is identity, waiting...")
 						continue
+					} else if isEqualCount && !identity {
+						logger.LogInfo(a.log, "Count of data is same, but the field values are different")
+						a.editCamerasToRTSP(ctx, confArr, dataDB)
+						continue
 					}
+
+					logger.LogInfo(a.log, "Count of data is different")
 
 					// Получение списков камер на добавление и удаление
 					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)

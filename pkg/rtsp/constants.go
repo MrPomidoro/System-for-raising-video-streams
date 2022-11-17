@@ -12,4 +12,7 @@ const (
 
 	// 1 - host, 2 - port из конфига, 3 - стрим камеры из базы/rtsp
 	URLPostRemoveConst = "http://%s%s/v1/config/paths/remove/%s"
+
+	// 1 - host, 2 - port из конфига, 3 - стрим камеры из базы/rtsp
+	URLPostEditConst = "http://%s%s/v1/config/paths/edit/%s"
 )

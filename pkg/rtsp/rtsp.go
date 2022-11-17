@@ -69,29 +69,15 @@ func PostAddRTSP(camDB refreshstream.RefreshStream, cfg *config.Config) error {
 
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`{
-			"source": "",
 			"sourceProtocol": "%s",
-			"sourceAnyPortEnable": false,
-			"sourceFingerprint": "",
-			"sourceOnDemand": false,
 			"sourceOnDemandStartTimeout": "10s",
 			"sourceOnDemandCloseAfter": "10s",
-			"sourceRedirect": "",
-			"disablePublisherOverride": false,
-			"fallback": "",
-			"publishUser": "",
-			"publishPass": "",
 			"readUser": "",
 			"readPass": "",
-			"runOnInit": "",
-			"runOnInitRestart": false,
-			"runOnDemand": "",
-			"runOnDemandRestart": true,
 			"runOnDemandStartTimeout": "5s",
 			"runOnDemandCloseAfter": "5s",
 			"runOnReady": "%s",
-			"runOnReadyRestart": false,
-			"runOnRead": "",
+			"runOnReadyRestart": true,
 			"runOnReadRestart": false
 	}`, protocol, runOnReady))
 
@@ -117,6 +103,45 @@ func PostRemoveRTSP(camRTSP string, cfg *config.Config) error {
 	response, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
 	if err != nil {
 		return fmt.Errorf("cannot complete post request for remove config: %v", err)
+	}
+	defer response.Body.Close()
+
+	return nil
+}
+
+func PostEditRTSP(camDB refreshstream.RefreshStream, cfg *config.Config, conf Conf) error {
+
+	// Парсинг поля RunOnReady
+	// runOnReady := fmt.Sprintf(RunOnReadyConst, cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+
+	// Парсинг логина и пароля
+	// (не получается занести их в соответствующие поля, как и ip)
+	// var login, pass string
+	// logPass := strings.Split(camDB.Auth.String, ":")
+	// if len(logPass) == 2 {
+	// 	login, pass = logPass[0], logPass[1]
+	// }
+
+	var protocol string
+	if conf.SourceProtocol != "" {
+		protocol = conf.SourceProtocol
+	} else {
+		protocol = camDB.Protocol.String
+	}
+
+	// Формирование джейсона для отправки
+	postJson := []byte(fmt.Sprintf(`{
+			"sourceProtocol": "%s",
+			"runOnReadRestart": false
+	}`, protocol))
+
+	// Парсинг URL
+	URLPostEdit := fmt.Sprintf(URLPostEditConst, cfg.Server_Host, cfg.Server_Port, camDB.Stream.String)
+
+	// Запрос
+	response, err := http.Post(URLPostEdit, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
+	if err != nil {
+		return fmt.Errorf("cannot complete post request for edit config: %v", err)
 	}
 	defer response.Body.Close()
 
