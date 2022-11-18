@@ -18,32 +18,16 @@ func NewRefreshStreamRepository(db *sql.DB) *refreshStreamRepository {
 	}
 }
 
-func (s refreshStreamRepository) GetStatusTrue(ctx context.Context) ([]refreshstream.RefreshStream, error) {
-	// Выполнение запроса
-	rows, err := s.db.QueryContext(ctx, refreshstream.QUERY_STATUS_TRUE)
-	if err != nil {
-		return nil, fmt.Errorf("cannot complete Get request: %v", err)
-	}
-	defer rows.Close()
+func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refreshstream.RefreshStream, error) {
+	var query string
 
-	// Слайс копий структур
-	refreshStreamArr := []refreshstream.RefreshStream{}
-	for rows.Next() {
-		rs := refreshstream.RefreshStream{}
-		err := rows.Scan(&rs.Id, &rs.Auth, &rs.Ip, &rs.Stream,
-			&rs.Portsrv, &rs.Sp, &rs.CamId, &rs.Record_status,
-			&rs.Stream_status, &rs.Record_state, &rs.Stream_state, &rs.Protocol)
-		if err != nil {
-			return nil, err
-		}
-		refreshStreamArr = append(refreshStreamArr, rs)
+	switch status {
+	case true:
+		query = refreshstream.QueryStatusTrue
+	case false:
+		query = refreshstream.QueryStatusFalse
 	}
-	return refreshStreamArr, nil
-}
-
-func (s refreshStreamRepository) GetStatusFalse(ctx context.Context) ([]refreshstream.RefreshStream, error) {
-	// Выполнение запроса
-	rows, err := s.db.QueryContext(ctx, refreshstream.QUERY_STATUS_FALSE)
+	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("cannot complete Get request: %v", err)
 	}

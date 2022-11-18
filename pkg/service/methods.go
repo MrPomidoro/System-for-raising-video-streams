@@ -31,7 +31,7 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 
 // Get запрос на получение списка камер из базы данных
 func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
-	req, err := a.refreshStreamUseCase.GetStatusTrue(ctx)
+	req, err := a.refreshStreamUseCase.Get(ctx, true)
 	if err != nil {
 		logger.LogError(a.log, err)
 		return req
@@ -126,7 +126,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 	dataRTSP map[string]interface{}) {
 
-	dataDB, err := a.refreshStreamUseCase.GetStatusFalse(ctx)
+	dataDB, err := a.refreshStreamUseCase.Get(ctx, false)
 	if err != nil {
 		logger.LogError(a.log, err)
 		return
