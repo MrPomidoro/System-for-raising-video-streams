@@ -27,6 +27,7 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 	case false:
 		query = refreshstream.QueryStatusFalse
 	}
+
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("cannot complete Get request: %v", err)
