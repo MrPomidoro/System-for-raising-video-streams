@@ -92,7 +92,7 @@ func (a *app) Run() {
 				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
 				// Проверка одинаковости данных по стримам
-				isEqualCount, identity, confArr := methods.CheckIdentity(dataDB, dataRTSP)
+				isEqualCount, identity, confArr := methods.CheckIdentity(dataDB, dataRTSP, a.cfg)
 
 				if isEqualCount && identity {
 					logger.LogInfo(a.log, "Data is identity, waiting...")
@@ -191,7 +191,7 @@ func (a *app) Run() {
 				} else if lenResDBLESS == lenResRTSPLESS {
 
 					// Проверка одинаковости данных по стримам
-					isEqualCount, identity, confArr := methods.CheckIdentity(dataDB, dataRTSP)
+					isEqualCount, identity, confArr := methods.CheckIdentity(dataDB, dataRTSP, a.cfg)
 					if isEqualCount && identity {
 						logger.LogInfo(a.log, "Data is identity, waiting...")
 						continue

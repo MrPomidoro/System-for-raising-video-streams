@@ -1,17 +1,20 @@
 package methods
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 )
 
 /*
 Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 возвращающая true, если количество камер в базе и в rtsp одинаковое
 */
-func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) (bool, bool, []rtspsimpleserver.Conf) {
+func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}, cfg *config.Config) (bool, bool, []rtspsimpleserver.Conf) {
 
-	var conf rtspsimpleserver.Conf
 	var confArr []rtspsimpleserver.Conf
 
 	// Счётчик для подсчёта совпадающих стримов камер
@@ -22,14 +25,16 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 	// Перебор элементов списка структур
 	for _, camDB := range dataDB {
 
-		// Перебор элементов мапы
+		// Перебор элементов мапы, _ - "items"
 		for _, camsRTSP := range dataRTSP {
 
 			// Для возможности извлечения данных
 			camsRTSPMap := camsRTSP.(map[string]interface{})
 
-			// camStreamRTSP - стрим камеры
-			for camStreamRTSP := range camsRTSPMap {
+			var conf rtspsimpleserver.Conf
+
+			// camStreamRTSP - стрим камеры, camFields - все поля камеры (conf, confName, source etc)
+			for camStreamRTSP, camFields := range camsRTSPMap {
 
 				// Если stream из базы данных не совпадает с rtsp, итерация пропускается
 				if camDB.Stream.String != camStreamRTSP {
@@ -38,10 +43,13 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 				// Если совпадает - увеличивается счётчик количества совпадающих стримов
 				count++
 
-				camFields := camsRTSPMap[camStreamRTSP]            // все поля камеры (conf, confName, source etc)
+				// --------------------------------------- //
+				// Проверка одинаковости данных для камеры //
+				// --------------------------------------- //
+
 				camFieldsMap := camFields.(map[string]interface{}) // для извлечения данных
 
-				// camFieldName - имя поля ("sourceProtocol"), camField - значение ("tcp")
+				// camFieldName - имя поля ("conf"), camField - значение (поля) этого поля ("sourceProtocol")
 				for camFieldName, camField := range camFieldsMap {
 					// рассматриваем только поле conf
 					if camFieldName != "conf" {
@@ -51,26 +59,18 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 					camFieldMap := camField.(map[string]interface{}) // для извлечения данных
 
 					conf.Stream = camStreamRTSP
-
 					// Если значение поля в rtsp отличается от значения в бд, данные из бд вносятся в структуру
-					if camFieldMap["sourceProtocol"].(string) != camDB.Protocol.String {
-						conf.SourceProtocol = camDB.Protocol.String
+					if camFieldMap["sourceProtocol"].(string) == camDB.Protocol.String {
+						identity++
 						continue
 					}
-					identity++
+					conf.SourceProtocol = camFieldMap["sourceProtocol"].(string)
 
 					// парсинг поля runOnReady
-					// var runOnReadyRes string
-					// runOnReady := camFieldMap["runOnReady"].(string)
-					// runOnReadyArr := strings.Split(runOnReady, " --")
-					// for i, elemRunOnReadyArr := range runOnReadyArr {
-					// 	elemRunOnReadyArrArr := strings.Split(elemRunOnReadyArr, " ")
-					// 	if elemRunOnReadyArrArr[0] == "port" {
-					// 		if elemRunOnReadyArrArr[1] != camDB.Portsrv {
-					// 			runOnReadyRes
-					// 		}
-					// 	}
-					// }
+					isEqualRunOnReady, runOnReadyResult := IsEqualRunOnReady(camFieldMap["runOnReady"].(string), camDB, cfg)
+					if !isEqualRunOnReady {
+						conf.RunOnReady = runOnReadyResult
+					}
 
 				}
 				break
@@ -161,4 +161,17 @@ func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[st
 	}
 
 	return resSliceAdd, resSliceRemove
+}
+
+func IsEqualRunOnReady(runOnReady string, camDB refreshstream.RefreshStream, cfg *config.Config) (bool, string) {
+
+	run := strings.Split(cfg.Run, " ")
+
+	runOnReadyResult := strings.Join(run[:3], " ") + fmt.Sprintf("--port %s --stream_path %s --camera_id %s", camDB.Portsrv, camDB.Sp.String, camDB.CamId.String) + strings.Join(run[3:], " ")
+
+	if runOnReady == "" {
+		return false, strings.Join(strings.Split(strings.Join(strings.Split(runOnReadyResult, "--"), " --"), "  "), " ")
+	}
+
+	return true, runOnReadyResult
 }

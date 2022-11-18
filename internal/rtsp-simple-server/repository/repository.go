@@ -135,18 +135,14 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 	// 	login, pass = logPass[0], logPass[1]
 	// }
 
-	var protocol string
-	if conf.SourceProtocol != "" {
-		protocol = conf.SourceProtocol
-	} else {
-		protocol = camDB.Protocol.String
-	}
+	protocol := camDB.Protocol.String
 
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`{
 			"sourceProtocol": "%s",
-			"runOnReadRestart": false
-	}`, protocol))
+			"runOnReadRestart": false,
+			"runOnReady": "%s"
+	}`, protocol, conf.RunOnReady))
 
 	// Парсинг URL
 	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostEditConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camDB.Stream.String)
@@ -161,11 +157,11 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 	return nil
 }
 
-func (rtsp *rtspRepository) PostSetRTSP(camDB refreshstream.RefreshStream) {
-	logLevel := rtsp.cfg.LogLevel
-	logDestinations := "file, os.Stdout"
-	logFile := rtsp.cfg.LogFile
-	sourceProtocol := camDB.Protocol.String
+// func (rtsp *rtspRepository) PostSetRTSP(camDB refreshstream.RefreshStream) {
+// 	logLevel := rtsp.cfg.LogLevel
+// 	logDestinations := "file, os.Stdout"
+// 	logFile := rtsp.cfg.LogFile
+// 	sourceProtocol := camDB.Protocol.String
 
-	fmt.Printf("logDestinations=%s, logLevel=%s, logFile=%s,sourceProtocol=%s\n", logDestinations, logLevel, logFile, sourceProtocol)
-}
+// 	fmt.Printf("logDestinations=%s, logLevel=%s, logFile=%s,sourceProtocol=%s\n", logDestinations, logLevel, logFile, sourceProtocol)
+// }
