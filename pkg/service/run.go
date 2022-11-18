@@ -37,6 +37,10 @@ type app struct {
 // Функция, инициализирующая прототип приложения
 func NewApp(cfg *config.Config) *app {
 	log := logger.NewLog(cfg.LogLevel)
+	if !cfg.Database_Connect {
+		logger.LogError(log, "no permission to connect to database")
+		return &app{}
+	}
 	db := database.CreateDBConnection(cfg)
 	sigChan := make(chan os.Signal, 1)
 	repoRS := rsrepository.NewRefreshStreamRepository(db)
@@ -93,10 +97,12 @@ func (a *app) Run() {
 
 				// Проверка одинаковости данных по стримам
 				isEqualCount, identity, confArr := methods.CheckIdentity(dataDB, dataRTSP, a.cfg)
+				fmt.Println(confArr)
 
 				if isEqualCount && identity {
 					logger.LogInfo(a.log, "Data is identity, waiting...")
 					continue
+
 				} else if isEqualCount && !identity {
 					logger.LogInfo(a.log, "Count of data is same, but the field values are different")
 					a.editCamerasToRTSP(ctx, confArr, dataDB)

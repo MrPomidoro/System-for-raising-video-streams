@@ -9,8 +9,7 @@ import (
 
 type refreshStreamUseCase struct {
 	db   *sql.DB
-	repo refreshstream.RefreshStreamRepository // интерфейс
-
+	repo refreshstream.RefreshStreamRepository
 }
 
 func NewRefreshStreamUseCase(repo refreshstream.RefreshStreamRepository,
