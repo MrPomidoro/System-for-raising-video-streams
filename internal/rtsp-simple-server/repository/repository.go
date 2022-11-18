@@ -38,7 +38,7 @@ func (rtsp *rtspRepository) GetRtsp() map[string]interface{} {
 		logger.LogError(rtsp.log, fmt.Sprintf("cannot received response from rtspRepository: %v", err))
 		return res
 	}
-	logger.LogDebug(rtsp.log, "Received response from rtspRepository")
+	logger.LogDebug(rtsp.log, "Received response from rtsp")
 	// Отложенное закрытие тела ответа
 	defer resp.Body.Close()
 
