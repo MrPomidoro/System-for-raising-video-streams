@@ -104,6 +104,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 			}
 
 			logger.LogInfo(a.log, fmt.Sprintf("Success complete post request for add config %s", elemAdd))
+
 			insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
 			err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 			if err != nil {
@@ -199,7 +200,7 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 				continue
 			}
 
-			if conf.SourceProtocol == "" {
+			if (conf.SourceProtocol == camDB.Protocol.String || conf.SourceProtocol == "") && conf.RunOnReady == "" {
 				continue
 			}
 
