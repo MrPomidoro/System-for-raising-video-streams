@@ -62,15 +62,27 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 					// Если значение поля в rtsp отличается от значения в бд, данные из бд вносятся в структуру
 					if camFieldMap["sourceProtocol"].(string) == camDB.Protocol.String {
 						identity++
-						continue
+					} else {
+						conf.SourceProtocol = camFieldMap["sourceProtocol"].(string)
 					}
-					conf.SourceProtocol = camFieldMap["sourceProtocol"].(string)
 
 					// парсинг поля runOnReady
-					isEqualRunOnReady, runOnReadyResult := IsEqualRunOnReady(camFieldMap["runOnReady"].(string), camDB, cfg)
-					if !isEqualRunOnReady {
-						conf.RunOnReady = runOnReadyResult
+					// isEqualRunOnReady, runOnReadyResult := IsEqualRunOnReady(camFieldMap["runOnReady"].(string), camDB, cfg)
+
+					// if !isEqualRunOnReady {
+					// 	conf.RunOnReady = runOnReadyResult
+					// } else {
+					// 	identity++
+					// }
+
+					runOnReadyResult := cfg.Run + fmt.Sprintf("--port %s --stream_path %s --camera_id %s", camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+					// fmt.Println("runOnReadyResult", runOnReadyResult)
+
+					if camFieldMap["runOnReady"].(string) == runOnReadyResult {
+						identity++
+						continue
 					}
+					conf.RunOnReady = runOnReadyResult
 
 				}
 				break
@@ -83,9 +95,9 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 	// Если счётчик равен длине списка с базы данных, данные совпадают
 	if count != len(dataDB) {
 		return false, false, confArr
-	} else if count == len(dataDB) && identity == len(dataDB) {
+	} else if count == len(dataDB) && identity == 2*len(dataDB) {
 		return true, true, confArr
-	} else if count == len(dataDB) && identity != len(dataDB) {
+	} else if count == len(dataDB) && identity != 2*len(dataDB) {
 		return true, false, confArr
 	}
 	return false, false, confArr
@@ -165,11 +177,11 @@ func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[st
 
 func IsEqualRunOnReady(runOnReady string, camDB refreshstream.RefreshStream, cfg *config.Config) (bool, string) {
 
-	run := strings.Split(cfg.Run, " ")
+	// run := strings.Split(cfg.Run, " ")
 
-	runOnReadyResult := strings.Join(run[:3], " ") + fmt.Sprintf("--port %s --stream_path %s --camera_id %s", camDB.Portsrv, camDB.Sp.String, camDB.CamId.String) + strings.Join(run[3:], " ")
+	runOnReadyResult := cfg.Run + fmt.Sprintf("--port %s --stream_path %s --camera_id %s", camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
 
-	if runOnReady == "" {
+	if runOnReady == cfg.Run+fmt.Sprintln("--port --stream_path --camera_id ") {
 		return false, strings.Join(strings.Split(strings.Join(strings.Split(runOnReadyResult, "--"), " --"), "  "), " ")
 	}
 

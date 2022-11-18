@@ -148,7 +148,7 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostEditConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camDB.Stream.String)
 
 	// Запрос
-	response, err := http.Post(URLPostEdit, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
+	response, err := http.Post(URLPostEdit, "application/json", bytes.NewBuffer(postJson))
 	if err != nil {
 		return fmt.Errorf("cannot complete post request for edit config: %v", err)
 	}
