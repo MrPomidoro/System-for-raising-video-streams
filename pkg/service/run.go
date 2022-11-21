@@ -96,7 +96,7 @@ func (a *app) Run() {
 				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
 				// Проверка одинаковости данных по стримам
-				isEqualCount, identity, confArr := methods.CheckIdentity(dataDB, dataRTSP, a.cfg)
+				isEqualCount, identity, confArr := methods.CheckIdentityAndCountOfData(dataDB, dataRTSP, a.cfg)
 
 				if isEqualCount && identity {
 					logger.LogInfo(a.log, "Data is identity, waiting...")
@@ -109,19 +109,7 @@ func (a *app) Run() {
 				}
 
 				logger.LogInfo(a.log, "Count of data is different")
-				// Получение списков камер на добавление и удаление
-				resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-				logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
-					resSliceAdd, resSliceRemove))
-
-				// Добавление камер
-				if resSliceAdd != nil {
-					a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-				}
-				// Удаление камер
-				if resSliceRemove != nil {
-					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
-				}
+				a.addAndRemoveData(ctx, dataRTSP, dataDB)
 
 				//
 				/*
@@ -131,20 +119,9 @@ func (a *app) Run() {
 					запись в status_stream
 				*/
 			} else if lenResDB > lenResRTSP {
+
 				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
-
-				// Получение списков камер на добавление
-				resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-				logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
-
-				// Добавление камер
-				if resSliceAdd != nil {
-					a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-				}
-				// Удаление камер
-				if resSliceRemove != nil {
-					a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
-				}
+				a.addAndRemoveData(ctx, dataRTSP, dataDB)
 
 				//
 				/*
@@ -165,38 +142,10 @@ func (a *app) Run() {
 				}
 
 				// Сравнение числа записей в базе данных и записей в rtsp после нового запроса
-				if lenResDBLESS > lenResRTSPLESS {
-					// Получение списков камер на добавление и удаление
-					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-					logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
-
-					// Добавление камер
-					if resSliceAdd != nil {
-						a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-					}
-					// Удаление камер
-					if resSliceRemove != nil {
-						a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
-					}
-
-				} else if lenResDBLESS < lenResRTSPLESS {
-					// Получение списков камер на добавление и удаление
-					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-					logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
-
-					// Добавление камер
-					if resSliceAdd != nil {
-						a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-					}
-					// Удаление камер
-					if resSliceRemove != nil {
-						a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
-					}
-
-				} else if lenResDBLESS == lenResRTSPLESS {
+				if lenResDBLESS == lenResRTSPLESS {
 
 					// Проверка одинаковости данных по стримам
-					isEqualCount, identity, confArr := methods.CheckIdentity(dataDB, dataRTSP, a.cfg)
+					isEqualCount, identity, confArr := methods.CheckIdentityAndCountOfData(dataDB, dataRTSP, a.cfg)
 					if isEqualCount && identity {
 						logger.LogInfo(a.log, "Data is identity, waiting...")
 						continue
@@ -207,20 +156,12 @@ func (a *app) Run() {
 					}
 
 					logger.LogInfo(a.log, "Count of data is different")
+					a.addAndRemoveData(ctx, dataRTSP, dataDB)
 
-					// Получение списков камер на добавление и удаление
-					resSliceAdd, resSliceRemove := methods.GetDifferenceElements(dataDB, dataRTSP)
-					logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v",
-						resSliceAdd, resSliceRemove))
+				} else {
 
-					// Добавление камер
-					if resSliceAdd != nil {
-						a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-					}
-					// Удаление камер
-					if resSliceRemove != nil {
-						a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
-					}
+					a.addAndRemoveData(ctx, dataRTSP, dataDB)
+
 				}
 			}
 		}
