@@ -41,7 +41,7 @@ type Database struct {
 
 // Параметры rtsp_simple_server
 type Rtsp_simple_server struct {
-	Run          string        `yaml:"run"`
-	Url          string        `yaml:"url"`
+	Run string `yaml:"run"`
+	// Url          string        `yaml:"url"`
 	Refresh_Time time.Duration `yaml:"refresh_time"`
 }

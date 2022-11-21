@@ -9,10 +9,15 @@ import (
 )
 
 /*
-Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
-возвращающая true, если количество камер в базе и в rtsp одинаковое
+Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp, возвращающая
+  - (true, true), если количество камер в базе и в rtsp одинаковое;
+  - (true, false), если количество камер в базе и в rtsp одинаковое, но сами данные отличаются;
+  - (false, false), если количество камер в базе и в rtsp отличается.
+
+Также возвращается список, содержащий поля sourceProtocol и runOnReady, если в rtsp они отличаются от данных из бд,
+и стрим камеры (всегда)
 */
-func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}, cfg *config.Config) (bool, bool, []rtspsimpleserver.Conf) {
+func CheckIdentityAndCountOfData(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}, cfg *config.Config) (bool, bool, []rtspsimpleserver.Conf) {
 
 	var confArr []rtspsimpleserver.Conf
 
@@ -42,9 +47,9 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 				// Если совпадает - увеличивается счётчик количества совпадающих стримов
 				count++
 
-				// --------------------------------------- //
-				// Проверка одинаковости данных для камеры //
-				// --------------------------------------- //
+				// ------------------------------------------- //
+				//   Проверка одинаковости данных для камеры   //
+				// ------------------------------------------- //
 
 				camFieldsMap := camFields.(map[string]interface{}) // для извлечения данных
 
@@ -95,23 +100,14 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 
 /*
 Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
-возвращающая списки отличающихся камер:
-камеры, отсутствующие в rtsp, но имеющиеся в базе, нужно добавить в rtsp,
-камеры, имеющиеся в rtsp, но отсутствующие в базе, - удалить из rtsp
+возвращающая список камер, имеющихся в rtsp, но отсутствующих в базе
 */
-func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) ([]string, []string) {
+func GetCamsForRemove(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) []string {
 
-	// Слайсы с отличающимися элементами:
-	// лишние камеры из rtsp нужно удалить,
-	// отсутствующие в rtsp, но имеющиеся в базе - добавить
+	// Слайс с камерами, отсутствующим в rtsp, но имеющимися в базе
 	var resSliceRemove []string
-	var resSliceAdd []string
-
-	// Счётчики
+	// Счётчик
 	var doubleRemove int
-	var doubleAppend int
-
-	// Формирование списка на удаление камер из rtsp
 
 	// Перебор элементов мапы
 	for _, camsRTSP := range dataRTSP {
@@ -136,7 +132,19 @@ func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[st
 		}
 	}
 
-	// Формирование списка на добавление камер в rtsp
+	return resSliceRemove
+}
+
+/*
+Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
+возвращающая список камер, отсутствующих в rtsp, но имеющихся в базе
+*/
+func GetCamsForAdd(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) []string {
+
+	// Слайс с камерами, отсутствующим в rtsp, но имеющимися в базе
+	var resSliceAdd []string
+	// Счётчик
+	var doubleAppend int
 
 	// Перебор элементов списка структур
 	for _, camDB := range dataDB {
@@ -155,12 +163,12 @@ func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[st
 			}
 		}
 
-		// Если значение счётчика ненулевое, камера добавляется в список на добавление
+		// Если значение счётчика ненулевое, камера попадает в список на добавление
 		if doubleAppend == 0 {
 			resSliceAdd = append(resSliceAdd, camDB.Stream.String)
 		}
 		doubleAppend = 0
 	}
 
-	return resSliceAdd, resSliceRemove
+	return resSliceAdd
 }
