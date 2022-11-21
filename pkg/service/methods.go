@@ -90,6 +90,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 			err := a.rtspUseCase.PostAddRTSP(camDB)
 
 			// Запись в базу данных результата выполнения
+
 			if err != nil {
 				logger.LogError(a.log, err)
 				insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
@@ -154,6 +155,7 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 					err := a.rtspUseCase.PostRemoveRTSP(camRTSP)
 
 					// Запись в базу данных результата выполнения
+
 					if err != nil {
 						logger.LogError(a.log, err)
 						insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
@@ -207,6 +209,7 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 			err := a.rtspUseCase.PostEditRTSP(camDB, conf)
 
 			// Запись в базу данных результата выполнения
+
 			if err != nil {
 				logger.LogError(a.log, err)
 				insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}

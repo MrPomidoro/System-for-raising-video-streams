@@ -63,7 +63,7 @@ func (rtsp *rtspRepository) GetRtsp() map[string]interface{} {
 func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error {
 
 	// Парсинг поля RunOnReady
-	runOnReady := fmt.Sprintf(rtspsimpleserver.RunOnReadyConst, rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+	runOnReady := fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
 
 	// Парсинг логина и пароля
 	// (не получается занести их в соответствующие поля, как и ip)
@@ -125,7 +125,6 @@ func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
 func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) error {
 
 	// Парсинг поля RunOnReady
-	// runOnReady := fmt.Sprintf(RunOnReadyConst, cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
 
 	// Парсинг логина и пароля
 	// (не получается занести их в соответствующие поля, как и ip)
@@ -156,12 +155,3 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 
 	return nil
 }
-
-// func (rtsp *rtspRepository) PostSetRTSP(camDB refreshstream.RefreshStream) {
-// 	logLevel := rtsp.cfg.LogLevel
-// 	logDestinations := "file, os.Stdout"
-// 	logFile := rtsp.cfg.LogFile
-// 	sourceProtocol := camDB.Protocol.String
-
-// 	fmt.Printf("logDestinations=%s, logLevel=%s, logFile=%s,sourceProtocol=%s\n", logDestinations, logLevel, logFile, sourceProtocol)
-// }
