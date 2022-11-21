@@ -16,6 +16,6 @@ database:
   database_connect: true # разрешение на коннект
   db_connection_timeout_second: 10s
 rtsp_simple_server:
-  run: usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --db_template_file_path /etc/rss/av_reader_sql.yaml --hostname 
+  run: usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --stream_path %s --camera_id %s
   url: http://10.100.100.228:9997 # адрес для подключения к api rtsp-simple-server
   refresh_time: 10s # периодичность запроса и сверки

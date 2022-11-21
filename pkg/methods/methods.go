@@ -2,7 +2,6 @@ package methods
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
@@ -67,22 +66,13 @@ func CheckIdentity(dataDB []refreshstream.RefreshStream, dataRTSP map[string]int
 					}
 
 					// парсинг поля runOnReady
-					// isEqualRunOnReady, runOnReadyResult := IsEqualRunOnReady(camFieldMap["runOnReady"].(string), camDB, cfg)
+					runOnReady := fmt.Sprintf(cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
 
-					// if !isEqualRunOnReady {
-					// 	conf.RunOnReady = runOnReadyResult
-					// } else {
-					// 	identity++
-					// }
-
-					runOnReadyResult := cfg.Run + fmt.Sprintf("--port %s --stream_path %s --camera_id %s", camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
-					// fmt.Println("runOnReadyResult", runOnReadyResult)
-
-					if camFieldMap["runOnReady"].(string) == runOnReadyResult {
+					if camFieldMap["runOnReady"].(string) == runOnReady {
 						identity++
 						continue
 					}
-					conf.RunOnReady = runOnReadyResult
+					conf.RunOnReady = runOnReady
 
 				}
 				break
@@ -173,17 +163,4 @@ func GetDifferenceElements(dataDB []refreshstream.RefreshStream, dataRTSP map[st
 	}
 
 	return resSliceAdd, resSliceRemove
-}
-
-func IsEqualRunOnReady(runOnReady string, camDB refreshstream.RefreshStream, cfg *config.Config) (bool, string) {
-
-	// run := strings.Split(cfg.Run, " ")
-
-	runOnReadyResult := cfg.Run + fmt.Sprintf("--port %s --stream_path %s --camera_id %s", camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
-
-	if runOnReady == cfg.Run+fmt.Sprintln("--port --stream_path --camera_id ") {
-		return false, strings.Join(strings.Split(strings.Join(strings.Split(runOnReadyResult, "--"), " --"), "  "), " ")
-	}
-
-	return true, runOnReadyResult
 }
