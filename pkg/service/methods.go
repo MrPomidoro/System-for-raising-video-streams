@@ -91,30 +91,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 
 			// Запись в базу данных результата выполнения
 
-			if err != nil {
-				logger.LogError(a.log, err)
-				insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
-				err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-				if err != nil {
-					logger.LogError(a.log,
-						"cannot insert to table status_stream")
-					continue
-				}
-				logger.LogInfo(a.log,
-					"Success insert to table status_stream")
-			}
-
-			logger.LogInfo(a.log, fmt.Sprintf("Success complete post request for add config %s", elemAdd))
-
-			insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
-			err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-			if err != nil {
-				logger.LogError(a.log,
-					"cannot insert to table status_stream")
-				continue
-			}
-			logger.LogInfo(a.log,
-				"Success insert to table status_stream")
+			insertIntoStatusStream("add", a, ctx, camDB, err)
 		}
 	}
 }
@@ -156,33 +133,7 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 
 					// Запись в базу данных результата выполнения
 
-					if err != nil {
-						logger.LogError(a.log, err)
-						insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
-						err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-						if err != nil {
-							logger.LogError(a.log,
-								"cannot insert to table status_stream")
-							continue
-						}
-						logger.LogInfo(a.log,
-							"Success insert to table status_stream")
-
-					}
-
-					logger.LogInfo(a.log,
-						fmt.Sprintf("Success complete Post request for remove config %s", elemRemove))
-					insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
-					err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-					if err != nil {
-						logger.LogError(a.log,
-							"cannot insert to table status_stream")
-						continue
-					}
-					logger.LogInfo(a.log,
-						"Success insert to table status_stream")
-
-					break
+					insertIntoStatusStream("remove", a, ctx, camDB, err)
 				}
 			}
 		}
@@ -210,29 +161,35 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 
 			// Запись в базу данных результата выполнения
 
-			if err != nil {
-				logger.LogError(a.log, err)
-				insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
-				err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-				if err != nil {
-					logger.LogError(a.log,
-						"cannot insert to table status_stream")
-					continue
-				}
-				logger.LogInfo(a.log,
-					"Success insert to table status_stream")
-			}
-
-			logger.LogInfo(a.log, fmt.Sprintf("Success complete post request for edit config %s", camDB.Stream.String))
-			insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
-			err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-			if err != nil {
-				logger.LogError(a.log,
-					"cannot insert to table status_stream")
-				continue
-			}
-			logger.LogInfo(a.log,
-				"Success insert to table status_stream")
+			insertIntoStatusStream("edit", a, ctx, camDB, err)
 		}
 	}
+}
+
+func insertIntoStatusStream(method string, a *app, ctx context.Context, camDB refreshstream.RefreshStream, err error) error {
+	if err != nil {
+		logger.LogError(a.log, err)
+		insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
+		err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+		if err != nil {
+			logger.LogError(a.log,
+				"cannot insert to table status_stream")
+			return err
+		}
+		logger.LogInfo(a.log,
+			"Success insert to table status_stream")
+	}
+
+	logger.LogInfo(a.log, fmt.Sprintf("Success complete post request for %s config %s", method, camDB.Stream.String))
+	insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
+	err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+	if err != nil {
+		logger.LogError(a.log,
+			"cannot insert to table status_stream")
+		return err
+	}
+	logger.LogInfo(a.log,
+		"Success insert to table status_stream")
+
+	return nil
 }
