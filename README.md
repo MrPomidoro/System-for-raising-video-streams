@@ -1,7 +1,13 @@
 # System-for-raising-video-streams
 System for raising video streams for a parallel project(274)
 
-![Блок-схема алгоритма](https://github.com/Kseniya-cha/System-for-raising-video-streams/pictures/algorithm.png)
+Блок-схема алгоритма
+
+<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/algorithm.png" width=75%/>
+
+Блок-схема подпрограммы GetDatabaseAndApi
+
+<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/subroutine.png" width=75%/>
 
 При чтении конфигурационного файла (.yaml) проверяется наличие параметров в командной строке, если их нет, значения параметров берутся из конфигурационного файла. Программа выполняется периодически через установленный промежуток времени. Далее описан алгоритм для одного периода.
 
