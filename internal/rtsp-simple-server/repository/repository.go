@@ -35,9 +35,9 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	if err != nil {
-		return res, fmt.Errorf("cannot received response from rtspRepository: %v", err)
+		return res, fmt.Errorf("cannot received response from rts-simple-server: %v", err)
 	}
-	logger.LogDebug(rtsp.log, "Received response from rtsp")
+	logger.LogDebug(rtsp.log, "Received response from rtsp-simple-server")
 	// Отложенное закрытие тела ответа
 	defer resp.Body.Close()
 
