@@ -1,8 +1,8 @@
 logger:
   loglevel: DEBUG
 server:
-  server_host: 10.100.100.228
-  server_port: :9997
+  server_host: localhost
+  server_port: :9977
   readtimeout: 200ms
   writetimeout: 200ms
   idletimeout: 10s

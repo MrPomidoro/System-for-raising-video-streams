@@ -34,14 +34,14 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 // ----------------- //
 
 // Get запрос на получение списка камер из базы данных
-func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
+func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, error) {
 	req, err := a.refreshStreamUseCase.Get(ctx, true)
 	if err != nil {
-		logger.LogError(a.log, err)
-		return req
+		logger.LogError(a.log, fmt.Errorf("cannot received response from the database: %v", err))
+		return req, err
 	}
 	logger.LogDebug(a.log, "Received response from the database")
-	return req
+	return req, nil
 }
 
 /*
@@ -51,14 +51,24 @@ func (a *app) getReqFromDB(ctx context.Context) []refreshstream.RefreshStream {
 func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 	map[string]interface{}, int, int, error) {
 	var lenResRTSP int
+	var resRTSP map[string]interface{}
+	var resDB []refreshstream.RefreshStream
 
-	// Отправка запросов к базе и к rtsp
-	resDB := a.getReqFromDB(ctx)
-	resRTSP := a.rtspUseCase.GetRtsp()
+	// Отправка запроса к базе
+	resDB, err := a.getReqFromDB(ctx)
+	if err != nil {
+		return resDB, resRTSP, 0, 0, err
+	}
+
+	// Отправка запроса к rtsp
+	resRTSP, err = a.rtspUseCase.GetRtsp()
+	if err != nil {
+		return resDB, resRTSP, 0, 0, err
+	}
 
 	// Проверка, что ответ от базы данных не пустой
 	if len(resDB) == 0 {
-		return resDB, resRTSP, 0, lenResRTSP, fmt.Errorf("response from database is null")
+		return resDB, resRTSP, 0, lenResRTSP, nil
 	}
 
 	// Определение числа потоков с rtsp
@@ -70,7 +80,7 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 
 	// Проверка, что ответ от rtsp данных не пустой
 	if lenResRTSP == 0 {
-		return resDB, resRTSP, len(resDB), 0, fmt.Errorf("response from rtsp-simple-server is null")
+		return resDB, resRTSP, len(resDB), 0, nil
 	}
 
 	return resDB, resRTSP, len(resDB), lenResRTSP, nil

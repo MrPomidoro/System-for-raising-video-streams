@@ -26,7 +26,7 @@ func NewRTSPRepository(cfg *config.Config, log *logrus.Logger) *rtspRepository {
 	}
 }
 
-func (rtsp *rtspRepository) GetRtsp() map[string]interface{} {
+func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 	var item interface{}
 	var res map[string]interface{}
 
@@ -35,8 +35,8 @@ func (rtsp *rtspRepository) GetRtsp() map[string]interface{} {
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	if err != nil {
-		logger.LogError(rtsp.log, fmt.Sprintf("cannot received response from rtspRepository: %v", err))
-		return res
+		// logger.LogError(rtsp.log, fmt.Sprintf("cannot received response from rtspRepository: %v", err))
+		return res, fmt.Errorf("cannot received response from rtspRepository: %v", err)
 	}
 	logger.LogDebug(rtsp.log, "Received response from rtsp")
 	// Отложенное закрытие тела ответа
@@ -44,20 +44,20 @@ func (rtsp *rtspRepository) GetRtsp() map[string]interface{} {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.LogError(rtsp.log, err)
-		return res
+		// logger.LogError(rtsp.log, err)
+		return res, err
 	}
 	logger.LogDebug(rtsp.log, "Success read body")
 
 	err = json.Unmarshal(body, &item)
 	if err != nil {
-		logger.LogError(rtsp.log, fmt.Sprintf("cannot unmarshal response: %v", err))
-		return res
+		// logger.LogError(rtsp.log, fmt.Sprintf("cannot unmarshal response: %v", err))
+		return res, fmt.Errorf("cannot unmarshal response: %v", err)
 	}
 	logger.LogDebug(rtsp.log, "Success unmarshal body")
 
 	res = item.(map[string]interface{})
-	return res
+	return res, nil
 }
 
 func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error {

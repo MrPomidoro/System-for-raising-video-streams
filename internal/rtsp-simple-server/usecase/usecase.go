@@ -15,7 +15,7 @@ func NewRTSPUseCase(repo rtspsimpleserver.RTSPRepository) *rtspUseCase {
 	}
 }
 
-func (rtsp *rtspUseCase) GetRtsp() map[string]interface{} {
+func (rtsp *rtspUseCase) GetRtsp() (map[string]interface{}, error) {
 	return rtsp.repo.GetRtsp()
 }
 
