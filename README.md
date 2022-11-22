@@ -3,7 +3,7 @@ System for raising video streams for a parallel project(274)
 
 При чтении конфигурационного файла (.yaml) проверяется наличие параметров в командной строке, если их нет, значения параметров берутся из конфигурационного файла. Программа выполняется периодически через установленный промежуток времени. Далее описан алгоритм для одного периода.
 
-API:
+### API:
 
         1. Получение всех активных стримов:
         GET http://localhost:9997/v1/paths/list
@@ -11,7 +11,7 @@ API:
         2. Изменение конфигурации:
         POST http://localhost:9997/v1/config/paths/edit/{name}
 
-        3. Добавление  конфигурации:
+        3. Добавление конфигурации:
         POST http://localhost:9997/v1/config/paths/add/{name}
 
         4. Удаление конфигурации:
@@ -21,9 +21,11 @@ API:
 
 Выполняется запрос к базе данных (таблица public."refresh_stream") на получение списка активных камер (значение столбца "stream_status" = true):
 
-        SELECT *
-        FROM public."refresh_stream"
-        WHERE "stream" IS NOT null AND "stream_status" = true
+```SQL
+SELECT *
+FROM public."refresh_stream"
+WHERE "stream" IS NOT null AND "stream_status" = true
+```
 
 затем — запрос через API в rtsp-simple-server на получение списка потоков. Если данные не были получены, программа завершается.
 
