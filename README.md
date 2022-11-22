@@ -3,7 +3,7 @@ System for raising video streams for a parallel project(274)
 
 Блок-схема алгоритма
 
-<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/algorithm.png" width=75%/>
+<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/algorithm.png" width=100%/>
 
 Блок-схема подпрограммы GetDatabaseAndApi
 
