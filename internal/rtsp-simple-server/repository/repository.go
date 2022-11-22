@@ -35,7 +35,6 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	if err != nil {
-		// logger.LogError(rtsp.log, fmt.Sprintf("cannot received response from rtspRepository: %v", err))
 		return res, fmt.Errorf("cannot received response from rtspRepository: %v", err)
 	}
 	logger.LogDebug(rtsp.log, "Received response from rtsp")
@@ -44,14 +43,12 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		// logger.LogError(rtsp.log, err)
 		return res, err
 	}
 	logger.LogDebug(rtsp.log, "Success read body")
 
 	err = json.Unmarshal(body, &item)
 	if err != nil {
-		// logger.LogError(rtsp.log, fmt.Sprintf("cannot unmarshal response: %v", err))
 		return res, fmt.Errorf("cannot unmarshal response: %v", err)
 	}
 	logger.LogDebug(rtsp.log, "Success unmarshal body")
@@ -64,14 +61,6 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error
 
 	// Парсинг поля RunOnReady
 	runOnReady := fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
-
-	// Парсинг логина и пароля
-	// (не получается занести их в соответствующие поля, как и ip)
-	// var login, pass string
-	// logPass := strings.Split(camDB.Auth.String, ":")
-	// if len(logPass) == 2 {
-	// 	login, pass = logPass[0], logPass[1]
-	// }
 
 	// Поле протокола не должно быть пустым
 	// по умолчанию - tcp
@@ -95,7 +84,7 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error
 	}`, protocol, runOnReady))
 
 	// Парсинг URL
-	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostAddConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camDB.Stream.String)
+	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, "add", camDB.Stream.String)
 
 	// Запрос
 	response, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
@@ -109,7 +98,7 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error
 
 func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
 	// Парсинг URL
-	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostRemoveConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camRTSP)
+	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, "remove", camRTSP)
 
 	var buf []byte
 	// Запрос
@@ -124,27 +113,17 @@ func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
 
 func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) error {
 
-	// Парсинг поля RunOnReady
-
-	// Парсинг логина и пароля
-	// (не получается занести их в соответствующие поля, как и ip)
-	// var login, pass string
-	// logPass := strings.Split(camDB.Auth.String, ":")
-	// if len(logPass) == 2 {
-	// 	login, pass = logPass[0], logPass[1]
-	// }
-
 	protocol := camDB.Protocol.String
 
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`{
 			"sourceProtocol": "%s",
-			"runOnReadRestart": false,
+			"runOnReadRestart": true,
 			"runOnReady": "%s"
 	}`, protocol, conf.RunOnReady))
 
 	// Парсинг URL
-	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostEditConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camDB.Stream.String)
+	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, "edit", camDB.Stream.String)
 
 	// Запрос
 	response, err := http.Post(URLPostEdit, "application/json", bytes.NewBuffer(postJson))

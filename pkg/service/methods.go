@@ -108,7 +108,6 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 			err := a.rtspUseCase.PostAddRTSP(camDB)
 
 			// Запись в базу данных результата выполнения
-
 			a.insertIntoStatusStream("add", ctx, camDB, err)
 		}
 	}
@@ -150,7 +149,6 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 					err := a.rtspUseCase.PostRemoveRTSP(camRTSP)
 
 					// Запись в базу данных результата выполнения
-
 					a.insertIntoStatusStream("remove", ctx, camDB, err)
 				}
 			}
