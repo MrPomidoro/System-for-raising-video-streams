@@ -44,8 +44,6 @@ func GetConfig() *Config {
 func readFlags(cfg *Config) {
 	flag.StringVar(&cfg.LogLevel, "loglevel", cfg.LogLevel, "The level of logging parameter")
 
-	flag.StringVar(&cfg.Server_Host, "server_host", cfg.Server_Host, "The host of server parameter")
-	flag.StringVar(&cfg.Server_Port, "server_port", cfg.Server_Port, "The port of server parameter")
 	flag.DurationVar(&cfg.ReadTimeout, "readtimeout", cfg.ReadTimeout, "The readtimeout parameter")
 	flag.DurationVar(&cfg.WriteTimeout, "writetimeout", cfg.WriteTimeout, "The writetimeout parameter")
 	flag.DurationVar(&cfg.IdleTimeout, "idletimeout", cfg.IdleTimeout, "The idletimeout parameter")
@@ -60,7 +58,7 @@ func readFlags(cfg *Config) {
 	flag.DurationVar(&cfg.Db_Connection_Timeout_Second, "db_connection_timeout_second", cfg.Db_Connection_Timeout_Second, "The db_connection_timeout_second parameter")
 
 	flag.StringVar(&cfg.Run, "configPath", cfg.Run, "The run parameter")
-	// flag.StringVar(&cfg.Url, "url", cfg.Url, "The url parameter")
+	flag.StringVar(&cfg.Url, "url", cfg.Url, "The url parameter")
 	flag.DurationVar(&cfg.Refresh_Time, "refresh_time", cfg.Refresh_Time, "The refresh_time parameter")
 
 	flag.Parse()
