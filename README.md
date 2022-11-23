@@ -1,6 +1,8 @@
 # System-for-raising-video-streams
 System for raising video streams for a parallel project(274)
 
+### Блок-схемы:
+
 Блок-схема алгоритма
 
 <img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/algorithm.png" width=100%/>
@@ -16,6 +18,30 @@ System for raising video streams for a parallel project(274)
 Блок-схема подпрограммы EditCameras
 
 <img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/EditCameras.png" width=20%/>
+
+### Структура конфигурационного файла:
+
+```
+logger:
+  loglevel:                     - уровень логирования
+server:
+  readtimeout: 200ms            - макс. время на чтение запроса
+  writetimeout: 200ms           - макс. время на запись ответа
+  idletimeout: 10s              - макс. время ожидания следующего запроса
+database:
+  port: 5432                    - порт подключения к БД
+  host:                         - адрес БД
+  dbName:                       - имя БД
+  user:                         - имя пользователя
+  password:                     - пароль пользователя
+  driver:                       - драйвер БД
+  database_connect: true        - разрешение на коннект
+  dbConnectionTimeoutSecond:    - длительность проверки коннекта
+rtsp_simple_server:
+  run:                          - шаблон поля runOnReady
+  url:                          - адрес для подключения к api rtsp-simple-server
+  refresh_time: 10s             - периодичность запроса и сверки
+```
 
 При чтении конфигурационного файла (.yaml) проверяется наличие параметров в командной строке, если их нет, значения параметров берутся из конфигурационного файла. Программа выполняется периодически через установленный промежуток времени. Далее описан алгоритм для одного периода.
 
@@ -35,7 +61,9 @@ System for raising video streams for a parallel project(274)
 
 Хост и порт выносятся в конфигурационный файл.
 
-Выполняется запрос к базе данных (таблица public."refresh_stream") на получение списка активных камер (значение столбца "stream_status" = true):
+Выполняется запрос к базе данных (таблица public."refresh_stream") на получение списка активных камер (значение столбца "stream_status" = true), затем — запрос через API в rtsp-simple-server на получение списка потоков. Если данные не были получены, программа завершается.
+
+### SQL:
 
 ```SQL
 SELECT *
@@ -43,7 +71,7 @@ FROM public."refresh_stream"
 WHERE "stream" IS NOT null AND "stream_status" = true
 ```
 
-затем — запрос через API в rtsp-simple-server на получение списка потоков. Если данные не были получены, программа завершается.
+## Алгоритм работы:
 
 Сравнивается число полученных данных:
 
