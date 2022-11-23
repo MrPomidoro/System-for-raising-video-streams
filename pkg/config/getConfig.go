@@ -58,7 +58,8 @@ func GetConfig() *Config {
 // Реализация возможности передачи параметров конфигурационного файла
 // при запуске из командной строки
 func readFlags(cfg *Config) {
-	var A string
+	var stub string
+
 	flag.StringVar(&cfg.LogLevel, "loglevel", cfg.LogLevel, "The level of logging parameter")
 
 	flag.DurationVar(&cfg.ReadTimeout, "readtimeout", cfg.ReadTimeout, "The readtimeout parameter")
@@ -78,7 +79,7 @@ func readFlags(cfg *Config) {
 	flag.StringVar(&cfg.Url, "url", cfg.Url, "The url parameter")
 	flag.DurationVar(&cfg.Refresh_Time, "refresh_time", cfg.Refresh_Time, "The refresh_time parameter")
 
-	flag.StringVar(&A, "configPath", `./`, "configPath")
+	flag.StringVar(&stub, "configPath", `./`, "configPath")
 
 	flag.Parse()
 }
