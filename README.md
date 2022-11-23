@@ -77,7 +77,7 @@ WHERE "stream" IS NOT null AND "stream_status" = true
 
     2.2. Отправляется запрос через API на добавление/удаление потока или опций;
 
-    2.3. делается запись в базу данных в таблицу public."status_stream" результата выполнения (true/false) в столбец "status_response" и id камеры из таблицы public."refresh_stream" (столбец "stream_id");
+    2.3. Делается запись в базу данных в таблицу public."status_stream" результата выполнения (true/false) в столбец "status_response" и id камеры из таблицы public."refresh_stream" (столбец "stream_id");
 
     2.4. Работа программы завершается.
 

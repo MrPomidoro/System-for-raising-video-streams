@@ -20,8 +20,6 @@ type Logger struct {
 
 // Параметры сервера
 type Server struct {
-	Server_Port  string        `yaml:"server_port"`
-	Server_Host  string        `yaml:"server_host"`
 	ReadTimeout  time.Duration `yaml:"readtimeout"`
 	WriteTimeout time.Duration `yaml:"writetimeout"`
 	IdleTimeout  time.Duration `yaml:"idletimeout"`
@@ -41,7 +39,7 @@ type Database struct {
 
 // Параметры rtsp_simple_server
 type Rtsp_simple_server struct {
-	Run string `yaml:"run"`
-	// Url          string        `yaml:"url"`
+	Run          string        `yaml:"run"`
+	Url          string        `yaml:"url"`
 	Refresh_Time time.Duration `yaml:"refresh_time"`
 }
