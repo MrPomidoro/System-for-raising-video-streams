@@ -63,21 +63,41 @@ func CheckIdentityAndCountOfData(dataDB []refreshstream.RefreshStream, dataRTSP 
 					camFieldMap := camField.(map[string]interface{}) // для извлечения данных
 
 					conf.Stream = camStreamRTSP
+
 					// Если значение поля в rtsp отличается от значения в бд, данные из бд вносятся в структуру
 					if camFieldMap["sourceProtocol"].(string) == camDB.Protocol.String {
 						identity++
 					} else {
-						conf.SourceProtocol = camFieldMap["sourceProtocol"].(string)
+						conf.SourceProtocol = camDB.Protocol.String
 					}
 
 					// парсинг поля runOnReady
-					runOnReady := fmt.Sprintf(cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+					var runOnReady string
+					conf.RunOnReady = runOnReady
 
-					if camFieldMap["runOnReady"].(string) == runOnReady {
+					if cfg.Run == "" {
+						if camFieldMap["runOnReady"].(string) == "" {
+							identity++
+						}
+					} else {
+						runOnReady = fmt.Sprintf(cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+						if camFieldMap["runOnReady"].(string) == runOnReady {
+							identity++
+						} else {
+							conf.RunOnReady = runOnReady
+						}
+					}
+
+					// парсинг поля source
+					var source = fmt.Sprintf("rtsp://%s@ip:%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
+
+					if camFieldMap["source"].(string) == source {
 						identity++
 						continue
+					} else {
+						conf.Source = source
 					}
-					conf.RunOnReady = runOnReady
+					// fmt.Printf("methods: conf - %#v\n\n", conf)
 
 				}
 				break
@@ -90,9 +110,9 @@ func CheckIdentityAndCountOfData(dataDB []refreshstream.RefreshStream, dataRTSP 
 	// Если счётчик равен длине списка с базы данных, данные совпадают
 	if count != len(dataDB) {
 		return false, false, confArr
-	} else if count == len(dataDB) && identity == 2*len(dataDB) {
+	} else if count == len(dataDB) && identity == 3*len(dataDB) {
 		return true, true, confArr
-	} else if count == len(dataDB) && identity != 2*len(dataDB) {
+	} else if count == len(dataDB) && identity != 3*len(dataDB) {
 		return true, false, confArr
 	}
 	return false, false, confArr

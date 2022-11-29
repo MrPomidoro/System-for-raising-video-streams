@@ -10,4 +10,5 @@ type Conf struct {
 	RunOnDemandStartTimeout    string `json:"runOnDemandStartTimeout"`
 	RunOnDemandCloseAfter      string `json:"runOnDemandCloseAfter"`
 	RunOnReady                 string `json:"runOnReady"`
+	Source                     string `json:"source"`
 }

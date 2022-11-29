@@ -98,6 +98,8 @@ func (a *app) Run() {
 				// Проверка одинаковости данных по стримам
 				isEqualCount, identity, confArr := methods.CheckIdentityAndCountOfData(dataDB, dataRTSP, a.cfg)
 
+				fmt.Printf("run: confArr - %v\n\n", confArr)
+
 				if isEqualCount && identity {
 					logger.LogInfo(a.log, "Data is identity, waiting...")
 					continue
