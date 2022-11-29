@@ -60,17 +60,25 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error {
 
 	// Парсинг поля RunOnReady
-	runOnReady := fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+	var runOnReady string
+	if rtsp.cfg.Run != "" {
+		runOnReady = fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+	} else {
+		runOnReady = ""
+	}
 
 	// Поле протокола не должно быть пустым
 	// по умолчанию - tcp
-	var protocol string = camDB.Protocol.String
+	var protocol = camDB.Protocol.String
 	if protocol == "" {
 		protocol = "tcp"
 	}
 
+	source := fmt.Sprintf("rtsp://%s@ip:%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
+
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`{
+			"source": "%s",
 			"sourceProtocol": "%s",
 			"sourceOnDemandStartTimeout": "10s",
 			"sourceOnDemandCloseAfter": "10s",
@@ -81,7 +89,7 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error
 			"runOnReady": "%s",
 			"runOnReadyRestart": true,
 			"runOnReadRestart": false
-	}`, protocol, runOnReady))
+	}`, source, protocol, runOnReady))
 
 	// Парсинг URL
 	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "add", camDB.Stream.String)
@@ -113,14 +121,32 @@ func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
 
 func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) error {
 
-	protocol := camDB.Protocol.String
+	var protocol = camDB.Protocol.String
+	if protocol == "" && conf.SourceProtocol == "" {
+		protocol = "tcp"
+	}
+
+	var runOnReady = conf.RunOnReady
+	if rtsp.cfg.Run != "" {
+		runOnReady = fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+	} else {
+		runOnReady = ""
+	}
+
+	var source = conf.Source
+	if source == "" {
+		source = fmt.Sprintf("rtsp://%s@ip:%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
+	}
 
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`{
+			"source": "%s",
 			"sourceProtocol": "%s",
-			"runOnReadRestart": true,
+			"runOnReadRestart": false,
 			"runOnReady": "%s"
-	}`, protocol, conf.RunOnReady))
+	}`, source, protocol, runOnReady))
+
+	// fmt.Println("repo: postJson -", string(postJson))
 
 	// Парсинг URL
 	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "edit", camDB.Stream.String)

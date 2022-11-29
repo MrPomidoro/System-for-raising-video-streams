@@ -13,7 +13,7 @@
 *.log
 
 # Binary file
-System-for-raising-video-streams
+rtsp
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
