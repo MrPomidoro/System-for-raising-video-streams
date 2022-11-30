@@ -96,7 +96,7 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
 func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
-	dataDB []refreshstream.RefreshStream) {
+	dataDB []refreshstream.RefreshStream) error {
 	// Перебор всех элементов списка камер на добавление
 	for _, elemAdd := range resSliceAdd {
 		// Цикл для извлечения данных из структуры выбранной камеры
@@ -106,11 +106,23 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 			}
 
 			err := a.rtspUseCase.PostAddRTSP(camDB)
+			if err != nil {
+				return err
+			}
+
+			err = a.refreshStreamUseCase.Update(ctx, camDB.Stream.String)
+			if err != nil {
+				return err
+			}
 
 			// Запись в базу данных результата выполнения
-			a.insertIntoStatusStream("add", ctx, camDB, err)
+			err = a.insertIntoStatusStream("add", ctx, camDB, err)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 /*
@@ -119,12 +131,11 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
 func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
-	dataRTSP map[string]interface{}) {
+	dataRTSP map[string]interface{}) error {
 
 	dataDB, err := a.refreshStreamUseCase.Get(ctx, false)
 	if err != nil {
-		logger.LogError(a.log, err)
-		return
+		return err
 	}
 
 	// Цикл для извлечения данных из структуры выбранной камеры
@@ -147,13 +158,20 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 					}
 
 					err := a.rtspUseCase.PostRemoveRTSP(camRTSP)
+					if err != nil {
+						return err
+					}
 
 					// Запись в базу данных результата выполнения
-					a.insertIntoStatusStream("remove", ctx, camDB, err)
+					err = a.insertIntoStatusStream("remove", ctx, camDB, err)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
 	}
+	return nil
 }
 
 /*
@@ -162,7 +180,7 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
 func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.Conf,
-	dataDB []refreshstream.RefreshStream) {
+	dataDB []refreshstream.RefreshStream) error {
 	for _, camDB := range dataDB {
 		for _, conf := range confArr {
 
@@ -175,11 +193,18 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 			}
 
 			err := a.rtspUseCase.PostEditRTSP(camDB, conf)
+			if err != nil {
+				return err
+			}
 
 			// Запись в базу данных результата выполнения
-			a.insertIntoStatusStream("edit", ctx, camDB, err)
+			err = a.insertIntoStatusStream("edit", ctx, camDB, err)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 // ----------------- //
@@ -224,7 +249,7 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 выполняется удаление лишних камер и добавление недостающих
 */
 func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interface{},
-	dataDB []refreshstream.RefreshStream) {
+	dataDB []refreshstream.RefreshStream) error {
 
 	// Получение списков камер на добавление и удаление
 	resSliceAdd := methods.GetCamsForAdd(dataDB, dataRTSP)
@@ -234,11 +259,18 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interfac
 
 	// Добавление камер
 	if resSliceAdd != nil {
-		a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
+		err := a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Удаление камер
 	if resSliceRemove != nil {
-		a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
+		err := a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }

@@ -6,6 +6,7 @@ import (
 
 type RefreshStreamCommon interface {
 	Get(ctx context.Context, status bool) ([]RefreshStream, error)
+	Update(ctx context.Context, stream string) error
 }
 
 type RefreshStreamUseCase interface {

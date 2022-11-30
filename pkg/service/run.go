@@ -58,7 +58,10 @@ func NewApp(cfg *config.Config) *app {
 	}
 }
 
-// Алгоритм
+// ~~~~~~~~~~~~~~~~~~~ //
+//  ~~  Алгоритм  ~~  //
+// ~~~~~~~~~~~~~~~~~~ //
+
 func (a *app) Run() {
 
 	// Инициализация контекста
@@ -81,7 +84,9 @@ func (a *app) Run() {
 				continue
 			}
 
-			// Сравнение числа записей в базе данных и записей в rtsp
+			// ---------------------------------------------------------- //
+			//   Сравнение числа записей в базе данных и записей в rtsp   //
+			// ---------------------------------------------------------- //
 
 			/*
 				Если данных в базе столько же, сколько в rtsp:
@@ -106,12 +111,19 @@ func (a *app) Run() {
 
 				} else if isEqualCount && !identity {
 					logger.LogInfo(a.log, "Count of data is same, but the field values are different")
-					a.editCamerasToRTSP(ctx, confArr, dataDB)
-					continue
+					err = a.editCamerasToRTSP(ctx, confArr, dataDB)
+					if err != nil {
+						logger.LogError(a.log, err)
+						continue
+					}
 				}
 
 				logger.LogInfo(a.log, "Count of data is different")
-				a.addAndRemoveData(ctx, dataRTSP, dataDB)
+				err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
+				if err != nil {
+					logger.LogError(a.log, err)
+					continue
+				}
 
 				//
 				/*
@@ -123,7 +135,11 @@ func (a *app) Run() {
 			} else if lenResDB > lenResRTSP {
 
 				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
-				a.addAndRemoveData(ctx, dataRTSP, dataDB)
+				err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
+				if err != nil {
+					logger.LogError(a.log, err)
+					continue
+				}
 
 				//
 				/*
@@ -153,16 +169,27 @@ func (a *app) Run() {
 						continue
 					} else if isEqualCount && !identity {
 						logger.LogInfo(a.log, "Count of data is same, but the field values are different")
-						a.editCamerasToRTSP(ctx, confArr, dataDB)
+						err = a.editCamerasToRTSP(ctx, confArr, dataDB)
+						if err != nil {
+							logger.LogError(a.log, err)
+						}
 						continue
 					}
 
 					logger.LogInfo(a.log, "Count of data is different")
-					a.addAndRemoveData(ctx, dataRTSP, dataDB)
+					err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
+					if err != nil {
+						logger.LogError(a.log, err)
+						continue
+					}
 
 				} else {
 
-					a.addAndRemoveData(ctx, dataRTSP, dataDB)
+					err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
+					if err != nil {
+						logger.LogError(a.log, err)
+						continue
+					}
 
 				}
 			}
