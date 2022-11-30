@@ -13,9 +13,9 @@ package refreshstream
 const (
 	QueryStatusTrue = `SELECT *
 	FROM public."refresh_stream"
-	WHERE "stream" IS NOT null AND "stream_status" = true`
+	WHERE "stream" IS NOT null AND "stream_state" = true`
 
 	QueryStatusFalse = `SELECT *
 	FROM public."refresh_stream"
-	WHERE "stream" IS NOT null AND "stream_status" = false`
+	WHERE "stream" IS NOT null AND "stream_state" = false`
 )

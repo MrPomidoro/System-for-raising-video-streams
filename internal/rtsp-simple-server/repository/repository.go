@@ -74,7 +74,7 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error
 		protocol = "tcp"
 	}
 
-	source := fmt.Sprintf("rtsp://%s@ip:%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
+	source := fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
 
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`{
@@ -135,7 +135,7 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 
 	var source = conf.Source
 	if source == "" {
-		source = fmt.Sprintf("rtsp://%s@ip:%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
+		source = fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
 	}
 
 	// Формирование джейсона для отправки
@@ -146,7 +146,7 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 			"runOnReady": "%s"
 	}`, source, protocol, runOnReady))
 
-	// fmt.Println("repo: postJson -", string(postJson))
+	fmt.Println("repo: postJson -", string(postJson))
 
 	// Парсинг URL
 	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "edit", camDB.Stream.String)

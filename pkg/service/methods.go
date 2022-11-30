@@ -170,11 +170,9 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 				continue
 			}
 
-			fmt.Println("meths: ", conf.SourceProtocol, conf.Source)
 			if conf.SourceProtocol == "" && conf.Source == "" && (conf.RunOnReady == "" && a.cfg.Run != "") {
 				continue
 			}
-			fmt.Println("meth apps: do")
 
 			err := a.rtspUseCase.PostEditRTSP(camDB, conf)
 
