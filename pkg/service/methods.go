@@ -113,6 +113,8 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 			err = a.refreshStreamUseCase.Update(ctx, camDB.Stream.String)
 			if err != nil {
 				return err
+			} else {
+				logger.LogDebug(a.log, "Success send request to update stream_status")
 			}
 
 			// Запись в базу данных результата выполнения

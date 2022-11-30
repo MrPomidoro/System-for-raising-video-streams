@@ -146,8 +146,6 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 			"runOnReady": "%s"
 	}`, source, protocol, runOnReady))
 
-	fmt.Println("repo: postJson -", string(postJson))
-
 	// Парсинг URL
 	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "edit", camDB.Stream.String)
 
