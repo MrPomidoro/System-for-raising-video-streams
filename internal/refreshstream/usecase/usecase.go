@@ -23,3 +23,7 @@ func NewRefreshStreamUseCase(repo refreshstream.RefreshStreamRepository,
 func (s *refreshStreamUseCase) Get(ctx context.Context, status bool) ([]refreshstream.RefreshStream, error) {
 	return s.repo.Get(ctx, status)
 }
+
+func (s *refreshStreamUseCase) Update(ctx context.Context, stream string) error {
+	return s.repo.Update(ctx, stream)
+}

@@ -23,9 +23,9 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 
 	switch status {
 	case true:
-		query = refreshstream.QueryStatusTrue
+		query = refreshstream.QueryStateTrue
 	case false:
-		query = refreshstream.QueryStatusFalse
+		query = refreshstream.QueryStateFalse
 	}
 
 	rows, err := s.db.QueryContext(ctx, query)
@@ -47,4 +47,16 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 		refreshStreamArr = append(refreshStreamArr, rs)
 	}
 	return refreshStreamArr, nil
+}
+
+func (s refreshStreamRepository) Update(ctx context.Context, stream string) error {
+
+	query := fmt.Sprintf(refreshstream.QueryEditStatus, stream)
+
+	_, err := s.db.ExecContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("cannot send request to update stream_status: %v", err)
+	}
+
+	return nil
 }
