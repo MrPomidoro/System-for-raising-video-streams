@@ -34,12 +34,14 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 	URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Url)
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
+	// Отложенное закрытие тела ответа
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return res, fmt.Errorf("cannot received response from rts-simple-server: %v", err)
 	}
 	logger.LogDebug(rtsp.log, "Received response from rtsp-simple-server")
-	// Отложенное закрытие тела ответа
-	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -95,11 +97,13 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error
 	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "add", camDB.Stream.String)
 
 	// Запрос
-	response, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
+	resp, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return fmt.Errorf("cannot complete post request for add config: %v", err)
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -110,11 +114,13 @@ func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
 
 	var buf []byte
 	// Запрос
-	response, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
+	resp, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return fmt.Errorf("cannot complete post request for remove config: %v", err)
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -150,11 +156,13 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "edit", camDB.Stream.String)
 
 	// Запрос
-	response, err := http.Post(URLPostEdit, "application/json", bytes.NewBuffer(postJson))
+	resp, err := http.Post(URLPostEdit, "application/json", bytes.NewBuffer(postJson))
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return fmt.Errorf("cannot complete post request for edit config: %v", err)
 	}
-	defer response.Body.Close()
 
 	return nil
 }
