@@ -89,7 +89,7 @@ func CheckIdentityAndCountOfData(dataDB []refreshstream.RefreshStream, dataRTSP 
 					}
 
 					// парсинг поля source
-					var source = fmt.Sprintf("rtsp://%s@ip:%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
+					var source = fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
 
 					if camFieldMap["source"].(string) == source {
 						identity++
