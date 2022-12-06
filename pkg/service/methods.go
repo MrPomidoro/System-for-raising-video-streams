@@ -17,13 +17,14 @@ import (
 )
 
 /*
-Метод для корректного завершения работы программы
+GracefulShutdown - метод для корректного завершения работы программы
 при получении прерывающего сигнала
 */
-func (a *app) GracefulShutdown(sig chan os.Signal) {
+func (a *app) GracefulShutdown(sig chan os.Signal, cancel context.CancelFunc) {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	sign := <-sig
 	logger.LogWarn(a.log, fmt.Sprintf("Got signal: %v, exiting", sign))
+	cancel()
 	database.CloseDBConnection(a.cfg, a.Db)
 	time.Sleep(time.Second * 2)
 	close(a.SigChan)
@@ -33,7 +34,7 @@ func (a *app) GracefulShutdown(sig chan os.Signal) {
 //    Get запросы    //
 // ----------------- //
 
-// Get запрос на получение списка камер из базы данных
+// getReqFromDB реализует Get запрос на получение списка камер из базы данных
 func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, error) {
 	req, err := a.refreshStreamUseCase.Get(ctx, true)
 	if err != nil {
@@ -45,7 +46,7 @@ func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, 
 }
 
 /*
-Получение списка камер с базы данных и с rtsp
+getDBAndApi реализует получение списка камер с базы данных и с rtsp
 На выходе: список с бд, список с rtsp, длины этих списков, ошибка
 */
 func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
@@ -91,8 +92,8 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 // ----------------- //
 
 /*
-Функция, принимающая на вход список камер, которые необходимо добавить в rtsp-simple-server,
-и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
+addCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо добавить
+в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
 func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
@@ -128,8 +129,10 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 }
 
 /*
-Функция, принимающая на вход список камер, которые необходимо удалить из rtsp-simple-server,
-и список камер из базы данных. Отправляет Post запрос к rtsp на удаление камер,
+removeCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо удалить
+
+	з rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на удаление камер,
+
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
 func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
@@ -177,8 +180,8 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 }
 
 /*
-Функция, принимающая на вход список камер, которые необходимо изменить в rtsp-simple-server,
-и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
+editCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо изменить
+в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
 func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.Conf,
@@ -215,7 +218,7 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 
 /*
 Используется в API
-Метод принимает результат выполнения запроса через API (ошибка) и список камер с бд
+insertIntoStatusStream принимает результат выполнения запроса через API (ошибка) и список камер с бд
 и выполняет вставку в таблицу status_stream
 */
 func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB refreshstream.RefreshStream, err error) error {
@@ -247,8 +250,8 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 }
 
 /*
-Метод, в которым выполняются функции, получающие списки отличающихся данных,
-выполняется удаление лишних камер и добавление недостающих
+addAndRemoveData - метод, в которым выполняются функции, получающие списки
+отличающихся данных, выполняется удаление лишних камер и добавление недостающих
 */
 func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interface{},
 	dataDB []refreshstream.RefreshStream) error {

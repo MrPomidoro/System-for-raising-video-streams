@@ -10,9 +10,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Инициализация и заполнение конфига
+// GetConfig инициализирует и заполняет структуру конфигурационного файла
 func GetConfig() *Config {
 
+	// Чтение пути до конфигурационного файла
 	var configPath string
 	args := os.Args
 	for _, arg := range args {
@@ -55,8 +56,8 @@ func GetConfig() *Config {
 	return &cfg
 }
 
-// Реализация возможности передачи параметров конфигурационного файла
-// при запуске из командной строки
+// readFlags реализует возможность передачи параметров
+// конфигурационного файла при запуске из командной строки
 func readFlags(cfg *Config) {
 	var stub string
 

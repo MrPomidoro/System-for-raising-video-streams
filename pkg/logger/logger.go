@@ -8,7 +8,7 @@ import (
 	easy "github.com/t-tomalak/logrus-easy-formatter"
 )
 
-// Функция для инициализации логгера с настраиваемым уровнем логирования
+// NewLog - функция для инициализации логгера с настраиваемым уровнем логирования
 // на основе данных из конфига
 func NewLog(level string) *logrus.Logger {
 	file, err := os.OpenFile("out.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -28,7 +28,7 @@ func NewLog(level string) *logrus.Logger {
 	return log
 }
 
-// Выбор уровня логирования на основе переданной строковой переменной
+// initLogLevel реализует выбор уровня логирования на основе переданной строковой переменной
 func initLogLevel(level string) logrus.Level {
 	switch level {
 	case "FATAL":

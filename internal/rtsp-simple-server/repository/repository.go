@@ -26,6 +26,7 @@ func NewRTSPRepository(cfg *config.Config, log *logrus.Logger) *rtspRepository {
 	}
 }
 
+// GetRtsp отправляет GET запрос на получение данных
 func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 	var item interface{}
 	var res map[string]interface{}
@@ -59,6 +60,7 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 	return res, nil
 }
 
+// PostAddRTSP отправляет POST запрос на добавление потока
 func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error {
 
 	// Парсинг поля RunOnReady
@@ -108,6 +110,7 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error
 	return nil
 }
 
+// PostRemoveRTSP отправляет POST запрос на удаление потока
 func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
 	// Парсинг URL
 	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "remove", camRTSP)
@@ -125,6 +128,7 @@ func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
 	return nil
 }
 
+// PostEditRTSP отправляет POST запрос на изменение потока
 func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) error {
 
 	var protocol = camDB.Protocol.String
