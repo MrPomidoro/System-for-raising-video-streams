@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -10,8 +11,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Заполняется структура из конфига, вызывается функция connectToDB(),
-// дающая подключение к базе данных
+// CreateDBConnection заполняет структуру данными из конфига и вызывает функцию connectToDB(),
+// дающую подключение к базе данных
 func CreateDBConnection(cfg *config.Config) *sql.DB {
 	var dbcfg Database
 
@@ -28,7 +29,7 @@ func CreateDBConnection(cfg *config.Config) *sql.DB {
 	return connectToDB(&dbcfg)
 }
 
-// Функция, возвращающая подключение к базе данных
+// connectToDB - функция, возвращающая открытое подключение к базе данных
 func connectToDB(dbcfg *Database) *sql.DB {
 	var dbSQL *sql.DB
 
@@ -61,27 +62,33 @@ func connectToDB(dbcfg *Database) *sql.DB {
 		time.Sleep(time.Second * 3)
 	}
 
-	logger.LogError(dbcfg.Log, fmt.Sprintf("Time waiting of DB connection exceeded limit: %v", connTimeout))
+	logger.LogError(dbcfg.Log, fmt.Sprintf("Time waiting of database connection exceeded limit: %v", connTimeout))
 	return dbSQL
 }
 
-// Отключение от базы данных
+// CloseDBConnection реализует отключение от базы данных
 func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
 	log := logger.NewLog(cfg.LogLevel)
 	if err := dbSQL.Close(); err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot close DB connection. Error: %v", err))
+		logger.LogError(log, fmt.Sprintf("cannot close database connection: %v", err))
 		return
 	}
-	logger.LogDebug(log, "Established closing of connection to DB")
+	logger.LogDebug(log, "Established closing of connection to database")
 }
 
-func DBPing(cfg *config.Config, db *sql.DB) {
+// DBPing реализует переподключение к базе данных при необходимости
+// Происходит проверка контекста - если он закрыт, DBPing прекращаеи работу
+func DBPing(cfg *config.Config, db *sql.DB, ctx context.Context) {
+	log := logger.NewLog(cfg.LogLevel)
 
 	for {
-		log := logger.NewLog(cfg.LogLevel)
+		if ctx.Err() != nil {
+			logger.LogError(log, ctx.Err())
+			break
+		}
 		if err := db.Ping(); err != nil {
-			logger.LogWarn(log, fmt.Sprintf("cannot connect to database %s", err))
-			logger.LogInfo(log, "try connect to database...")
+			logger.LogDebug(log, fmt.Sprintf("cannot connect to database %s", err))
+			logger.LogDebug(log, "try connect to database...")
 
 			var dbcfg Database
 			dbcfg.Port = cfg.Port

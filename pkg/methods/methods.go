@@ -9,7 +9,7 @@ import (
 )
 
 /*
-Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp, возвращающая
+CheckIdentityAndCountOfData - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp, возвращающая
   - (true, true), если количество камер в базе и в rtsp одинаковое;
   - (true, false), если количество камер в базе и в rtsp одинаковое, но сами данные отличаются;
   - (false, false), если количество камер в базе и в rtsp отличается.
@@ -119,7 +119,7 @@ func CheckIdentityAndCountOfData(dataDB []refreshstream.RefreshStream, dataRTSP 
 }
 
 /*
-Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
+GetCamsForRemove - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 возвращающая список камер, имеющихся в rtsp, но отсутствующих в базе
 */
 func GetCamsForRemove(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) []string {
@@ -156,7 +156,7 @@ func GetCamsForRemove(dataDB []refreshstream.RefreshStream, dataRTSP map[string]
 }
 
 /*
-Функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
+GetCamsForAdd - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 возвращающая список камер, отсутствующих в rtsp, но имеющихся в базе
 */
 func GetCamsForAdd(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) []string {
