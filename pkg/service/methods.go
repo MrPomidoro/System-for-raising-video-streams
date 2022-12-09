@@ -26,7 +26,7 @@ func (a *app) GracefulShutdown(sig chan os.Signal, cancel context.CancelFunc) {
 	logger.LogWarn(a.log, fmt.Sprintf("Got signal: %v, exiting", sign))
 	cancel()
 	database.CloseDBConnection(a.cfg, a.Db)
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 10)
 	close(a.SigChan)
 }
 
