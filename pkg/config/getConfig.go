@@ -29,8 +29,7 @@ func GetConfig() *Config {
 
 	err := readParametersFromConfig(v, &cfg)
 	if err != nil {
-		log := logger.NewLog(cfg.LogLevel, cfg.LogPath)
-		logger.LogError(log, err)
+		logger.LogError(logger.NewLog(cfg.LogLevel, cfg.LogPath), err)
 	}
 
 	// Проверка наличия параметров в командной строке
