@@ -36,7 +36,7 @@ type app struct {
 
 // NewApp инициализирует прототип приложения
 func NewApp(cfg *config.Config) *app {
-	log := logger.NewLog(cfg.LogLevel)
+	log := logger.NewLog(cfg.LogLevel, cfg.LogPath)
 	if !cfg.Database_Connect {
 		logger.LogError(log, "no permission to connect to database")
 		return &app{}
@@ -80,7 +80,7 @@ loop:
 		case <-ctx.Done():
 			break loop
 
-			// Выполняется периодически через установленный в конфигурационном файле промежуток времени
+		// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 		case <-tick.C:
 			// Получение данных от базы данных и от rtsp
 			dataDB, dataRTSP, err := a.getDBAndApi(ctx)
