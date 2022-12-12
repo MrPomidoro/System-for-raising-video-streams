@@ -20,12 +20,13 @@ import (
 GracefulShutdown - метод для корректного завершения работы программы
 при получении прерывающего сигнала
 */
-func (a *app) GracefulShutdown(sig chan os.Signal, cancel context.CancelFunc) {
+func (a *app) GracefulShutdown(sig chan os.Signal, ctx context.Context, cancel context.CancelFunc) {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	sign := <-sig
 	logger.LogWarn(a.log, fmt.Sprintf("Got signal: %v, exiting", sign))
 	cancel()
 	database.CloseDBConnection(a.cfg, a.Db)
+	logger.LogError(a.log, ctx.Err())
 	time.Sleep(time.Second * 10)
 	close(a.SigChan)
 }

@@ -63,7 +63,8 @@ func NewApp(cfg *config.Config) *app {
 // ~~~~~~~~~~~~~~~~~~~~~~~~ //
 
 func (a *app) Run(ctx context.Context) {
-	ctx, _ = context.WithCancel(ctx)
+	ctx, cansel := context.WithCancel(ctx)
+	defer cansel()
 
 	// Канал для периодического выполнения алгоритма
 	tick := time.NewTicker(a.cfg.Refresh_Time)
@@ -71,13 +72,16 @@ func (a *app) Run(ctx context.Context) {
 
 loop:
 	for {
+		fmt.Println("")
+
 		select {
+
+		// Если контекст закрыт, loop завершается
 		case <-ctx.Done():
 			break loop
-		case <-tick.C:
-			// Выполняется периодически через установленный в конфигурационном файле промежуток времени
-			fmt.Println("")
 
+			// Выполняется периодически через установленный в конфигурационном файле промежуток времени
+		case <-tick.C:
 			// Получение данных от базы данных и от rtsp
 			dataDB, dataRTSP, err := a.getDBAndApi(ctx)
 			if err != nil {

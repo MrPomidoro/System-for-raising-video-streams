@@ -27,5 +27,5 @@ func main() {
 
 	// Ожидание прерывающего сигнала
 	// app.GracefulShutdown(app.SigChan)
-	app.GracefulShutdown(app.SigChan, cancel)
+	app.GracefulShutdown(app.SigChan, ctx, cancel)
 }
