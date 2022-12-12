@@ -15,7 +15,7 @@ type Config struct {
 // Logger содержит параметры логгера
 type Logger struct {
 	LogLevel string `yaml:"loglevel"`
-	LogFile  string `yaml:"logfile"`
+	LogPath  string `yaml:"logpath"`
 }
 
 // Server содержит параметры сервера

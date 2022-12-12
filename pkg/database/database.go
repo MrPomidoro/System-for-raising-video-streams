@@ -24,7 +24,7 @@ func CreateDBConnection(cfg *config.Config) *sql.DB {
 
 	dbcfg.Driver = cfg.Driver
 	dbcfg.DBConnectionTimeoutSecond = cfg.Db_Connection_Timeout_Second
-	dbcfg.Log = logger.NewLog(cfg.LogLevel)
+	dbcfg.Log = logger.NewLog(cfg.LogLevel, cfg.LogPath)
 
 	return connectToDB(&dbcfg)
 }
@@ -68,7 +68,7 @@ func connectToDB(dbcfg *Database) *sql.DB {
 
 // CloseDBConnection реализует отключение от базы данных
 func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
-	log := logger.NewLog(cfg.LogLevel)
+	log := logger.NewLog(cfg.LogLevel, cfg.LogPath)
 	if err := dbSQL.Close(); err != nil {
 		logger.LogError(log, fmt.Sprintf("cannot close database connection: %v", err))
 		return
@@ -79,7 +79,7 @@ func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
 // DBPing реализует переподключение к базе данных при необходимости
 // Происходит проверка контекста - если он закрыт, DBPing прекращаеи работу
 func DBPing(ctx context.Context, cfg *config.Config, db *sql.DB) {
-	log := logger.NewLog(cfg.LogLevel)
+	log := logger.NewLog(cfg.LogLevel, cfg.LogPath)
 
 loop:
 	for {

@@ -36,7 +36,7 @@ type app struct {
 
 // NewApp инициализирует прототип приложения
 func NewApp(cfg *config.Config) *app {
-	log := logger.NewLog(cfg.LogLevel)
+	log := logger.NewLog(cfg.LogLevel, cfg.LogPath)
 	if !cfg.Database_Connect {
 		logger.LogError(log, "no permission to connect to database")
 		return &app{}

@@ -27,20 +27,10 @@ func GetConfig() *Config {
 	v.SetConfigType("yaml")
 	v.AddConfigPath(configPath)
 
-	log := logger.NewLog(cfg.LogLevel)
-
-	// Попытка чтения конфига
-	if err := v.ReadInConfig(); err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot read config: %v", err))
-	} else {
-		logger.LogDebug(log, "Success read config file")
-	}
-
-	// Попытка заполнение структуры Config полученными данными
-	if err := v.Unmarshal(&cfg); err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot read config: %v", err))
-	} else {
-		logger.LogDebug(log, "Success read config file")
+	err := readParametersFromConfig(v, &cfg)
+	if err != nil {
+		log := logger.NewLog(cfg.LogLevel, cfg.LogPath)
+		logger.LogError(log, err)
 	}
 
 	// Проверка наличия параметров в командной строке
@@ -49,6 +39,18 @@ func GetConfig() *Config {
 	fmt.Println(cfg)
 
 	return &cfg
+}
+
+func readParametersFromConfig(v *viper.Viper, cfg *Config) error {
+	// Попытка чтения конфига
+	if err := v.ReadInConfig(); err != nil {
+		return fmt.Errorf("cannot read config: %v", err)
+	}
+	// Попытка заполнение структуры Config полученными данными
+	if err := v.Unmarshal(&cfg); err != nil {
+		return fmt.Errorf("cannot read config: %v", err)
+	}
+	return nil
 }
 
 // checkConfigPath проверяет, есть ли среди флагов путь до конфигурационного файла
@@ -69,6 +71,7 @@ func readFlags(cfg *Config) {
 	var stub string
 
 	flag.StringVar(&cfg.LogLevel, "loglevel", cfg.LogLevel, "The level of logging parameter")
+	flag.StringVar(&cfg.LogPath, "logpath", cfg.LogPath, "The path to file of logging out")
 
 	flag.DurationVar(&cfg.ReadTimeout, "readtimeout", cfg.ReadTimeout, "The readtimeout parameter")
 	flag.DurationVar(&cfg.WriteTimeout, "writetimeout", cfg.WriteTimeout, "The writetimeout parameter")
@@ -87,7 +90,7 @@ func readFlags(cfg *Config) {
 	flag.StringVar(&cfg.Url, "url", cfg.Url, "The url parameter")
 	flag.DurationVar(&cfg.Refresh_Time, "refresh_time", cfg.Refresh_Time, "The refresh_time parameter")
 
-	flag.StringVar(&stub, "configPath", `./`, "configPath")
+	flag.StringVar(&stub, "configPath", `./`, "The path to file of configuration")
 
 	flag.Parse()
 }
