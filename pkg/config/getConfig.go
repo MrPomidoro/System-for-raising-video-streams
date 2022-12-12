@@ -14,13 +14,8 @@ import (
 func GetConfig() *Config {
 
 	// Чтение пути до конфигурационного файла
-	var configPath string
-	args := os.Args
-	for _, arg := range args {
-		if strings.Split(arg, "=")[0][1:] == "configPath" {
-			configPath = strings.Split(arg, "=")[1]
-		}
-	}
+	configPath := checkConfigPath()
+	// Если путь не был указан, выставляется по умолчанию ./
 	if configPath == "" {
 		configPath = "./"
 	}
@@ -54,6 +49,18 @@ func GetConfig() *Config {
 	fmt.Println(cfg)
 
 	return &cfg
+}
+
+// checkConfigPath проверяет, есть ли среди флагов путь до конфигурационного файла
+func checkConfigPath() string {
+	var configPath string
+	args := os.Args
+	for _, arg := range args {
+		if strings.Split(arg, "=")[0][1:] == "configPath" {
+			configPath = strings.Split(arg, "=")[1]
+		}
+	}
+	return configPath
 }
 
 // readFlags реализует возможность передачи параметров

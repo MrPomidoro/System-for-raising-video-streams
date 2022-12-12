@@ -78,15 +78,20 @@ func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
 
 // DBPing реализует переподключение к базе данных при необходимости
 // Происходит проверка контекста - если он закрыт, DBPing прекращаеи работу
-func DBPing(cfg *config.Config, db *sql.DB, ctx context.Context) {
+func DBPing(ctx context.Context, cfg *config.Config, db *sql.DB) {
 	log := logger.NewLog(cfg.LogLevel)
 
+loop:
 	for {
-		if ctx.Err() != nil {
+		errChan := make(chan error)
+		defer close(errChan)
+		ping(db, errChan)
+
+		select {
+		case <-ctx.Done():
 			logger.LogError(log, ctx.Err())
-			break
-		}
-		if err := db.Ping(); err != nil {
+			break loop
+		case err := <-errChan:
 			logger.LogDebug(log, fmt.Sprintf("cannot connect to database %s", err))
 			logger.LogDebug(log, "try connect to database...")
 
@@ -102,6 +107,13 @@ func DBPing(cfg *config.Config, db *sql.DB, ctx context.Context) {
 
 			connectToDB(&dbcfg)
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func ping(db *sql.DB, errChan chan error) {
+	err := db.Ping()
+	if err != nil {
+		errChan <- err
 	}
 }
