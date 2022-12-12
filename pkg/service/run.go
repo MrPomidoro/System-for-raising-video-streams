@@ -63,7 +63,8 @@ func NewApp(cfg *config.Config) *app {
 // ~~~~~~~~~~~~~~~~~~~~~~~~ //
 
 func (a *app) Run(ctx context.Context) {
-	ctx, _ = context.WithCancel(ctx)
+	ctx, cansel := context.WithCancel(ctx)
+	defer cansel()
 
 	// Канал для периодического выполнения алгоритма
 	tick := time.NewTicker(a.cfg.Refresh_Time)

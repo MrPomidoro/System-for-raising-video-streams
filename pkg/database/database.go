@@ -89,7 +89,6 @@ loop:
 
 		select {
 		case <-ctx.Done():
-			logger.LogError(log, ctx.Err())
 			break loop
 		case err := <-errChan:
 			logger.LogDebug(log, fmt.Sprintf("cannot connect to database %s", err))
