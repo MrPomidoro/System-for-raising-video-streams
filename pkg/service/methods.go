@@ -30,15 +30,14 @@ func (a *app) GracefulShutdown(sig chan os.Signal, cancel context.CancelFunc) {
 	close(a.SigChan)
 }
 
-// ----------------- //
-//    Get запросы    //
-// ----------------- //
+// ------------------------------------------------- //
+//                    Get запросы                    //
+// ------------------------------------------------- //
 
 // getReqFromDB реализует Get запрос на получение списка камер из базы данных
 func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, error) {
 	req, err := a.refreshStreamUseCase.Get(ctx, true)
 	if err != nil {
-		logger.LogError(a.log, fmt.Errorf("cannot received response from the database: %v", err))
 		return req, err
 	}
 	logger.LogDebug(a.log, "Received response from the database")
@@ -47,49 +46,31 @@ func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, 
 
 /*
 getDBAndApi реализует получение списка камер с базы данных и с rtsp
-На выходе: список с бд, список с rtsp, длины этих списков, ошибка
+На выходе: список с бд, список с rtsp, ошибка
 */
 func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
-	map[string]interface{}, int, int, error) {
-	var lenResRTSP int
+	map[string]interface{}, error) {
 	var resRTSP map[string]interface{}
 	var resDB []refreshstream.RefreshStream
 
 	// Отправка запроса к базе
 	resDB, err := a.getReqFromDB(ctx)
 	if err != nil {
-		return resDB, resRTSP, 0, 0, err
+		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
 	}
 
 	// Отправка запроса к rtsp
 	resRTSP, err = a.rtspUseCase.GetRtsp()
 	if err != nil {
-		return resDB, resRTSP, 0, 0, err
+		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
 	}
 
-	// Проверка, что ответ от базы данных не пустой
-	if len(resDB) == 0 {
-		return resDB, resRTSP, 0, lenResRTSP, nil
-	}
-
-	// Определение числа потоков с rtsp
-	for _, items := range resRTSP { // items - поле "items"
-		// мапа: ключ - номер камеры, значения - остальные поля этой камеры
-		camsMap := items.(map[string]interface{})
-		lenResRTSP = len(camsMap) // количество камер
-	}
-
-	// Проверка, что ответ от rtsp данных не пустой
-	if lenResRTSP == 0 {
-		return resDB, resRTSP, len(resDB), 0, nil
-	}
-
-	return resDB, resRTSP, len(resDB), lenResRTSP, nil
+	return resDB, resRTSP, nil
 }
 
-// ----------------- //
-//        API        //
-// ----------------- //
+// ----------------------------------------- //
+//                    API                    //
+// ---------------------------------------- //
 
 /*
 addCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо добавить
@@ -130,9 +111,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 
 /*
 removeCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо удалить
-
-	з rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на удаление камер,
-
+с rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на удаление камер,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
 func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
@@ -212,9 +191,9 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 	return nil
 }
 
-// ----------------- //
-//   Другие методы   //
-// ----------------- //
+// --------------------------------------------------- //
+//                    Другие методы                    //
+// --------------------------------------------------- //
 
 /*
 Используется в API
@@ -276,6 +255,44 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interfac
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+//
+//
+//
+
+/*
+equalOrIdentityData проверяет isEqualCount и identity:
+если оба - true, возвращает true;
+если isEqualCount - true, а identity - false, изменяет потоки и возвращает true;
+иначе возвращает false
+*/
+func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bool,
+	confArr []rtspsimpleserver.Conf, dataDB []refreshstream.RefreshStream) bool {
+
+	if isEqualCount && identity {
+		logger.LogInfo(a.log, "Data is identity, waiting...")
+		return true
+
+	} else if isEqualCount && !identity {
+		logger.LogInfo(a.log, "Count of data is same, but the field values are different")
+		err := a.editCamerasToRTSP(ctx, confArr, dataDB)
+		if err != nil {
+			logger.LogError(a.log, err)
+		}
+		return true
+	}
+	return false
+}
+
+// differentCount выполняется в случае, если число данных в базе и в rtsp, возвращает ошибку при её наличии
+func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) error {
+	logger.LogInfo(a.log, "Count of data is different")
+	err := a.addAndRemoveData(ctx, dataRTSP, dataDB)
+	if err != nil {
+		return err
 	}
 	return nil
 }

@@ -23,7 +23,7 @@ func main() {
 
 	// Проверка коннекта к базе данных
 	// и переподключение при необходимости
-	go database.DBPing(cfg, app.Db, ctx)
+	go database.DBPing(ctx, cfg, app.Db)
 
 	// Ожидание прерывающего сигнала
 	// app.GracefulShutdown(app.SigChan)

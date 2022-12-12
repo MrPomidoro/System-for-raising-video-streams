@@ -107,16 +107,54 @@ func CheckIdentityAndCountOfData(dataDB []refreshstream.RefreshStream, dataRTSP 
 		}
 	}
 
+	lenDB := len(dataDB)
 	// Если счётчик равен длине списка с базы данных, данные совпадают
-	if count != len(dataDB) {
-		return false, false, confArr
-	} else if count == len(dataDB) && identity == 3*len(dataDB) {
-		return true, true, confArr
-	} else if count == len(dataDB) && identity != 3*len(dataDB) {
-		return true, false, confArr
-	}
-	return false, false, confArr
+	countEqual, identityEqual := compareDBandRTSP(count, identity, lenDB)
+	return countEqual, identityEqual, confArr
 }
+
+// compareDBandRTSP сравнивает счётчик count и длине списка с базы данных,
+// а также счетчик identity с утроенной длиной списка с базы данных
+func compareDBandRTSP(count, identity, lenDB int) (bool, bool) {
+	if count != lenDB {
+		return false, false
+	} else if count == lenDB && identity == 3*lenDB {
+		return true, true
+	} else if count == lenDB && identity != 3*lenDB {
+		return true, false
+	}
+	return false, false
+}
+
+//
+
+// checkEmptyData проверяет, что полученные ответы от rtsp и базы не пустые, и возвращает их длины
+func CheckEmptyData(resDB []refreshstream.RefreshStream, resRTSP map[string]interface{}) (int, int) {
+	var lenResRTSP int
+
+	// Проверка, что ответ от базы данных не пустой
+	if len(resDB) == 0 {
+		return 0, 0
+	}
+
+	// Определение числа потоков с rtsp
+	for _, items := range resRTSP { // items - поле "items"
+		// мапа: ключ - номер камеры, значения - остальные поля этой камеры
+		camsMap := items.(map[string]interface{})
+		lenResRTSP = len(camsMap) // количество камер
+	}
+
+	// Проверка, что ответ от rtsp данных не пустой
+	if lenResRTSP == 0 {
+		return 0, 0
+	}
+
+	return len(resDB), lenResRTSP
+}
+
+//
+//
+//
 
 /*
 GetCamsForRemove - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
