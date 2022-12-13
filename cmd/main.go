@@ -5,18 +5,26 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/service"
 )
+
+type ctxLogger struct{}
 
 func main() {
 	// Инициализация контекста
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Чтение конфигурационного файла
-	cfg := config.GetConfig()
+	cfg, err := config.GetConfig()
+	log := logger.NewLogger(cfg)
+	if err != nil {
+		log.Error(err.Error())
+	}
+	ctx = context.WithValue(ctx, ctxLogger{}, log)
 
 	// Инициализация прототипа приложения
-	app := service.NewApp(cfg)
+	app := service.NewApp(ctx, cfg)
 
 	// Запуск алгоритма в отдельной горутине
 	go app.Run(ctx)

@@ -20,13 +20,13 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 // app - прототип приложения
 type app struct {
 	cfg                  *config.Config
-	log                  *logrus.Logger
+	log                  *zap.Logger
 	Db                   *sql.DB
 	SigChan              chan os.Signal
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
@@ -35,12 +35,14 @@ type app struct {
 }
 
 // NewApp инициализирует прототип приложения
-func NewApp(cfg *config.Config) *app {
-	log := logger.NewLog(cfg.LogLevel, cfg.LogPath)
+func NewApp(ctx context.Context, cfg *config.Config) *app {
+	log := logger.NewLogger(cfg)
+
 	if !cfg.Database_Connect {
-		logger.LogError(log, "no permission to connect to database")
+		log.Error("no permission to connect to database")
 		return &app{}
 	}
+
 	db := database.CreateDBConnection(cfg)
 	sigChan := make(chan os.Signal, 1)
 	repoRS := rsrepository.NewRefreshStreamRepository(db)
@@ -63,6 +65,7 @@ func NewApp(cfg *config.Config) *app {
 // ~~~~~~~~~~~~~~~~~~~~~~~~ //
 
 func (a *app) Run(ctx context.Context) {
+
 	ctx, cansel := context.WithCancel(ctx)
 	defer cansel()
 
@@ -85,7 +88,7 @@ loop:
 			// Получение данных от базы данных и от rtsp
 			dataDB, dataRTSP, err := a.getDBAndApi(ctx)
 			if err != nil {
-				logger.LogError(a.log, err)
+				a.log.Error(err.Error())
 				continue
 			}
 			lenResDB, lenResRTSP := methods.CheckEmptyData(dataDB, dataRTSP)
@@ -104,7 +107,7 @@ loop:
 					- запись в status_stream.
 			*/
 			if lenResDB == lenResRTSP {
-				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
+				a.log.Info(fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
 				// Проверка одинаковости данных по стримам
 				isEqualCount, identity, confArr := methods.CheckIdentityAndCountOfData(dataDB, dataRTSP, a.cfg)
@@ -119,7 +122,7 @@ loop:
 				// Если число данных отличается, выполняется differentCount
 				err := a.differentCount(ctx, dataDB, dataRTSP)
 				if err != nil {
-					logger.LogError(a.log, err)
+					a.log.Error(err.Error())
 					continue
 				}
 
@@ -132,10 +135,10 @@ loop:
 				*/
 			} else if lenResDB > lenResRTSP {
 
-				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
+				a.log.Info(fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 				err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
 				if err != nil {
-					logger.LogError(a.log, err)
+					a.log.Error(err.Error())
 					continue
 				}
 
@@ -147,13 +150,13 @@ loop:
 					запись в status_stream
 				*/
 			} else if lenResDB < lenResRTSP {
-				logger.LogInfo(a.log, fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d; waiting...", lenResDB, lenResRTSP))
+				a.log.Info(fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d; waiting...", lenResDB, lenResRTSP))
 
 				// Ожидание 5 секунд и повторный запрос данных с базы и с rtsp
 				time.Sleep(time.Second * 5)
 				dataDB, dataRTSP, err := a.getDBAndApi(ctx)
 				if err != nil {
-					logger.LogError(a.log, err)
+					a.log.Error(err.Error())
 					continue
 				}
 				lenResDBLESS, lenResRTSPLESS := methods.CheckEmptyData(dataDB, dataRTSP)
@@ -174,7 +177,7 @@ loop:
 					// Если число данных отличается, выполняется differentCount
 					err := a.differentCount(ctx, dataDB, dataRTSP)
 					if err != nil {
-						logger.LogError(a.log, err)
+						a.log.Error(err.Error())
 						continue
 					}
 
@@ -182,7 +185,7 @@ loop:
 
 					err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
 					if err != nil {
-						logger.LogError(a.log, err)
+						a.log.Error(err.Error())
 						continue
 					}
 

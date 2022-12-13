@@ -24,7 +24,7 @@ func CreateDBConnection(cfg *config.Config) *sql.DB {
 
 	dbcfg.Driver = cfg.Driver
 	dbcfg.DBConnectionTimeoutSecond = cfg.Db_Connection_Timeout_Second
-	dbcfg.Log = logger.NewLog(cfg.LogLevel, cfg.LogPath)
+	dbcfg.Log = logger.NewLogger(cfg)
 
 	return connectToDB(&dbcfg)
 }
@@ -40,16 +40,16 @@ func connectToDB(dbcfg *Database) *sql.DB {
 	// Подключение
 	dbSQL, err := sql.Open(dbcfg.Driver, sqlInfo)
 	if err != nil {
-		logger.LogError(dbcfg.Log, fmt.Sprintf("cannot get connect to database: %v", err))
+		dbcfg.Log.Error(fmt.Sprintf("cannot get connect to database: %v", err))
 	}
 
 	// Проверка подключения
 	time.Sleep(time.Millisecond * 3)
 	if err := dbSQL.Ping(); err == nil {
-		logger.LogInfo(dbcfg.Log, fmt.Sprintf("Success connect to database %s", dbcfg.Db_name))
+		dbcfg.Log.Info(fmt.Sprintf("Success connect to database %s", dbcfg.Db_name))
 		return dbSQL
 	} else {
-		logger.LogError(dbcfg.Log, fmt.Sprintf("cannot connect to database: %s", err))
+		dbcfg.Log.Error(fmt.Sprintf("cannot connect to database: %s", err))
 	}
 
 	connLatency := time.Duration(10 * time.Millisecond)
@@ -62,24 +62,24 @@ func connectToDB(dbcfg *Database) *sql.DB {
 		time.Sleep(time.Second * 3)
 	}
 
-	logger.LogError(dbcfg.Log, fmt.Sprintf("Time waiting of database connection exceeded limit: %v", connTimeout))
+	dbcfg.Log.Warn(fmt.Sprintf("Time waiting of database connection exceeded limit: %v", connTimeout))
 	return dbSQL
 }
 
 // CloseDBConnection реализует отключение от базы данных
 func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
-	log := logger.NewLog(cfg.LogLevel, cfg.LogPath)
+	log := logger.NewLogger(cfg)
 	if err := dbSQL.Close(); err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot close database connection: %v", err))
+		log.Error(fmt.Sprintf("cannot close database connection: %v", err))
 		return
 	}
-	logger.LogDebug(log, "Established closing of connection to database")
+	log.Debug("Established closing of connection to database")
 }
 
 // DBPing реализует переподключение к базе данных при необходимости
 // Происходит проверка контекста - если он закрыт, DBPing прекращаеи работу
 func DBPing(ctx context.Context, cfg *config.Config, db *sql.DB) {
-	log := logger.NewLog(cfg.LogLevel, cfg.LogPath)
+	log := logger.NewLogger(cfg)
 
 loop:
 	for {
@@ -91,8 +91,8 @@ loop:
 		case <-ctx.Done():
 			break loop
 		case err := <-errChan:
-			logger.LogDebug(log, fmt.Sprintf("cannot connect to database %s", err))
-			logger.LogDebug(log, "try connect to database...")
+			log.Debug(fmt.Sprintf("cannot connect to database %s", err))
+			log.Debug("try connect to database...")
 
 			var dbcfg Database
 			dbcfg.Port = cfg.Port
