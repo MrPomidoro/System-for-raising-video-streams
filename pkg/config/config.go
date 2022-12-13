@@ -14,8 +14,12 @@ type Config struct {
 
 // Logger содержит параметры логгера
 type Logger struct {
-	LogLevel string `yaml:"loglevel"`
-	LogPath  string `yaml:"logpath"`
+	LogLevel      string `yaml:"loglevel"`
+	LogFileEnable bool   `yaml:"LogFileEnable"`
+	LogFile       string `yaml:"logpath"`
+	MaxSize       int    `yaml:"maxSize"`
+	MaxAge        int    `yaml:"maxAge"`
+	MaxBackups    int    `yaml:"maxBackups"`
 }
 
 // Server содержит параметры сервера

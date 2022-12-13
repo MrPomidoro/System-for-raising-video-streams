@@ -10,16 +10,15 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 type rtspRepository struct {
 	cfg *config.Config
-	log *logrus.Logger
+	log *zap.Logger
 }
 
-func NewRTSPRepository(cfg *config.Config, log *logrus.Logger) *rtspRepository {
+func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
 	return &rtspRepository{
 		cfg: cfg,
 		log: log,
@@ -42,19 +41,19 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 	if err != nil {
 		return res, fmt.Errorf("cannot received response from rts-simple-server: %v", err)
 	}
-	logger.LogDebug(rtsp.log, "Received response from rtsp-simple-server")
+	rtsp.log.Debug("Received response from rtsp-simple-server")
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return res, err
 	}
-	logger.LogDebug(rtsp.log, "Success read body")
+	rtsp.log.Debug("Success read body")
 
 	err = json.Unmarshal(body, &item)
 	if err != nil {
 		return res, fmt.Errorf("cannot unmarshal response: %v", err)
 	}
-	logger.LogDebug(rtsp.log, "Success unmarshal body")
+	rtsp.log.Debug("Success unmarshal body")
 
 	res = item.(map[string]interface{})
 	return res, nil

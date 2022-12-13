@@ -1,6 +1,6 @@
 logger:
   loglevel: DEBUG
-  logpath: /home/ksenia/go/src/github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger/out.log
+  logpath: /home/ksenia/go/src/github.com/Kseniya-cha/System-for-raising-video-streams/log.log
 server:
   readtimeout: 200ms
   writetimeout: 200ms

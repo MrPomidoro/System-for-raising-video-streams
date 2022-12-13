@@ -3,7 +3,7 @@ package database
 import (
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 // Database - структура с параметрами для базы данных
@@ -16,5 +16,5 @@ type Database struct {
 
 	Driver                    string
 	DBConnectionTimeoutSecond time.Duration
-	Log                       *logrus.Logger
+	Log                       *zap.Logger
 }

@@ -12,7 +12,6 @@ import (
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
 )
 
@@ -23,10 +22,10 @@ GracefulShutdown - метод для корректного завершения
 func (a *app) GracefulShutdown(sig chan os.Signal, ctx context.Context, cancel context.CancelFunc) {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	sign := <-sig
-	logger.LogWarn(a.log, fmt.Sprintf("Got signal: %v, exiting", sign))
+	a.log.Warn(fmt.Sprintf("Got signal: %v, exiting", sign))
 	cancel()
 	database.CloseDBConnection(a.cfg, a.Db)
-	logger.LogError(a.log, ctx.Err())
+	a.log.Error(ctx.Err().Error())
 	time.Sleep(time.Second * 10)
 	close(a.SigChan)
 }
@@ -41,7 +40,7 @@ func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, 
 	if err != nil {
 		return req, err
 	}
-	logger.LogDebug(a.log, "Received response from the database")
+	a.log.Debug("Received response from the database")
 	return req, nil
 }
 
@@ -97,7 +96,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 			if err != nil {
 				return err
 			} else {
-				logger.LogDebug(a.log, "Success send request to update stream_status")
+				a.log.Debug("Success send request to update stream_status")
 			}
 
 			// Запись в базу данных результата выполнения
@@ -203,28 +202,24 @@ insertIntoStatusStream принимает результат выполнени�
 */
 func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB refreshstream.RefreshStream, err error) error {
 	if err != nil {
-		logger.LogError(a.log, err)
+		a.log.Error(err.Error())
 		insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
 		err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 		if err != nil {
-			logger.LogError(a.log,
-				"cannot insert to table status_stream")
+			a.log.Error("cannot insert to table status_stream")
 			return err
 		}
-		logger.LogInfo(a.log,
-			"Success insert to table status_stream")
+		a.log.Info("Success insert to table status_stream")
 	}
 
-	logger.LogInfo(a.log, fmt.Sprintf("Success complete post request for %s config %s", method, camDB.Stream.String))
+	a.log.Info(fmt.Sprintf("Success complete post request for %s config %s", method, camDB.Stream.String))
 	insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
 	err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 	if err != nil {
-		logger.LogError(a.log,
-			"cannot insert to table status_stream")
+		a.log.Error("cannot insert to table status_stream")
 		return err
 	}
-	logger.LogInfo(a.log,
-		"Success insert to table status_stream")
+	a.log.Info("Success insert to table status_stream")
 
 	return nil
 }
@@ -240,7 +235,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interfac
 	resSliceAdd := methods.GetCamsForAdd(dataDB, dataRTSP)
 	resSliceRemove := methods.GetCamsForRemove(dataDB, dataRTSP)
 
-	logger.LogInfo(a.log, fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
+	a.log.Info(fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
 
 	// Добавление камер
 	if resSliceAdd != nil {
@@ -274,14 +269,14 @@ func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bo
 	confArr []rtspsimpleserver.Conf, dataDB []refreshstream.RefreshStream) bool {
 
 	if isEqualCount && identity {
-		logger.LogInfo(a.log, "Data is identity, waiting...")
+		a.log.Info("Data is identity, waiting...")
 		return true
 
 	} else if isEqualCount && !identity {
-		logger.LogInfo(a.log, "Count of data is same, but the field values are different")
+		a.log.Info("Count of data is same, but the field values are different")
 		err := a.editCamerasToRTSP(ctx, confArr, dataDB)
 		if err != nil {
-			logger.LogError(a.log, err)
+			a.log.Error(err.Error())
 		}
 		return true
 	}
@@ -290,7 +285,7 @@ func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bo
 
 // differentCount выполняется в случае, если число данных в базе и в rtsp, возвращает ошибку при её наличии
 func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) error {
-	logger.LogInfo(a.log, "Count of data is different")
+	a.log.Error("Count of data is different")
 	err := a.addAndRemoveData(ctx, dataRTSP, dataDB)
 	if err != nil {
 		return err
