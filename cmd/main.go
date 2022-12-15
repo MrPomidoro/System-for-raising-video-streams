@@ -15,7 +15,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Чтение конфигурационного файла
-	cfg, err := config.ConfigI.GetConfig(&config.Config{})
+	cfg, err := config.ConfigI.GetConfig(config.NewConfig())
 	log := logger.NewLogger(cfg)
 	if err != nil {
 		log.Error(err.Error())
@@ -30,5 +30,5 @@ func main() {
 
 	// Ожидание прерывающего сигнала
 	// app.GracefulShutdown(app.SigChan)
-	app.GracefulShutdown(ctx, cancel)
+	service.App.GracefulShutdown(app, ctx, cancel)
 }
