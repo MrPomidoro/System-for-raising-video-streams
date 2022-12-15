@@ -15,7 +15,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Чтение конфигурационного файла
-	cfg, err := config.GetConfig()
+	cfg, err := config.ConfigI.GetConfig(&config.Config{})
 	log := logger.NewLogger(cfg)
 	if err != nil {
 		log.Error(err.Error())
