@@ -9,9 +9,7 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
 )
 
 /*
@@ -32,63 +30,27 @@ func (a *app) GracefulShutdown(ctx context.Context, cancel context.CancelFunc) {
 }
 
 /*
-Используется в API
-insertIntoStatusStream принимает результат выполнения запроса через API (ошибка) и список камер с бд
-и выполняет вставку в таблицу status_stream
+getDBAndApi реализует получение списка камер с базы данных и с rtsp
+На выходе: список с бд, список с rtsp, ошибка
 */
-func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB refreshstream.RefreshStream, err error) error {
+func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
+	map[string]interface{}, error) {
+	var resRTSP map[string]interface{}
+	var resDB []refreshstream.RefreshStream
+
+	// Отправка запроса к базе
+	resDB, err := a.getReqFromDB(ctx)
 	if err != nil {
-		a.log.Error(err.Error())
-		insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
-		err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
-		if err != nil {
-			a.log.Error("cannot insert to table status_stream")
-			return err
-		}
-		a.log.Info("Success insert to table status_stream")
+		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
 	}
 
-	a.log.Info(fmt.Sprintf("Success complete post request for %s config %s", method, camDB.Stream.String))
-	insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
-	err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+	// Отправка запроса к rtsp
+	resRTSP, err = a.rtspUseCase.GetRtsp()
 	if err != nil {
-		a.log.Error("cannot insert to table status_stream")
-		return err
-	}
-	a.log.Info("Success insert to table status_stream")
-
-	return nil
-}
-
-/*
-addAndRemoveData - метод, в которым выполняются функции, получающие списки
-отличающихся данных, выполняется удаление лишних камер и добавление недостающих
-*/
-func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interface{},
-	dataDB []refreshstream.RefreshStream) error {
-
-	// Получение списков камер на добавление и удаление
-	resSliceAdd := methods.GetCamsForAdd(dataDB, dataRTSP)
-	resSliceRemove := methods.GetCamsForRemove(dataDB, dataRTSP)
-
-	a.log.Info(fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
-
-	// Добавление камер
-	if resSliceAdd != nil {
-		err := a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
-		if err != nil {
-			return err
-		}
+		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
 	}
 
-	// Удаление камер
-	if resSliceRemove != nil {
-		err := a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return resDB, resRTSP, nil
 }
 
 /*

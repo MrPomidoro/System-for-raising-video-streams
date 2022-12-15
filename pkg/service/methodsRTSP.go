@@ -2,48 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
 )
-
-// getReqFromDB реализует Get запрос на получение списка камер из базы данных
-func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, error) {
-	req, err := a.refreshStreamUseCase.Get(ctx, true)
-	if err != nil {
-		return req, err
-	}
-	a.log.Debug("Received response from the database")
-	return req, nil
-}
-
-/*
-getDBAndApi реализует получение списка камер с базы данных и с rtsp
-На выходе: список с бд, список с rtsp, ошибка
-*/
-func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
-	map[string]interface{}, error) {
-	var resRTSP map[string]interface{}
-	var resDB []refreshstream.RefreshStream
-
-	// Отправка запроса к базе
-	resDB, err := a.getReqFromDB(ctx)
-	if err != nil {
-		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
-	}
-
-	// Отправка запроса к rtsp
-	resRTSP, err = a.rtspUseCase.GetRtsp()
-	if err != nil {
-		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
-	}
-
-	return resDB, resRTSP, nil
-}
-
-// ----------------------------------------- //
-//                    API                    //
-// ---------------------------------------- //
 
 /*
 addCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо добавить
@@ -159,6 +123,37 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 			if err != nil {
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+/*
+addAndRemoveData - метод, в которым выполняются функции, получающие списки
+отличающихся данных, выполняется удаление лишних камер и добавление недостающих
+*/
+func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interface{},
+	dataDB []refreshstream.RefreshStream) error {
+
+	// Получение списков камер на добавление и удаление
+	resSliceAdd := methods.GetCamsForAdd(dataDB, dataRTSP)
+	resSliceRemove := methods.GetCamsForRemove(dataDB, dataRTSP)
+
+	a.log.Info(fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
+
+	// Добавление камер
+	if resSliceAdd != nil {
+		err := a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Удаление камер
+	if resSliceRemove != nil {
+		err := a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
