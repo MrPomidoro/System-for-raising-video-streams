@@ -9,8 +9,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+func NewConfig() *Config {
+	return &Config{}
+}
+
 // GetConfig инициализирует и заполняет структуру конфигурационного файла
-func GetConfig() (*Config, error) {
+func (cfg *Config) GetConfig() (*Config, error) {
 
 	// Чтение пути до конфигурационного файла
 	configPath := readConfigPath()
@@ -20,31 +24,31 @@ func GetConfig() (*Config, error) {
 	}
 
 	var v = viper.New()
-	var cfg Config
+	// var cfg Config
 
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
 	v.AddConfigPath(configPath)
 
-	err := readParametersFromConfig(v, &cfg)
+	err := readParametersFromConfig(v, cfg)
 	if err != nil {
-		return &cfg, err
+		return cfg, err
 	}
 
 	// Проверка наличия параметров в командной строке
-	readFlags(&cfg)
+	readFlags(cfg)
 
-	return &cfg, nil
+	return cfg, nil
 }
 
 func readParametersFromConfig(v *viper.Viper, cfg *Config) error {
 	// Попытка чтения конфига
 	if err := v.ReadInConfig(); err != nil {
-		return fmt.Errorf("cannot read config: %v", err)
+		return fmt.Errorf("cannot read Config: %v", err)
 	}
 	// Попытка заполнение структуры Config полученными данными
 	if err := v.Unmarshal(&cfg); err != nil {
-		return fmt.Errorf("cannot read config: %v", err)
+		return fmt.Errorf("cannot read Config: %v", err)
 	}
 	return nil
 }

@@ -22,6 +22,7 @@ func (l *logger) loggers(cfg *config.Config, consoleLogger, fileLogger zapcore.C
 	cores := make([]zapcore.Core, 0)
 	// Логирование в консоль - всегда
 	cores = append(cores, consoleLogger)
+
 	// Если нужно логировать в файл, файл добавляется к слайсу
 	if cfg.LogFileEnable {
 		cores = append(cores, fileLogger)

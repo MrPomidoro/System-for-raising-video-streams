@@ -54,6 +54,7 @@ func (l *logger) initLogger(cfg *config.Config) *zap.Logger {
 		}),
 		li.logLevel(cfg),
 	)
+
 	consoleLogger := li.newCore(
 		textEncoder,
 		zapcore.AddSync(os.Stdout),

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/service"
 )
@@ -16,7 +15,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Чтение конфигурационного файла
-	cfg, err := config.GetConfig()
+	cfg, err := config.ConfigI.GetConfig(config.NewConfig())
 	log := logger.NewLogger(cfg)
 	if err != nil {
 		log.Error(err.Error())
@@ -27,13 +26,9 @@ func main() {
 	app := service.NewApp(ctx, cfg)
 
 	// Запуск алгоритма в отдельной горутине
-	go app.Run(ctx)
-
-	// Проверка коннекта к базе данных
-	// и переподключение при необходимости
-	go database.DBPing(ctx, cfg, app.Db)
+	go service.App.Run(app, ctx)
 
 	// Ожидание прерывающего сигнала
 	// app.GracefulShutdown(app.SigChan)
-	app.GracefulShutdown(app.SigChan, ctx, cancel)
+	service.App.GracefulShutdown(app, ctx, cancel)
 }
