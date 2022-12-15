@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/service"
 )
@@ -28,10 +27,6 @@ func main() {
 
 	// Запуск алгоритма в отдельной горутине
 	go service.App.Run(app, ctx)
-
-	// Проверка коннекта к базе данных
-	// и переподключение при необходимости
-	go database.DBPing(ctx, cfg, app.Db)
 
 	// Ожидание прерывающего сигнала
 	// app.GracefulShutdown(app.SigChan)

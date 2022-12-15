@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
 )
 
@@ -20,6 +21,10 @@ func (a *app) Run(ctx context.Context) {
 	// Канал для периодического выполнения алгоритма
 	tick := time.NewTicker(a.cfg.Refresh_Time)
 	defer tick.Stop()
+
+	// Проверка коннекта к базе данных
+	// и переподключение при необходимости
+	go database.DBI.DBPing(a.db, ctx, a.cfg)
 
 loop:
 	for {

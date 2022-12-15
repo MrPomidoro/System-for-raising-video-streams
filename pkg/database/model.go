@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 
 	"go.uber.org/zap"
@@ -17,4 +18,9 @@ type Database struct {
 	Driver                    string
 	DBConnectionTimeoutSecond time.Duration
 	Log                       *zap.Logger
+}
+
+type DB struct {
+	Database
+	Db *sql.DB
 }

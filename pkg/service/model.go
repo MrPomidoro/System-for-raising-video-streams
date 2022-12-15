@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"os"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
@@ -24,7 +23,7 @@ import (
 type app struct {
 	cfg                  *config.Config
 	log                  *zap.Logger
-	Db                   *sql.DB
+	db                   *database.DB
 	sigChan              chan os.Signal
 	refreshStreamUseCase refreshstream.RefreshStreamUseCase
 	statusStreamUseCase  statusstream.StatusStreamUseCase
@@ -40,19 +39,20 @@ func NewApp(ctx context.Context, cfg *config.Config) *app {
 		return &app{}
 	}
 
-	db := database.CreateDBConnection(cfg)
+	dbModel := database.DB{}
+	db := database.DBI.CreateDBConnection(&dbModel, cfg)
 	sigChan := make(chan os.Signal, 1)
-	repoRS := rsrepository.NewRefreshStreamRepository(db)
-	repoSS := ssrepository.NewStatusStreamRepository(db)
+	repoRS := rsrepository.NewRefreshStreamRepository(db.Db)
+	repoSS := ssrepository.NewStatusStreamRepository(db.Db)
 	repoRTSP := rtsprepository.NewRTSPRepository(cfg, log)
 
 	return &app{
 		cfg:                  cfg,
-		Db:                   db,
+		db:                   db,
 		log:                  log,
 		sigChan:              sigChan,
-		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db),
-		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db),
+		refreshStreamUseCase: rsusecase.NewRefreshStreamUseCase(repoRS, db.Db),
+		statusStreamUseCase:  ssusecase.NewStatusStreamUseCase(repoSS, db.Db),
 		rtspUseCase:          rtspusecase.NewRTSPUseCase(repoRTSP),
 	}
 }
