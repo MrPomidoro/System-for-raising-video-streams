@@ -13,6 +13,7 @@ type Logger interface {
 	loggers(cfg *config.Config, consoleLogger, fileLogger zapcore.Core) []zapcore.Core
 	customEncoderLevel(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder)
 	zapOpts() []zap.Option
+
 	zapcoreDTO
 	zapDTO
 }
