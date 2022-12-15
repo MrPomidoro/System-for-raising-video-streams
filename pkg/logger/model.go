@@ -6,6 +6,5 @@ type logger struct {
 	LogFile       string
 	MaxSize       int
 	MaxAge        int
-
-	MaxBackups int
+	MaxBackups    int
 }
