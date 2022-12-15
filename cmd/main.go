@@ -27,7 +27,7 @@ func main() {
 	app := service.NewApp(ctx, cfg)
 
 	// Запуск алгоритма в отдельной горутине
-	go app.Run(ctx)
+	go service.App.Run(app, ctx)
 
 	// Проверка коннекта к базе данных
 	// и переподключение при необходимости
@@ -35,5 +35,5 @@ func main() {
 
 	// Ожидание прерывающего сигнала
 	// app.GracefulShutdown(app.SigChan)
-	app.GracefulShutdown(app.SigChan, ctx, cancel)
+	app.GracefulShutdown(ctx, cancel)
 }
