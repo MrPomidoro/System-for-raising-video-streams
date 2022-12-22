@@ -15,6 +15,7 @@ func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, 
 		return req, err
 	}
 	a.log.Debug("Received response from the database")
+
 	return req, nil
 }
 
@@ -33,6 +34,8 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 			return err
 		}
 		a.log.Info("Success insert to table status_stream")
+
+		return nil
 	}
 
 	a.log.Info(fmt.Sprintf("Success complete post request for %s config %s", method, camDB.Stream.String))
