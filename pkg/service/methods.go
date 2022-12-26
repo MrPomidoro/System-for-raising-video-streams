@@ -21,10 +21,13 @@ func (a *app) GracefulShutdown(ctx context.Context, cancel context.CancelFunc) {
 	signal.Notify(a.sigChan, syscall.SIGINT, syscall.SIGTERM)
 	sign := <-a.sigChan
 
-	a.log.Warn(fmt.Sprintf("Got signal: %v, exiting", sign))
+	a.log.Info(fmt.Sprintf("Got signal: %v, exiting", sign))
 	cancel()
+
 	database.DBI.CloseDBConnection(a.db, a.cfg)
-	a.log.Error(ctx.Err().Error())
+	a.log.Debug(ctx.Err().Error())
+
+	a.log.Debug("sleep...")
 	time.Sleep(time.Second * 10)
 	close(a.sigChan)
 }
@@ -43,12 +46,14 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 	if err != nil {
 		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
 	}
+	a.log.Debug("Get response from database")
 
 	// Отправка запроса к rtsp
 	resRTSP, err = a.rtspUseCase.GetRtsp()
 	if err != nil {
 		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
 	}
+	a.log.Debug("Get response from rtsp-simple-server")
 
 	return resDB, resRTSP, nil
 }
@@ -63,11 +68,11 @@ func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bo
 	confArr []rtspsimpleserver.Conf, dataDB []refreshstream.RefreshStream) bool {
 
 	if isEqualCount && identity {
-		a.log.Info("Data is identity, waiting...")
+		a.log.Debug("Data is identity, waiting...")
 		return true
 
 	} else if isEqualCount && !identity {
-		a.log.Info("Count of data is same, but the field values are different")
+		a.log.Debug("Count of data is same, but the field values are different")
 		err := a.editCamerasToRTSP(ctx, confArr, dataDB)
 		if err != nil {
 			a.log.Error(err.Error())
@@ -79,7 +84,7 @@ func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bo
 
 // differentCount выполняется в случае, если число данных в базе и в rtsp, возвращает ошибку при её наличии
 func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) error {
-	a.log.Error("Count of data is different")
+	a.log.Debug("Count of data is different")
 	err := a.addAndRemoveData(ctx, dataRTSP, dataDB)
 	if err != nil {
 		return err

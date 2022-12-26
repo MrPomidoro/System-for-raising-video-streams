@@ -14,6 +14,7 @@ import (
 // ~~~~~~~~~~~~~~~~~~~~~~~~ //
 
 func (a *app) Run(ctx context.Context) {
+	a.log.Info("Start service")
 
 	ctx, cansel := context.WithCancel(ctx)
 	defer cansel()
@@ -82,9 +83,9 @@ loop:
 				//
 				/*
 					Если данных в базе больше, чем в rtsp:
-					получение списка отличий;
-					API на добавление в ртсп;
-					запись в status_stream
+					- получение списка отличий;
+					- API на добавление в ртсп;
+					- запись в status_stream
 				*/
 			} else if lenResDB > lenResRTSP {
 
@@ -98,9 +99,9 @@ loop:
 				//
 				/*
 					Если данных в базе меньше, чем в rtsp:
-					получение списка отличий;
-					API на добавление в ртсп;
-					запись в status_stream
+					- получение списка отличий;
+					- API на добавление в ртсп;
+					- запись в status_stream
 				*/
 			} else if lenResDB < lenResRTSP {
 				a.log.Info(fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d; waiting...", lenResDB, lenResRTSP))

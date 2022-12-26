@@ -15,6 +15,7 @@ func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, 
 		return req, err
 	}
 	a.log.Debug("Received response from the database")
+
 	return req, nil
 }
 
@@ -32,17 +33,19 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 			a.log.Error("cannot insert to table status_stream")
 			return err
 		}
-		a.log.Info("Success insert to table status_stream")
+		a.log.Debug("Success insert to table status_stream")
+
+		return nil
 	}
 
-	a.log.Info(fmt.Sprintf("Success complete post request for %s config %s", method, camDB.Stream.String))
+	a.log.Debug(fmt.Sprintf("Success complete post request for %s config %s", method, camDB.Stream.String))
 	insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
 	err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
 	if err != nil {
 		a.log.Error("cannot insert to table status_stream")
 		return err
 	}
-	a.log.Info("Success insert to table status_stream")
+	a.log.Debug("Success insert to table status_stream")
 
 	return nil
 }

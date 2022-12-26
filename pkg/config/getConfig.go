@@ -24,7 +24,6 @@ func (cfg *Config) GetConfig() (*Config, error) {
 	}
 
 	var v = viper.New()
-	// var cfg Config
 
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
