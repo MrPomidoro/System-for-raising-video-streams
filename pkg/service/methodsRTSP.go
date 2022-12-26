@@ -138,7 +138,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interfac
 	resSliceAdd := methods.GetCamsForAdd(dataDB, dataRTSP)
 	resSliceRemove := methods.GetCamsForRemove(dataDB, dataRTSP)
 
-	a.log.Info(fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
+	a.log.Debug(fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, resSliceRemove))
 
 	// Добавление камер
 	if resSliceAdd != nil {

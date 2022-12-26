@@ -97,7 +97,6 @@ func CheckIdentityAndCountOfData(dataDB []refreshstream.RefreshStream, dataRTSP 
 					} else {
 						conf.Source = source
 					}
-					// fmt.Printf("methods: conf - %#v\n\n", conf)
 
 				}
 				break

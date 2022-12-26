@@ -14,7 +14,6 @@ import (
 // CreateDBConnection заполняет структуру данными из конфига и вызывает функцию connectToDB(),
 // дающую подключение к базе данных
 func (datab *DB) CreateDBConnection(cfg *config.Config) *DB {
-	// var dbcfg DB
 
 	datab.Port = cfg.Port
 	datab.Host = cfg.Host
@@ -42,7 +41,7 @@ func (datab *DB) connectToDB() *sql.DB {
 	// Подключение
 	dbSQL, err := sql.Open(datab.Driver, sqlInfo)
 	if err != nil {
-		datab.Log.Error(fmt.Sprintf("cannot get connect to database: %v", err))
+		datab.Log.Error(fmt.Sprintf("cannot connect to database: %v", err))
 	}
 
 	// Проверка подключения
@@ -94,7 +93,7 @@ loop:
 			break loop
 		case err := <-errChan:
 			log.Debug(fmt.Sprintf("cannot connect to database %s", err))
-			log.Debug("try connect to database...")
+			log.Debug("Try reconnect to database...")
 
 			var datab DB
 			datab.Port = cfg.Port
