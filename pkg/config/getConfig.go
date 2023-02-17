@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"strings"
 
@@ -32,7 +31,7 @@ func GetConfig() (*Config, error) {
 
 	err := readParametersFromConfig(v, cfg)
 	if err != nil {
-		return cfg, err
+		return cfg, cfg.err.SetError(err)
 	}
 
 	// Проверка наличия параметров в командной строке
@@ -44,11 +43,11 @@ func GetConfig() (*Config, error) {
 func readParametersFromConfig(v *viper.Viper, cfg *Config) error {
 	// Попытка чтения конфига
 	if err := v.ReadInConfig(); err != nil {
-		return fmt.Errorf("cannot read Config: %v", err)
+		return cfg.err.SetError(err)
 	}
 	// Попытка заполнение структуры Config полученными данными
 	if err := v.Unmarshal(&cfg); err != nil {
-		return fmt.Errorf("cannot read Config: %v", err)
+		return cfg.err.SetError(err)
 	}
 	return nil
 }

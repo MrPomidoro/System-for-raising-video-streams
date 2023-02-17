@@ -2,6 +2,8 @@ package config
 
 import (
 	"time"
+
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
 // Config - структура конфига
@@ -10,6 +12,7 @@ type Config struct {
 	Server             `yaml:"server"`
 	Database           `yaml:"database"`
 	Rtsp_simple_server `yaml:"rtsp_simple_server"`
+	err                ce.Error
 }
 
 // Logger содержит параметры логгера
