@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/spf13/viper"
 )
 
@@ -15,6 +16,9 @@ func NewConfig() *Config {
 // GetConfig инициализирует и заполняет структуру конфигурационного файла
 func GetConfig() (*Config, error) {
 	var cfg *Config
+	cfg.err.SetLevel(ce.FatalLevel)
+	cfg.err.SetCode("50.1.1")
+	cfg.err.SetDesc("error at the level of reading and processing the config")
 
 	// Чтение пути до конфигурационного файла
 	configPath := readConfigPath()
