@@ -9,10 +9,6 @@ type RefreshStreamCommon interface {
 	Update(ctx context.Context, stream string) error
 }
 
-type RefreshStreamUseCase interface {
-	RefreshStreamCommon
-}
-
 type RefreshStreamRepository interface {
 	RefreshStreamCommon
 }
