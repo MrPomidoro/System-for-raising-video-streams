@@ -10,18 +10,21 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"go.uber.org/zap"
 )
 
 type rtspRepository struct {
 	cfg *config.Config
 	log *zap.Logger
+	err *ce.Error
 }
 
 func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
 	return &rtspRepository{
 		cfg: cfg,
 		log: log,
+		err: ce.NewError(ce.ErrorLevel, "50.4.2", "error at rtsp operation level"),
 	}
 }
 
@@ -39,19 +42,19 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		return res, fmt.Errorf("cannot received response from rts-simple-server: %v", err)
+		return res, rtsp.err.SetError(err)
 	}
 	rtsp.log.Debug("Received response from rtsp-simple-server")
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return res, err
+		return res, rtsp.err.SetError(err)
 	}
 	rtsp.log.Debug("Success read body")
 
 	err = json.Unmarshal(body, &item)
 	if err != nil {
-		return res, fmt.Errorf("cannot unmarshal response: %v", err)
+		return res, rtsp.err.SetError(err)
 	}
 	rtsp.log.Debug("Success unmarshal body")
 
@@ -103,7 +106,7 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		return fmt.Errorf("cannot complete post request for add config: %v", err)
+		return rtsp.err.SetError(err)
 	}
 
 	return nil
@@ -121,7 +124,7 @@ func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		return fmt.Errorf("cannot complete post request for remove config: %v", err)
+		return rtsp.err.SetError(err)
 	}
 
 	return nil
@@ -164,7 +167,7 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		return fmt.Errorf("cannot complete post request for edit config: %v", err)
+		return rtsp.err.SetError(err)
 	}
 
 	return nil
