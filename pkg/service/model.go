@@ -8,10 +8,8 @@ import (
 	rsrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	rtsprepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server/repository"
-	rtspusecase "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server/usecase"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
 	ssrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository"
-	ssusecase "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/usecase"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
@@ -20,13 +18,13 @@ import (
 
 // app - прототип приложения
 type app struct {
-	cfg                 *config.Config
-	log                 *zap.Logger
-	db                  *database.DB
-	sigChan             chan os.Signal
-	refreshStreamRepo   refreshstream.RefreshStreamRepository
-	statusStreamUseCase statusstream.StatusStreamUseCase
-	rtspUseCase         rtspsimpleserver.RTSPUseCase
+	cfg               *config.Config
+	log               *zap.Logger
+	db                *database.DB
+	sigChan           chan os.Signal
+	refreshStreamRepo refreshstream.RefreshStreamRepository
+	statusStreamRepo  statusstream.StatusStreamRepository
+	rtspRepo          rtspsimpleserver.RTSPRepository
 }
 
 // NewApp инициализирует прототип приложения
@@ -45,12 +43,12 @@ func NewApp(ctx context.Context, cfg *config.Config) *app {
 	repoRTSP := rtsprepository.NewRTSPRepository(cfg, log)
 
 	return &app{
-		cfg:                 cfg,
-		db:                  db,
-		log:                 log,
-		sigChan:             sigChan,
-		refreshStreamRepo:   repoRS,
-		statusStreamUseCase: ssusecase.NewStatusStreamUseCase(repoSS, db.Db),
-		rtspUseCase:         rtspusecase.NewRTSPUseCase(repoRTSP),
+		cfg:               cfg,
+		db:                db,
+		log:               log,
+		sigChan:           sigChan,
+		refreshStreamRepo: repoRS,
+		statusStreamRepo:  repoSS,
+		rtspRepo:          repoRTSP,
 	}
 }

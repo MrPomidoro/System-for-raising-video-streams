@@ -28,7 +28,7 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 	if err != nil {
 		a.log.Error(err.Error())
 		insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
-		err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+		err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 		if err != nil {
 			a.log.Error("cannot insert to table status_stream")
 			return err
@@ -40,7 +40,7 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 
 	a.log.Debug(fmt.Sprintf("Success complete post request for %s config %s", method, camDB.Stream.String))
 	insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
-	err = a.statusStreamUseCase.Insert(ctx, &insertStructStatusStream)
+	err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 	if err != nil {
 		a.log.Error("cannot insert to table status_stream")
 		return err

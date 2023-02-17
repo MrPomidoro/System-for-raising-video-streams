@@ -48,7 +48,7 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 	a.log.Debug("Get response from database")
 
 	// Отправка запроса к rtsp
-	resRTSP, err = a.rtspUseCase.GetRtsp()
+	resRTSP, err = a.rtspRepo.GetRtsp()
 	if err != nil {
 		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
 	}

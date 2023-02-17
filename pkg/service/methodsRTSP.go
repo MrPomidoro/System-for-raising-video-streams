@@ -24,7 +24,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 				continue
 			}
 
-			err := a.rtspUseCase.PostAddRTSP(camDB)
+			err := a.rtspRepo.PostAddRTSP(camDB)
 			if err != nil {
 				return err
 			}
@@ -77,7 +77,7 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 						continue
 					}
 
-					err := a.rtspUseCase.PostRemoveRTSP(camRTSP)
+					err := a.rtspRepo.PostRemoveRTSP(camRTSP)
 					if err != nil {
 						return err
 					}
@@ -112,7 +112,7 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 				continue
 			}
 
-			err := a.rtspUseCase.PostEditRTSP(camDB, conf)
+			err := a.rtspRepo.PostEditRTSP(camDB, conf)
 			if err != nil {
 				return err
 			}
