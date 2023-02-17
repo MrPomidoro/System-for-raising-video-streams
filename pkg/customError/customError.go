@@ -30,10 +30,23 @@ func NewError(level int, code, desc string) *Error {
 	}
 }
 
-func (e *Error) SetLevel(level int) {}
+func (e *Error) SetLevel(level int) *Error {
+	e.level = level
+	return e
+}
 
 func (e *Error) SetError(err error) *Error {
 	e.err = err
+	return e
+}
+
+func (e *Error) SetCode(code string) *Error {
+	e.code = code
+	return e
+}
+
+func (e *Error) SetDesc(desc string) *Error {
+	e.desc = desc
 	return e
 }
 
