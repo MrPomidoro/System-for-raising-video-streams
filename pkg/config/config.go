@@ -14,12 +14,14 @@ type Config struct {
 
 // Logger содержит параметры логгера
 type Logger struct {
-	LogLevel      string `yaml:"loglevel"`
-	LogFileEnable bool   `yaml:"LogFileEnable"`
-	LogFile       string `yaml:"logpath"`
-	MaxSize       int    `yaml:"maxSize"`
-	MaxAge        int    `yaml:"maxAge"`
-	MaxBackups    int    `yaml:"maxBackups"`
+	LogLevel        string `yaml:"logLevel"`
+	LogFileEnable   bool   `yaml:"logFileEnable"`
+	LogStdoutEnable bool   `yaml:"logStdoutEnable"`
+	LogFile         string `yaml:"logpath"`
+	MaxSize         int    `yaml:"maxSize"`
+	MaxAge          int    `yaml:"maxAge"`
+	MaxBackups      int    `yaml:"maxBackups"`
+	RewriteLog      bool   `yaml:"rewriteLog"`
 }
 
 // Server содержит параметры сервера
@@ -31,19 +33,19 @@ type Server struct {
 
 // Database содержит параметры базы данных
 type Database struct {
-	Port                         string        `yaml:"port"`
-	Host                         string        `yaml:"host"`
-	Db_Name                      string        `yaml:"db_name"`
-	User                         string        `yaml:"user"`
-	Password                     string        `yaml:"password"`
-	Driver                       string        `yaml:"driver"`
-	Database_Connect             bool          `yaml:"database_connect"`
-	Db_Connection_Timeout_Second time.Duration `yaml:"db_connection_timeout_second"`
+	Port                      string        `yaml:"port"`
+	Host                      string        `yaml:"host"`
+	DbName                    string        `yaml:"db_name"`
+	User                      string        `yaml:"user"`
+	Password                  string        `yaml:"password"`
+	Driver                    string        `yaml:"driver"`
+	DatabaseConnect           bool          `yaml:"database_connect"`
+	DbConnectionTimeoutSecond time.Duration `yaml:"db_connection_timeout_second"`
 }
 
 // Rtsp_simple_server содержит параметры rtsp_simple_server
 type Rtsp_simple_server struct {
-	Run          string        `yaml:"run"`
-	Url          string        `yaml:"url"`
-	Refresh_Time time.Duration `yaml:"refresh_time"`
+	Run         string        `yaml:"run"`
+	Url         string        `yaml:"url"`
+	RefreshTime time.Duration `yaml:"refresh_time"`
 }
