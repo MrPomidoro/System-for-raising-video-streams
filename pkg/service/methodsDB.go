@@ -10,7 +10,7 @@ import (
 
 // getReqFromDB реализует Get запрос на получение списка камер из базы данных
 func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, error) {
-	req, err := a.refreshStreamUseCase.Get(ctx, true)
+	req, err := a.refreshStreamRepo.Get(ctx, true)
 	if err != nil {
 		return req, err
 	}
