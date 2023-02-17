@@ -7,7 +7,5 @@ import (
 )
 
 type DBI interface {
-	CreateDBConnection(cfg *config.Config) *DB
-	CloseDBConnection(cfg *config.Config)
 	DBPing(ctx context.Context, cfg *config.Config)
 }
