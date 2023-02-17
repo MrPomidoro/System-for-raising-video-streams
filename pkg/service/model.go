@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
@@ -33,11 +34,11 @@ type app struct {
 
 // NewApp инициализирует прототип приложения
 func NewApp(ctx context.Context, cfg *config.Config) (*app, error) {
+	err := ce.NewError(ce.ErrorLevel, "50.3.1", "application level error")
 	log := logger.NewLogger(cfg)
 
 	if !cfg.DatabaseConnect {
-		log.Error("no permission to connect to database")
-		return &app{}, nil
+		return &app{}, err.SetError(fmt.Errorf("no permission to connect to database"))
 	}
 
 	db, _ := database.CreateDBConnection(cfg)
@@ -54,6 +55,6 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, error) {
 		refreshStreamRepo: repoRS,
 		statusStreamRepo:  repoSS,
 		rtspRepo:          repoRTSP,
-		err:               ce.NewError(ce.ErrorLevel, "50.3.1", "application level error"),
+		err:               err,
 	}, nil
 }
