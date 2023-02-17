@@ -20,37 +20,59 @@ type IError interface {
 	SetDesc(desc string)
 }
 
+// Error - ошибка, представленная в виде односвязного списка,
+// удовлетворяет интерфейсу Error
 type Error struct {
-	level int    // уровень ошибки (warn, error, fatal etc)
-	code  string // код ошибки
-	desc  string // напр, эта ошибка вызвана отказоустойчивостью бд
-	err   error  // текст ошибки
-	deep  *Error // ссылка на структуру вложенной ошибки
+	// уровень ошибки (warn, error, fatal etc)
+	level int
+	// код ошибки
+	code string
+	// описание ошибки, например, "ошибка вызвана отказоустойчивостью бд"
+	desc string
+	// текст ошибки
+	err error
+	// ссылка на структуру вложенной ошибки
+	deep *Error
 }
 
-// TODO: здесь будет формироваться красивенький вывод
-func (e Error) Error() string {
-	output := strings.Builder{}
-
-	for e.deep != nil {
-
-		output.WriteString(fmt.Sprintf("level: %d, code: %s, description: %s, error: %v;\n",
-			e.level, e.code, e.desc, e.err))
-
-		e = *e.deep
-	}
-
-	output.WriteString(fmt.Sprintf("level: %d, code: %s, description: %s, error: %v",
-		e.level, e.code, e.desc, e.err))
-
-	return output.String()
-}
-
+// NewError инициализирует новую ошибку
 func NewError(level int, code, desc string) *Error {
 	return &Error{
 		level: level,
 		code:  code,
 		desc:  desc,
+	}
+}
+
+func (e Error) Error() string {
+	output := strings.Builder{}
+	output.WriteString("\n")
+
+	for e.deep != nil {
+
+		output.WriteString(fmt.Sprintf("\tlevel: %s, code: %s, description: %s, error: %v;\n",
+			e.defineLevel(), e.code, e.desc, e.err))
+
+		e = *e.deep
+	}
+
+	output.WriteString(fmt.Sprintf("\tlevel: %s, code: %s, description: %s, error: %v",
+		e.defineLevel(), e.code, e.desc, e.err))
+
+	return output.String()
+}
+
+// defineLevel возвращает уровень ошибки в виде строки
+func (e *Error) defineLevel() string {
+	switch e.level {
+	case 0:
+		return "warn"
+	case 1:
+		return "error"
+	case 2:
+		return "fatal"
+	default:
+		return "unknown level"
 	}
 }
 
@@ -61,19 +83,24 @@ func (e *Error) NextError(deep *Error) *Error {
 	return e
 }
 
+// SetError настривает новый текст поля err,
+// возвращает структуру типа Error
 func (e *Error) SetError(err error) *Error {
 	e.err = err
 	return e
 }
 
+// SetLevel настривает новый текст поля level
 func (e *Error) SetLevel(level int) {
 	e.level = level
 }
 
+// SetCode настривает новый текст поля code
 func (e *Error) SetCode(code string) {
 	e.code = code
 }
 
+// SetDesc настривает новый текст поля desc
 func (e *Error) SetDesc(desc string) {
 	e.desc = desc
 }
