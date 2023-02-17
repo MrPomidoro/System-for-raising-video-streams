@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
 )
 
@@ -16,16 +15,16 @@ import (
 func (a *app) Run(ctx context.Context) {
 	a.log.Info("Start service")
 
-	ctx, cansel := context.WithCancel(ctx)
-	defer cansel()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	// Канал для периодического выполнения алгоритма
-	tick := time.NewTicker(a.cfg.Refresh_Time)
+	tick := time.NewTicker(a.cfg.RefreshTime)
 	defer tick.Stop()
 
 	// Проверка коннекта к базе данных
 	// и переподключение при необходимости
-	go database.DBI.DBPing(a.db, ctx, a.cfg)
+	go a.db.DBPing(ctx, a.cfg)
 
 loop:
 	for {

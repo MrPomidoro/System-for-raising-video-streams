@@ -34,13 +34,12 @@ type app struct {
 func NewApp(ctx context.Context, cfg *config.Config) *app {
 	log := logger.NewLogger(cfg)
 
-	if !cfg.Database_Connect {
+	if !cfg.DatabaseConnect {
 		log.Error("no permission to connect to database")
 		return &app{}
 	}
 
-	dbModel := database.DB{}
-	db := database.DBI.CreateDBConnection(&dbModel, cfg)
+	db := database.CreateDBConnection(cfg)
 	sigChan := make(chan os.Signal, 1)
 	repoRS := rsrepository.NewRefreshStreamRepository(db.Db)
 	repoSS := ssrepository.NewStatusStreamRepository(db.Db)
