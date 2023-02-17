@@ -8,13 +8,18 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
+
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	_ "github.com/lib/pq"
 )
 
 // CreateDBConnection заполняет структуру данными из конфига и вызывает функцию connectToDB(),
 // дающую подключение к базе данных
-func CreateDBConnection(cfg *config.Config) *DB {
+func CreateDBConnection(cfg *config.Config) (*DB, error) {
 	var db DB
+	db.err.SetLevel(ce.FatalLevel)
+	db.err.SetCode("50.4.1")
+	db.err.SetDesc("error at database operation level")
 
 	db.port = cfg.Port
 	db.host = cfg.Host
@@ -26,13 +31,14 @@ func CreateDBConnection(cfg *config.Config) *DB {
 	db.dBConnectionTimeoutSecond = cfg.DbConnectionTimeoutSecond
 	db.log = logger.NewLogger(cfg)
 
-	db.Db = db.connectToDB()
+	var err error
+	db.Db, err = db.connectToDB()
 
-	return &db
+	return &db, db.err.SetError(err)
 }
 
 // connectToDB - функция, возвращающая открытое подключение к базе данных
-func (db *DB) connectToDB() *sql.DB {
+func (db *DB) connectToDB() (*sql.DB, error) {
 	var dbSQL *sql.DB
 
 	sqlInfo := fmt.Sprintf(DBInfoConst,
@@ -42,46 +48,47 @@ func (db *DB) connectToDB() *sql.DB {
 	// Подключение
 	dbSQL, err := sql.Open(db.driver, sqlInfo)
 	if err != nil {
-		db.log.Error(fmt.Sprintf("cannot connect to database: %v", err))
+		return nil, db.err.SetError(err)
 	}
 
 	// Проверка подключения
 	time.Sleep(time.Millisecond * 3)
 	if err := dbSQL.Ping(); err == nil {
 		db.log.Info(fmt.Sprintf("Success connect to database %s", db.dbName))
-		return dbSQL
+		return dbSQL, nil
 	} else {
-		db.log.Error(fmt.Sprintf("cannot connect to database: %s", err))
+		db.log.Error(fmt.Sprintf("cannot connect to database: %v", err))
 	}
 
 	connLatency := time.Duration(10 * time.Millisecond)
-	time.Sleep(connLatency * time.Millisecond)
+	time.Sleep(connLatency)
 	connTimeout := db.dBConnectionTimeoutSecond
 	for t := connTimeout; t > 0; t-- {
 		if dbSQL != nil {
-			return dbSQL
+			return dbSQL, nil
 		}
 		time.Sleep(time.Second * 3)
 	}
 
 	db.log.Warn(fmt.Sprintf("Time waiting of database connection exceeded limit: %v", connTimeout))
-	return dbSQL
+	return dbSQL, nil
 }
 
 // CloseDBConnection реализует отключение от базы данных
-func (db *DB) CloseDBConnection(cfg *config.Config) {
-	log := logger.NewLogger(cfg)
+func (db *DB) CloseDBConnection(cfg *config.Config) error {
+
 	if err := db.Db.Close(); err != nil {
-		log.Error(fmt.Sprintf("cannot close database connection: %v", err))
-		return
+		db.log.Error(fmt.Sprintf("cannot close database connection: %v", err))
+		return db.err.SetError(err)
 	}
-	log.Debug("Established closing of connection to database")
+
+	db.log.Debug("Established closing of connection to database")
+	return nil
 }
 
 // DBPing реализует переподключение к базе данных при необходимости
 // Происходит проверка контекста - если он закрыт, DBPing прекращаеи работу
 func (db *DB) DBPing(ctx context.Context, cfg *config.Config) {
-	log := logger.NewLogger(cfg)
 
 loop:
 	for {
@@ -93,8 +100,8 @@ loop:
 		case <-ctx.Done():
 			break loop
 		case err := <-errChan:
-			log.Debug(fmt.Sprintf("cannot connect to database %s", err))
-			log.Debug("Try reconnect to database...")
+			db.log.Debug(fmt.Sprintf("cannot connect to database %s", err))
+			db.log.Debug("Try reconnect to database...")
 
 			var db DB
 			db.port = cfg.Port
@@ -104,7 +111,6 @@ loop:
 			db.password = cfg.Password
 			db.driver = cfg.Driver
 			db.dBConnectionTimeoutSecond = cfg.DbConnectionTimeoutSecond
-			db.log = log
 
 			db.connectToDB()
 		}

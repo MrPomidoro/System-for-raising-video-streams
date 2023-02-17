@@ -36,7 +36,7 @@ func NewApp(ctx context.Context, cfg *config.Config) *app {
 		return &app{}
 	}
 
-	db := database.CreateDBConnection(cfg)
+	db, _ := database.CreateDBConnection(cfg)
 	sigChan := make(chan os.Signal, 1)
 	repoRS := rsrepository.NewRefreshStreamRepository(db.Db)
 	repoSS := ssrepository.NewStatusStreamRepository(db.Db)
