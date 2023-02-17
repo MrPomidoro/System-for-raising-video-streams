@@ -30,9 +30,8 @@ func NewError(level int, code, desc string) *Error {
 	}
 }
 
-func (e *Error) SetLevel(level int) *Error {
+func (e *Error) SetLevel(level int) {
 	e.level = level
-	return e
 }
 
 func (e *Error) SetError(err error) *Error {
@@ -40,14 +39,12 @@ func (e *Error) SetError(err error) *Error {
 	return e
 }
 
-func (e *Error) SetCode(code string) *Error {
+func (e *Error) SetCode(code string) {
 	e.code = code
-	return e
 }
 
-func (e *Error) SetDesc(desc string) *Error {
+func (e *Error) SetDesc(desc string) {
 	e.desc = desc
-	return e
 }
 
 func (e *Error) Marshal() {}
