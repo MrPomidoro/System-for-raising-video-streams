@@ -6,15 +6,18 @@ import (
 	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
 type statusStreamRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	err *ce.Error
 }
 
 func NewStatusStreamRepository(db *sql.DB) *statusStreamRepository {
 	return &statusStreamRepository{
-		db: db,
+		db:  db,
+		err: ce.NewError(ce.ErrorLevel, "50.4.3", "status stream entity error at database operation level"),
 	}
 }
 
@@ -26,7 +29,7 @@ func (s statusStreamRepository) Insert(ctx context.Context,
 
 	_, err := s.db.ExecContext(ctx, query)
 	if err != nil {
-		return fmt.Errorf("cannot insert: %v", err)
+		return s.err.SetError(err)
 	}
 
 	return nil
