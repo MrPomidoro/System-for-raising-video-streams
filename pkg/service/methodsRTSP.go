@@ -26,19 +26,19 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 
 			err := a.rtspRepo.PostAddRTSP(camDB)
 			if err != nil {
-				return err
+				return a.err.SetError(err)
 			}
 
 			err = a.refreshStreamRepo.Update(ctx, camDB.Stream.String)
 			if err != nil {
-				return err
+				return a.err.SetError(err)
 			}
 			a.log.Debug("Success send request to update stream_status")
 
 			// Запись в базу данных результата выполнения
 			err = a.insertIntoStatusStream("add", ctx, camDB, err)
 			if err != nil {
-				return err
+				return a.err.SetError(err)
 			}
 		}
 	}
@@ -55,7 +55,7 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 
 	dataDB, err := a.refreshStreamRepo.Get(ctx, false)
 	if err != nil {
-		return err
+		return a.err.SetError(err)
 	}
 
 	// Цикл для извлечения данных из структуры выбранной камеры
@@ -79,13 +79,13 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 
 					err := a.rtspRepo.PostRemoveRTSP(camRTSP)
 					if err != nil {
-						return err
+						return a.err.SetError(err)
 					}
 
 					// Запись в базу данных результата выполнения
 					err = a.insertIntoStatusStream("remove", ctx, camDB, err)
 					if err != nil {
-						return err
+						return a.err.SetError(err)
 					}
 				}
 			}
@@ -114,13 +114,13 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 
 			err := a.rtspRepo.PostEditRTSP(camDB, conf)
 			if err != nil {
-				return err
+				return a.err.SetError(err)
 			}
 
 			// Запись в базу данных результата выполнения
 			err = a.insertIntoStatusStream("edit", ctx, camDB, err)
 			if err != nil {
-				return err
+				return a.err.SetError(err)
 			}
 		}
 	}
@@ -144,7 +144,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interfac
 	if resSliceAdd != nil {
 		err := a.addCamerasToRTSP(ctx, resSliceAdd, dataDB)
 		if err != nil {
-			return err
+			return a.err.SetError(err)
 		}
 	}
 
@@ -152,7 +152,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interfac
 	if resSliceRemove != nil {
 		err := a.removeCamerasToRTSP(ctx, resSliceRemove, dataRTSP)
 		if err != nil {
-			return err
+			return a.err.SetError(err)
 		}
 	}
 	return nil
