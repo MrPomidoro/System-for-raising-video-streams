@@ -11,6 +11,7 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
 	ssrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"go.uber.org/zap"
@@ -18,22 +19,25 @@ import (
 
 // app - прототип приложения
 type app struct {
-	cfg               *config.Config
-	log               *zap.Logger
-	db                *database.DB
-	sigChan           chan os.Signal
+	cfg     *config.Config
+	log     *zap.Logger
+	db      *database.DB
+	sigChan chan os.Signal
+
 	refreshStreamRepo refreshstream.RefreshStreamRepository
 	statusStreamRepo  statusstream.StatusStreamRepository
 	rtspRepo          rtspsimpleserver.RTSPRepository
+
+	err *ce.Error
 }
 
 // NewApp инициализирует прототип приложения
-func NewApp(ctx context.Context, cfg *config.Config) *app {
+func NewApp(ctx context.Context, cfg *config.Config) (*app, error) {
 	log := logger.NewLogger(cfg)
 
 	if !cfg.DatabaseConnect {
 		log.Error("no permission to connect to database")
-		return &app{}
+		return &app{}, nil
 	}
 
 	db, _ := database.CreateDBConnection(cfg)
@@ -50,5 +54,6 @@ func NewApp(ctx context.Context, cfg *config.Config) *app {
 		refreshStreamRepo: repoRS,
 		statusStreamRepo:  repoSS,
 		rtspRepo:          repoRTSP,
-	}
+		err:               ce.NewError(ce.ErrorLevel, "50.3.1", "application level error"),
+	}, nil
 }
