@@ -43,14 +43,14 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 	// Отправка запроса к базе
 	resDB, err := a.getReqFromDB(ctx)
 	if err != nil {
-		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
+		return []refreshstream.RefreshStream{}, map[string]interface{}{}, a.err.SetError(err)
 	}
 	a.log.Debug("Get response from database")
 
 	// Отправка запроса к rtsp
 	resRTSP, err = a.rtspRepo.GetRtsp()
 	if err != nil {
-		return []refreshstream.RefreshStream{}, map[string]interface{}{}, err
+		return []refreshstream.RefreshStream{}, map[string]interface{}{}, a.err.SetError(err)
 	}
 	a.log.Debug("Get response from rtsp-simple-server")
 
@@ -86,7 +86,7 @@ func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.Refresh
 	a.log.Debug("Count of data is different")
 	err := a.addAndRemoveData(ctx, dataRTSP, dataDB)
 	if err != nil {
-		return err
+		return a.err.SetError(err)
 	}
 	return nil
 }
