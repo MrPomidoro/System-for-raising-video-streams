@@ -9,16 +9,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewConfig() *Config {
-	return &Config{}
-}
-
 // GetConfig инициализирует и заполняет структуру конфигурационного файла
 func GetConfig() (*Config, error) {
-	var cfg *Config
-	cfg.err.SetLevel(ce.FatalLevel)
-	cfg.err.SetCode("50.1.1")
-	cfg.err.SetDesc("error at the level of reading and processing the config")
+	var cfg Config
+	cfg.err = *ce.NewError(ce.FatalLevel, "50.1.1", "error at the level of reading and processing the config")
 
 	// Чтение пути до конфигурационного файла
 	configPath := readConfigPath()
@@ -33,15 +27,14 @@ func GetConfig() (*Config, error) {
 	v.SetConfigType("yaml")
 	v.AddConfigPath(configPath)
 
-	err := readParametersFromConfig(v, cfg)
+	err := readParametersFromConfig(v, &cfg)
 	if err != nil {
-		return cfg, cfg.err.SetError(err)
+		return &cfg, cfg.err.SetError(err)
 	}
 
 	// Проверка наличия параметров в командной строке
-	readFlags(cfg)
-
-	return cfg, nil
+	readFlags(&cfg)
+	return &cfg, nil
 }
 
 func readParametersFromConfig(v *viper.Viper, cfg *Config) error {
@@ -82,22 +75,22 @@ func readFlags(cfg *Config) {
 	flag.IntVar(&cfg.MaxBackups, "maxBackups", cfg.MaxBackups, "The path to file of logging out")
 	flag.BoolVar(&cfg.RewriteLog, "rewriteLog", cfg.RewriteLog, "Is rewrite log file")
 
-	flag.DurationVar(&cfg.ReadTimeout, "readtimeout", cfg.ReadTimeout, "The readtimeout parameter")
-	flag.DurationVar(&cfg.WriteTimeout, "writetimeout", cfg.WriteTimeout, "The writetimeout parameter")
-	flag.DurationVar(&cfg.IdleTimeout, "idletimeout", cfg.IdleTimeout, "The idletimeout parameter")
+	flag.DurationVar(&cfg.ReadTimeout, "readTimeout", cfg.ReadTimeout, "The readtimeout parameter")
+	flag.DurationVar(&cfg.WriteTimeout, "wriTetimeout", cfg.WriteTimeout, "The writetimeout parameter")
+	flag.DurationVar(&cfg.IdleTimeout, "idleTimeout", cfg.IdleTimeout, "The idletimeout parameter")
 
 	flag.StringVar(&cfg.Port, "port", cfg.Port, "The port parameter")
 	flag.StringVar(&cfg.Host, "host", cfg.Host, "The host parameter")
-	flag.StringVar(&cfg.DbName, "db_name", cfg.DbName, "The db_name parameter")
+	flag.StringVar(&cfg.DbName, "dbName", cfg.DbName, "The db_name parameter")
 	flag.StringVar(&cfg.User, "user", cfg.User, "The user parameter")
 	flag.StringVar(&cfg.Password, "password", cfg.Password, "The password parameter")
 	flag.StringVar(&cfg.Driver, "driver", cfg.Driver, "The driver parameter")
-	flag.BoolVar(&cfg.DatabaseConnect, "database_connect", cfg.DatabaseConnect, "The permission to connect")
-	flag.DurationVar(&cfg.DbConnectionTimeoutSecond, "db_connection_timeout_second", cfg.DbConnectionTimeoutSecond, "The db_connection_timeout_second parameter")
+	flag.BoolVar(&cfg.DatabaseConnect, "databaseConnect", cfg.DatabaseConnect, "The permission to connect")
+	flag.DurationVar(&cfg.DbConnectionTimeoutSecond, "dbConnectionTimeoutSecond", cfg.DbConnectionTimeoutSecond, "The db_connection_timeout_second parameter")
 
 	flag.StringVar(&cfg.Run, "Run", cfg.Run, "The run parameter")
 	flag.StringVar(&cfg.Url, "url", cfg.Url, "The url parameter")
-	flag.DurationVar(&cfg.RefreshTime, "refresh_time", cfg.RefreshTime, "The refresh_time parameter")
+	flag.DurationVar(&cfg.RefreshTime, "refreshTime", cfg.RefreshTime, "The refresh time parameter")
 
 	flag.StringVar(&stub, "configPath", `./`, "The path to file of configuration")
 

@@ -29,26 +29,26 @@ type Logger struct {
 
 // Server содержит параметры сервера
 type Server struct {
-	ReadTimeout  time.Duration `yaml:"readtimeout"`
-	WriteTimeout time.Duration `yaml:"writetimeout"`
-	IdleTimeout  time.Duration `yaml:"idletimeout"`
+	ReadTimeout  time.Duration `yaml:"readTimeout"`
+	WriteTimeout time.Duration `yaml:"writeTimeout"`
+	IdleTimeout  time.Duration `yaml:"idleTimeout"`
 }
 
 // Database содержит параметры базы данных
 type Database struct {
 	Port                      string        `yaml:"port"`
 	Host                      string        `yaml:"host"`
-	DbName                    string        `yaml:"db_name"`
+	DbName                    string        `yaml:"dbName"`
 	User                      string        `yaml:"user"`
 	Password                  string        `yaml:"password"`
 	Driver                    string        `yaml:"driver"`
-	DatabaseConnect           bool          `yaml:"database_connect"`
-	DbConnectionTimeoutSecond time.Duration `yaml:"db_connection_timeout_second"`
+	DatabaseConnect           bool          `yaml:"databaseConnect"`
+	DbConnectionTimeoutSecond time.Duration `yaml:"dbConnectionTimeoutSecond"`
 }
 
 // Rtsp_simple_server содержит параметры rtsp_simple_server
 type Rtsp_simple_server struct {
 	Run         string        `yaml:"run"`
 	Url         string        `yaml:"url"`
-	RefreshTime time.Duration `yaml:"refresh_time"`
+	RefreshTime time.Duration `yaml:"refreshTime"`
 }
