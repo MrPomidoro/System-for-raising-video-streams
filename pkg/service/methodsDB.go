@@ -12,7 +12,7 @@ import (
 func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, error) {
 	req, err := a.refreshStreamRepo.Get(ctx, true)
 	if err != nil {
-		return req, err
+		return req, a.err.SetError(err)
 	}
 	a.log.Debug("Received response from the database")
 
@@ -31,7 +31,7 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 		err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 		if err != nil {
 			a.log.Error("cannot insert to table status_stream")
-			return err
+			return a.err.SetError(err)
 		}
 		a.log.Debug("Success insert to table status_stream")
 
@@ -43,7 +43,7 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 	err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 	if err != nil {
 		a.log.Error("cannot insert to table status_stream")
-		return err
+		return a.err.SetError(err)
 	}
 	a.log.Debug("Success insert to table status_stream")
 
