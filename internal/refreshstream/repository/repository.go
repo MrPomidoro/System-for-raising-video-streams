@@ -6,15 +6,18 @@ import (
 	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
 type refreshStreamRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	err ce.Error
 }
 
 func NewRefreshStreamRepository(db *sql.DB) *refreshStreamRepository {
 	return &refreshStreamRepository{
-		db: db,
+		db:  db,
+		err: *ce.NewError(ce.ErrorLevel, "50.4.1", "refresh stream entity error at database operation level"),
 	}
 }
 
@@ -31,7 +34,7 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("cannot complete Get request: %v", err)
+		return nil, s.err.SetError(err)
 	}
 	defer rows.Close()
 
@@ -43,7 +46,7 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 			&rs.Portsrv, &rs.Sp, &rs.CamId, &rs.Record_status,
 			&rs.Stream_status, &rs.Record_state, &rs.Stream_state, &rs.Protocol)
 		if err != nil {
-			return nil, err
+			return nil, s.err.SetError(err)
 		}
 		refreshStreamArr = append(refreshStreamArr, rs)
 	}
@@ -57,7 +60,7 @@ func (s refreshStreamRepository) Update(ctx context.Context, stream string) erro
 
 	_, err := s.db.ExecContext(ctx, query)
 	if err != nil {
-		return fmt.Errorf("cannot send request to update stream_status: %v", err)
+		return s.err.SetError(err)
 	}
 
 	return nil
