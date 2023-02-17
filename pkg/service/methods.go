@@ -9,7 +9,6 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 )
 
 /*
@@ -24,11 +23,11 @@ func (a *app) GracefulShutdown(ctx context.Context, cancel context.CancelFunc) {
 	a.log.Info(fmt.Sprintf("Got signal: %v, exiting", sign))
 	cancel()
 
-	database.DBI.CloseDBConnection(a.db, a.cfg)
+	a.db.CloseDBConnection(a.cfg)
 	a.log.Debug(ctx.Err().Error())
 
 	a.log.Debug("sleep...")
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 5)
 	close(a.sigChan)
 }
 
