@@ -17,7 +17,7 @@ type refreshStreamRepository struct {
 func NewRefreshStreamRepository(db *sql.DB) *refreshStreamRepository {
 	return &refreshStreamRepository{
 		db:  db,
-		err: ce.NewError(ce.ErrorLevel, "50.4.1", "refresh stream entity error at database operation level"),
+		err: ce.NewError(ce.ErrorLevel, "50.4.2", "refresh stream entity error at database operation level"),
 	}
 }
 

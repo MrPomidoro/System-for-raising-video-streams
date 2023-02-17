@@ -17,7 +17,7 @@ type statusStreamRepository struct {
 func NewStatusStreamRepository(db *sql.DB) *statusStreamRepository {
 	return &statusStreamRepository{
 		db:  db,
-		err: ce.NewError(ce.ErrorLevel, "50.4.3", "status stream entity error at database operation level"),
+		err: ce.NewError(ce.ErrorLevel, "50.4.4", "status stream entity error at database operation level"),
 	}
 }
 
