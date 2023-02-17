@@ -29,7 +29,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 				return err
 			}
 
-			err = a.refreshStreamUseCase.Update(ctx, camDB.Stream.String)
+			err = a.refreshStreamRepo.Update(ctx, camDB.Stream.String)
 			if err != nil {
 				return err
 			}
@@ -53,7 +53,7 @@ removeCamerasToRTSP - функция, принимающая на вход сп�
 func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 	dataRTSP map[string]interface{}) error {
 
-	dataDB, err := a.refreshStreamUseCase.Get(ctx, false)
+	dataDB, err := a.refreshStreamRepo.Get(ctx, false)
 	if err != nil {
 		return err
 	}
