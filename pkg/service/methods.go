@@ -40,8 +40,8 @@ getDBAndApi реализует получение списка камер с б�
 На выходе: список с бд, список с rtsp, ошибка
 */
 func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
-	map[string]interface{}, ce.IError) {
-	var resRTSP map[string]interface{}
+	[]rtspsimpleserver.SConf, ce.IError) {
+	var resRTSP []rtspsimpleserver.SConf
 	var resDB []refreshstream.RefreshStream
 
 	// dataDB := make(chan refreshstream.RefreshStream)
@@ -51,14 +51,14 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 	resDB, err := a.getReqFromDB(ctx)
 	if err != nil {
 		a.err.NextError(err.GetError())
-		return nil, map[string]interface{}{}, a.err
+		return nil, nil, a.err
 	}
 
 	// Отправка запроса к rtsp
 	resRTSP, err = a.rtspRepo.GetRtsp()
 	if err != nil {
 		a.err.NextError(err.GetError())
-		return nil, map[string]interface{}{}, a.err
+		return nil, nil, a.err
 	}
 
 	return resDB, resRTSP, nil
@@ -71,7 +71,7 @@ equalOrIdentityData проверяет isEqualCount и identity:
 иначе возвращает false
 */
 func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bool,
-	confArr []rtspsimpleserver.Conf, dataDB []refreshstream.RefreshStream) bool {
+	sconfArr []rtspsimpleserver.SConf, dataDB []refreshstream.RefreshStream) bool {
 
 	if isEqualCount && identity {
 		a.log.Debug("Data is identity, waiting...")
@@ -79,7 +79,7 @@ func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bo
 
 	} else if isEqualCount && !identity {
 		a.log.Debug("Count of data is same, but the field values are different")
-		err := a.editCamerasToRTSP(ctx, confArr, dataDB)
+		err := a.editCamerasToRTSP(ctx, sconfArr, dataDB)
 		if err != nil {
 			a.log.Error(err.Error())
 		}
@@ -88,8 +88,8 @@ func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bo
 	return false
 }
 
-// differentCount выполняется в случае, если число данных в базе и в rtsp, возвращает ошибку при её наличии
-func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) ce.IError {
+// differentCount выполняется в случае, если число данных в базе и в rtsp отличается, возвращает ошибку при её наличии
+func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.RefreshStream, dataRTSP []rtspsimpleserver.SConf) ce.IError {
 	a.log.Debug("Count of data is different")
 
 	err := a.addAndRemoveData(ctx, dataRTSP, dataDB)

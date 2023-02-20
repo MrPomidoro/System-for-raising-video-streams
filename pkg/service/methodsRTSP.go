@@ -106,31 +106,31 @@ editCamerasToRTSP - функция, принимающая на вход спи�
 в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
-func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.Conf,
+func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.SConf,
 	dataDB []refreshstream.RefreshStream) ce.IError {
 	for _, camDB := range dataDB {
-		for _, conf := range confArr {
+		for _, sconf := range confArr {
 
-			if camDB.Stream.String != conf.Stream {
+			if camDB.Stream.String != sconf.Stream {
 				continue
 			}
 
-			if conf.SourceProtocol == "" && conf.Source == "" && (conf.RunOnReady == "" && a.cfg.Run != "") {
+			if sconf.Conf.SourceProtocol == "" && sconf.Conf.Source == "" && (sconf.Conf.RunOnReady == "" && a.cfg.Run != "") {
 				continue
 			}
 
-			err := a.rtspRepo.PostEditRTSP(camDB, conf)
-			if err != nil {
-				a.err.NextError(err.GetError())
-				return a.err
-			}
+			// err := a.rtspRepo.PostEditRTSP(camDB, sconf)
+			// if err != nil {
+			// 	a.err.NextError(err.GetError())
+			// 	return a.err
+			// }
 
-			// Запись в базу данных результата выполнения
-			err = a.insertIntoStatusStream("edit", ctx, camDB, err)
-			if err != nil {
-				a.err.NextError(err.GetError())
-				return a.err
-			}
+			// // Запись в базу данных результата выполнения
+			// err = a.insertIntoStatusStream("edit", ctx, camDB, err)
+			// if err != nil {
+			// 	a.err.NextError(err.GetError())
+			// 	return a.err
+			// }
 		}
 	}
 	return nil
@@ -140,7 +140,7 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 addAndRemoveData - метод, в которым выполняются функции, получающие списки
 отличающихся данных, выполняется удаление лишних камер и добавление недостающих
 */
-func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]interface{},
+func (a *app) addAndRemoveData(ctx context.Context, dataRTSP []rtspsimpleserver.SConf,
 	dataDB []refreshstream.RefreshStream) ce.IError {
 
 	// Получение списков камер на добавление и удаление
