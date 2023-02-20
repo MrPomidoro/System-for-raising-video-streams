@@ -10,7 +10,7 @@ import (
 )
 
 // GetConfig инициализирует и заполняет структуру конфигурационного файла
-func GetConfig() (*Config, error) {
+func GetConfig() (*Config, *ce.Error) {
 	var cfg Config
 	cfg.err = *ce.NewError(ce.FatalLevel, "50.1.1", "error at the level of reading and processing the config")
 
@@ -37,7 +37,7 @@ func GetConfig() (*Config, error) {
 	return &cfg, nil
 }
 
-func readParametersFromConfig(v *viper.Viper, cfg *Config) error {
+func readParametersFromConfig(v *viper.Viper, cfg *Config) *ce.Error {
 	// Попытка чтения конфига
 	if err := v.ReadInConfig(); err != nil {
 		return cfg.err.SetError(err)
