@@ -54,12 +54,11 @@ func (rtsp *rtspRepository) GetRtsp() ([]rtspsimpleserver.SConf, ce.IError) {
 	if err != nil {
 		return nil, rtsp.err.SetError(err)
 	}
-	rtsp.log.Debug("Success unmarshal body")
-
-	// items := item.(map[string]interface{})
 	if len(item) == 0 {
 		return nil, rtsp.err.SetError(fmt.Errorf("response from rtsp not received"))
 	}
+
+	rtsp.log.Debug("Success unmarshal body")
 
 	var res []rtspsimpleserver.SConf
 	for _, ress := range item {
