@@ -7,16 +7,19 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	"go.uber.org/zap"
 )
 
 type refreshStreamRepository struct {
 	db  *sql.DB
+	log *zap.Logger
 	err *ce.Error
 }
 
-func NewRefreshStreamRepository(db *sql.DB) *refreshStreamRepository {
+func NewRefreshStreamRepository(db *sql.DB, log *zap.Logger) *refreshStreamRepository {
 	return &refreshStreamRepository{
 		db:  db,
+		log: log,
 		err: ce.NewError(ce.ErrorLevel, "50.4.2", "refresh stream entity error at database operation level"),
 	}
 }
@@ -31,6 +34,7 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 	case false:
 		query = refreshstream.QueryStateFalse
 	}
+	s.log.Debug(query)
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
@@ -57,6 +61,7 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 func (s refreshStreamRepository) Update(ctx context.Context, stream string) *ce.Error {
 
 	query := fmt.Sprintf(refreshstream.QueryEditStatus, stream)
+	s.log.Debug(query)
 
 	_, err := s.db.ExecContext(ctx, query)
 	if err != nil {
