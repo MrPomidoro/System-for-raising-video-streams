@@ -108,17 +108,8 @@ func compareDBandRTSP(count, identity, lenDB int) (bool, bool) {
 //
 
 // GetLensData проверяет, что полученные ответы от rtsp и базы не пустые, и возвращает их длины
-func GetLensData(resDB []refreshstream.RefreshStream, resRTSP map[string]interface{}) (int, int) {
-	var lenResRTSP int
-
-	// Определение числа потоков с rtsp
-	for _, items := range resRTSP { // items - поле "items"
-		// мапа: ключ - номер камеры, значения - остальные поля этой камеры
-		camsMap := items.(map[string]interface{})
-		lenResRTSP = len(camsMap) // количество камер
-	}
-
-	return len(resDB), lenResRTSP
+func GetLensData(resDB []refreshstream.RefreshStream, resRTSP []rtspsimpleserver.SConf) (int, int) {
+	return len(resDB), len(resRTSP)
 }
 
 //
@@ -142,18 +133,13 @@ func GetCamsForRemove(dataDB []refreshstream.RefreshStream, dataRTSP []rtspsimpl
 		for _, camRTSP := range dataRTSP {
 			if camDB.Stream.String == camRTSP.Stream {
 				doubleRemove++
-				break
-			}
-
-			if camDB.Stream.String == camRTSP.Stream {
-				doubleRemove++
-				break
 			}
 
 			// Если значение счётчика ненулевое, камера добавляется в список на удаление
-			if doubleRemove == 0 {
-				resSliceRemove = append(resSliceRemove, camRTSP.Stream)
+			if doubleRemove != 0 {
+				continue
 			}
+			resSliceRemove = append(resSliceRemove, camRTSP.Stream)
 			doubleRemove = 0
 		}
 	}
@@ -172,21 +158,23 @@ func GetCamsForAdd(dataDB []refreshstream.RefreshStream, dataRTSP []rtspsimplese
 	// Счётчик
 	var doubleAppend int
 
-	// Перебор элементов списка структур
+	// Перебор камер с дб
 	for _, camDB := range dataDB {
-
+		// Перебор камер с rtsp
 		for _, camRTSP := range dataRTSP {
+
+			// Если совпадают, инкрементится счётчик doubleAppend
 			if camRTSP.Stream == camDB.Stream.String {
 				doubleAppend++
-				break
 			}
-		}
 
-		// Если значение счётчика ненулевое, камера попадает в список на добавление
-		if doubleAppend == 0 {
+			// Если значение счётчика ненулевое, камера попадает в список на добавление
+			if doubleAppend != 0 {
+				continue
+			}
 			resSliceAdd = append(resSliceAdd, camDB.Stream.String)
+			doubleAppend = 0
 		}
-		doubleAppend = 0
 	}
 
 	return resSliceAdd
