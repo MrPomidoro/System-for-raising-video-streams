@@ -23,7 +23,7 @@ func NewStatusStreamRepository(db *sql.DB) *statusStreamRepository {
 
 // Insert отправляет запрос на добавление лога
 func (s statusStreamRepository) Insert(ctx context.Context,
-	ss *statusstream.StatusStream) error {
+	ss *statusstream.StatusStream) *ce.Error {
 
 	query := fmt.Sprintf(statusstream.InsertToStatusStream, ss.StreamId, ss.StatusResponse)
 
