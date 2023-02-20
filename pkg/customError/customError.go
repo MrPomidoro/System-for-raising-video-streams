@@ -13,14 +13,15 @@ const (
 
 type IError interface {
 	Error() string
-	getError() *Error
 
 	SetLevel(level int)
 	SetCode(code string)
 	SetDesc(desc string)
-
 	SetError(err error) *Error
+
 	NextError(err IError)
+
+	getError() *Error
 }
 
 // Error - ошибка, представленная в виде односвязного списка,
