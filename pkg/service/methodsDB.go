@@ -13,11 +13,11 @@ import (
 func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, ce.IError) {
 	req, err := a.refreshStreamRepo.Get(ctx, true)
 	if err != nil {
-		a.err.NextError(err.GetError())
+		a.err.NextError(err)
 		return req, a.err
 	}
 	if len(req) == 0 {
-		return nil, a.err.SetError(fmt.Errorf("response from database not received"))
+		return nil, a.err.SetError(fmt.Errorf("no response from database received"))
 	}
 
 	a.log.Debug("Received response from the database")
@@ -35,9 +35,8 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 		insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
 		err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 		if err != nil {
-			a.log.Error("cannot insert to table status_stream")
-			a.err.NextError(err.GetError())
-			return a.err
+			a.err.NextError(err)
+			return a.err.SetError(fmt.Errorf("cannot insert to table status_stream"))
 		}
 		a.log.Debug("Success insert to table status_stream")
 
@@ -48,9 +47,8 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 	insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: true}
 	err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 	if err != nil {
-		a.log.Error("cannot insert to table status_stream")
-		a.err.NextError(err.GetError())
-		return a.err
+		a.err.NextError(err)
+		return a.err.SetError(fmt.Errorf("cannot insert to table status_stream"))
 	}
 	a.log.Debug("Success insert to table status_stream")
 
