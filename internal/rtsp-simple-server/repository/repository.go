@@ -29,7 +29,7 @@ func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
 }
 
 // GetRtsp отправляет GET запрос на получение данных
-func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
+func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, *ce.Error) {
 	var item interface{}
 	var res map[string]interface{}
 
@@ -63,7 +63,7 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, error) {
 }
 
 // PostAddRTSP отправляет POST запрос на добавление потока
-func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error {
+func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) *ce.Error {
 
 	// Парсинг поля RunOnReady
 	var runOnReady string
@@ -113,7 +113,7 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error
 }
 
 // PostRemoveRTSP отправляет POST запрос на удаление потока
-func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
+func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) *ce.Error {
 	// Парсинг URL
 	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "remove", camRTSP)
 
@@ -131,7 +131,7 @@ func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
 }
 
 // PostEditRTSP отправляет POST запрос на изменение потока
-func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) error {
+func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) *ce.Error {
 
 	var protocol = camDB.Protocol.String
 	if protocol == "" && conf.SourceProtocol == "" {
