@@ -15,7 +15,7 @@ import (
 
 // CreateDBConnection заполняет структуру данными из конфига и вызывает функцию connectToDB(),
 // дающую подключение к базе данных
-func CreateDBConnection(cfg *config.Config) (*DB, error) {
+func CreateDBConnection(ctx context.Context, cfg *config.Config) (*DB, *ce.Error) {
 	var db DB
 	db.err = ce.NewError(ce.FatalLevel, "50.4.1", "error at database operation level")
 
@@ -30,13 +30,16 @@ func CreateDBConnection(cfg *config.Config) (*DB, error) {
 	db.log = logger.NewLogger(cfg)
 
 	var err error
-	db.Db, err = db.connectToDB()
+	db.Db, err = db.connectToDB(*cfg)
+	if err != nil {
+		return nil, db.err.SetError(err)
+	}
 
-	return &db, db.err.SetError(err)
+	return &db, nil
 }
 
 // connectToDB - функция, возвращающая открытое подключение к базе данных
-func (db *DB) connectToDB() (*sql.DB, error) {
+func (db *DB) connectToDB(cfg config.Config) (*sql.DB, error) {
 	var dbSQL *sql.DB
 
 	sqlInfo := fmt.Sprintf(DBInfoConst,
@@ -46,7 +49,7 @@ func (db *DB) connectToDB() (*sql.DB, error) {
 	// Подключение
 	dbSQL, err := sql.Open(db.driver, sqlInfo)
 	if err != nil {
-		return nil, db.err.SetError(err)
+		return nil, err
 	}
 
 	// Проверка подключения
@@ -55,28 +58,28 @@ func (db *DB) connectToDB() (*sql.DB, error) {
 		db.log.Info(fmt.Sprintf("Success connect to database %s", db.dbName))
 		return dbSQL, nil
 	} else {
-		db.log.Error(fmt.Sprintf("cannot connect to database: %v", err))
+		return nil, err
+
+		// connLatency := time.Duration(10 * time.Millisecond)
+		// time.Sleep(connLatency)
+		// connTimeout := db.dBConnectionTimeoutSecond
+		// for t := connTimeout; t > 0; t-- {
+		// 	if dbSQL != nil {
+		// 		return dbSQL, nil
+		// 	}
+		// 	time.Sleep(time.Second * 3)
 	}
 
-	connLatency := time.Duration(10 * time.Millisecond)
-	time.Sleep(connLatency)
-	connTimeout := db.dBConnectionTimeoutSecond
-	for t := connTimeout; t > 0; t-- {
-		if dbSQL != nil {
-			return dbSQL, nil
-		}
-		time.Sleep(time.Second * 3)
-	}
-
-	db.log.Warn(fmt.Sprintf("Time waiting of database connection exceeded limit: %v", connTimeout))
-	return dbSQL, nil
+	// db.log.Warn(fmt.Sprintf("Time waiting of database connection exceeded limit: %v", connTimeout))
+	// return dbSQL, nil
 }
 
 // CloseDBConnection реализует отключение от базы данных
 func (db *DB) CloseDBConnection(cfg *config.Config) error {
 
 	if err := db.Db.Close(); err != nil {
-		db.log.Error(fmt.Sprintf("cannot close database connection: %v", err))
+		db.err.SetError(err)
+		// db.log.Error(fmt.Sprintf("cannot close database connection: %v", err))
 		return db.err.SetError(err)
 	}
 
@@ -110,7 +113,7 @@ loop:
 			db.driver = cfg.Driver
 			db.dBConnectionTimeoutSecond = cfg.DbConnectionTimeoutSecond
 
-			db.connectToDB()
+			db.connectToDB(*cfg)
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
