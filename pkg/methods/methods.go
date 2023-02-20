@@ -127,8 +127,8 @@ func compareDBandRTSP(count, identity, lenDB int) (bool, bool) {
 
 //
 
-// checkEmptyData проверяет, что полученные ответы от rtsp и базы не пустые, и возвращает их длины
-func CheckEmptyData(resDB []refreshstream.RefreshStream, resRTSP map[string]interface{}) (int, int) {
+// GetLensData проверяет, что полученные ответы от rtsp и базы не пустые, и возвращает их длины
+func GetLensData(resDB []refreshstream.RefreshStream, resRTSP map[string]interface{}) (int, int) {
 	var lenResRTSP int
 
 	// Проверка, что ответ от базы данных не пустой
