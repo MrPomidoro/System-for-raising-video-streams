@@ -16,20 +16,23 @@ import (
 GracefulShutdown - метод для корректного завершения работы программы
 при получении прерывающего сигнала
 */
-func (a *app) GracefulShutdown(ctx context.Context, cancel context.CancelFunc) {
+func (a *app) GracefulShutdown(cancel context.CancelFunc) {
+	defer time.Sleep(time.Second * 5)
+	defer close(a.sigChan)
+	defer close(a.doneChan)
+	defer cancel()
 
 	signal.Notify(a.sigChan, syscall.SIGINT, syscall.SIGTERM)
-	sign := <-a.sigChan
-
-	a.log.Info(fmt.Sprintf("Got signal: %v, exiting", sign))
-	cancel()
+	select {
+	case sign := <-a.sigChan:
+		a.log.Info(fmt.Sprintf("Got signal: %v, exiting", sign))
+	case <-a.doneChan:
+		a.log.Info("Found ERROR, exiting")
+	}
 
 	a.db.CloseDBConnection(a.cfg)
-	a.log.Debug(ctx.Err().Error())
 
 	a.log.Debug("sleep...")
-	time.Sleep(time.Second * 5)
-	close(a.sigChan)
 }
 
 /*
@@ -41,13 +44,16 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 	var resRTSP map[string]interface{}
 	var resDB []refreshstream.RefreshStream
 
+	// dataDB := make(chan refreshstream.RefreshStream)
+	// dataRTSP := make(chan)
+
 	// Отправка запроса к базе
 	resDB, err := a.getReqFromDB(ctx)
 	if err != nil {
 		a.err.NextError(err)
 		return []refreshstream.RefreshStream{}, map[string]interface{}{}, a.err
 	}
-	a.log.Debug("Get response from database")
+	// a.log.Debug("Get response from database")
 
 	// Отправка запроса к rtsp
 	resRTSP, err = a.rtspRepo.GetRtsp()
@@ -55,7 +61,7 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 		a.err.NextError(err)
 		return []refreshstream.RefreshStream{}, map[string]interface{}{}, a.err
 	}
-	a.log.Debug("Get response from rtsp-simple-server")
+	// a.log.Debug("Get response from rtsp-simple-server")
 
 	return resDB, resRTSP, nil
 }
