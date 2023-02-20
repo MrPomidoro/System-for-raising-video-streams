@@ -131,21 +131,11 @@ func compareDBandRTSP(count, identity, lenDB int) (bool, bool) {
 func GetLensData(resDB []refreshstream.RefreshStream, resRTSP map[string]interface{}) (int, int) {
 	var lenResRTSP int
 
-	// Проверка, что ответ от базы данных не пустой
-	if len(resDB) == 0 {
-		return 0, 0
-	}
-
 	// Определение числа потоков с rtsp
 	for _, items := range resRTSP { // items - поле "items"
 		// мапа: ключ - номер камеры, значения - остальные поля этой камеры
 		camsMap := items.(map[string]interface{})
 		lenResRTSP = len(camsMap) // количество камер
-	}
-
-	// Проверка, что ответ от rtsp данных не пустой
-	if lenResRTSP == 0 {
-		return 0, 0
 	}
 
 	return len(resDB), lenResRTSP
