@@ -6,6 +6,7 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
 // getReqFromDB реализует Get запрос на получение списка камер из базы данных
@@ -24,7 +25,7 @@ func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, 
 insertIntoStatusStream принимает результат выполнения запроса через API (ошибка) и список камер с бд
 и выполняет вставку в таблицу status_stream
 */
-func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB refreshstream.RefreshStream, err error) error {
+func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB refreshstream.RefreshStream, err *ce.Error) *ce.Error {
 	if err != nil {
 		a.log.Error(err.Error())
 		insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}

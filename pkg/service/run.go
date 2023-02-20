@@ -23,7 +23,11 @@ func (a *app) Run(ctx context.Context) {
 	defer tick.Stop()
 
 	// Проверка коннекта к базе данных
-	// и переподключение при необходимости
+	// и переподключение при необходимост
+	if a.db == nil {
+		return
+	}
+
 	go a.db.DBPing(ctx, a.cfg)
 
 loop:
@@ -38,6 +42,7 @@ loop:
 
 		// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 		case <-tick.C:
+			fmt.Println("aaaaaaaaaaaa")
 			// Получение данных от базы данных и от rtsp
 			dataDB, dataRTSP, err := a.getDBAndApi(ctx)
 			if err != nil {
@@ -59,6 +64,7 @@ loop:
 					- отправка API,
 					- запись в status_stream.
 			*/
+			return
 			if lenResDB == lenResRTSP {
 				a.log.Info(fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 

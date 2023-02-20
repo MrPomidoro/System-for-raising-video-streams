@@ -26,19 +26,22 @@ func (a *app) addCamerasToRTSP(ctx context.Context, resSliceAdd []string,
 
 			err := a.rtspRepo.PostAddRTSP(camDB)
 			if err != nil {
-				return a.err.SetError(err)
+				a.err.NextError(err)
+				return a.err
 			}
 
 			err = a.refreshStreamRepo.Update(ctx, camDB.Stream.String)
 			if err != nil {
-				return a.err.SetError(err)
+				a.err.NextError(err)
+				return a.err
 			}
 			a.log.Debug("Success send request to update stream_status")
 
 			// Запись в базу данных результата выполнения
 			err = a.insertIntoStatusStream("add", ctx, camDB, err)
 			if err != nil {
-				return a.err.SetError(err)
+				a.err.NextError(err)
+				return a.err
 			}
 		}
 	}

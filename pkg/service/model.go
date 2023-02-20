@@ -33,15 +33,20 @@ type app struct {
 }
 
 // NewApp инициализирует прототип приложения
-func NewApp(ctx context.Context, cfg *config.Config) (*app, error) {
+func NewApp(ctx context.Context, cfg *config.Config) (*app, *ce.Error) {
 	err := ce.NewError(ce.ErrorLevel, "50.3.1", "application level error")
 	log := logger.NewLogger(cfg)
 
 	if !cfg.DatabaseConnect {
-		return &app{}, err.SetError(fmt.Errorf("no permission to connect to database"))
+		return nil, err.SetError(fmt.Errorf("no permission to connect to database"))
 	}
 
-	db, _ := database.CreateDBConnection(cfg)
+	db, e := database.CreateDBConnection(ctx, cfg)
+	if e != nil {
+		err.NextError(e)
+		return nil, err
+	}
+
 	sigChan := make(chan os.Signal, 1)
 	repoRS := rsrepository.NewRefreshStreamRepository(db.Db)
 	repoSS := ssrepository.NewStatusStreamRepository(db.Db)
