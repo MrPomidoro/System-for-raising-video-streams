@@ -22,7 +22,7 @@ func NewRefreshStreamRepository(db *sql.DB) *refreshStreamRepository {
 }
 
 // Get отправляет запрос на получение данных из таблицы
-func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refreshstream.RefreshStream, error) {
+func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refreshstream.RefreshStream, *ce.Error) {
 	var query string
 
 	switch status {
@@ -54,7 +54,7 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 }
 
 // Update отправляет запрос на изменение поля stream_status
-func (s refreshStreamRepository) Update(ctx context.Context, stream string) error {
+func (s refreshStreamRepository) Update(ctx context.Context, stream string) *ce.Error {
 
 	query := fmt.Sprintf(refreshstream.QueryEditStatus, stream)
 
