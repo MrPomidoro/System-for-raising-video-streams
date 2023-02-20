@@ -20,10 +20,12 @@ import (
 
 // app - прототип приложения
 type app struct {
-	cfg     *config.Config
-	log     *zap.Logger
-	db      *database.DB
-	sigChan chan os.Signal
+	cfg *config.Config
+	log *zap.Logger
+	db  *database.DB
+
+	sigChan  chan os.Signal
+	doneChan chan struct{}
 
 	refreshStreamRepo refreshstream.RefreshStreamRepository
 	statusStreamRepo  statusstream.StatusStreamRepository
@@ -48,18 +50,24 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, *ce.Error) {
 	}
 
 	sigChan := make(chan os.Signal, 1)
-	repoRS := rsrepository.NewRefreshStreamRepository(db.Db)
-	repoSS := ssrepository.NewStatusStreamRepository(db.Db)
+	doneChan := make(chan struct{})
+
+	repoRS := rsrepository.NewRefreshStreamRepository(db.Db, log)
+	repoSS := ssrepository.NewStatusStreamRepository(db.Db, log)
 	repoRTSP := rtsprepository.NewRTSPRepository(cfg, log)
 
 	return &app{
-		cfg:               cfg,
-		db:                db,
-		log:               log,
-		sigChan:           sigChan,
+		cfg: cfg,
+		db:  db,
+		log: log,
+
+		sigChan:  sigChan,
+		doneChan: doneChan,
+
 		refreshStreamRepo: repoRS,
 		statusStreamRepo:  repoSS,
 		rtspRepo:          repoRTSP,
-		err:               err,
+
+		err: err,
 	}, nil
 }
