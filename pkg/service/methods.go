@@ -40,7 +40,7 @@ getDBAndApi реализует получение списка камер с б�
 На выходе: список с бд, список с rtsp, ошибка
 */
 func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
-	map[string]interface{}, *ce.Error) {
+	map[string]interface{}, ce.IError) {
 	var resRTSP map[string]interface{}
 	var resDB []refreshstream.RefreshStream
 
@@ -50,14 +50,14 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 	// Отправка запроса к базе
 	resDB, err := a.getReqFromDB(ctx)
 	if err != nil {
-		a.err.NextError(err)
+		a.err.NextError(err.GetError())
 		return nil, map[string]interface{}{}, a.err
 	}
 
 	// Отправка запроса к rtsp
 	resRTSP, err = a.rtspRepo.GetRtsp()
 	if err != nil {
-		a.err.NextError(err)
+		a.err.NextError(err.GetError())
 		return nil, map[string]interface{}{}, a.err
 	}
 
@@ -89,11 +89,12 @@ func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bo
 }
 
 // differentCount выполняется в случае, если число данных в базе и в rtsp, возвращает ошибку при её наличии
-func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) *ce.Error {
+func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) ce.IError {
 	a.log.Debug("Count of data is different")
+
 	err := a.addAndRemoveData(ctx, dataRTSP, dataDB)
 	if err != nil {
-		a.err.NextError(err)
+		a.err.NextError(err.GetError())
 		return a.err
 	}
 	return nil

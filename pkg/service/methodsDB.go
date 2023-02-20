@@ -10,10 +10,10 @@ import (
 )
 
 // getReqFromDB реализует Get запрос на получение списка камер из базы данных
-func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, *ce.Error) {
+func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, ce.IError) {
 	req, err := a.refreshStreamRepo.Get(ctx, true)
 	if err != nil {
-		a.err.NextError(err)
+		a.err.NextError(err.GetError())
 		return req, a.err
 	}
 	if len(req) == 0 {
@@ -29,14 +29,14 @@ func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, 
 insertIntoStatusStream принимает результат выполнения запроса через API (ошибка) и список камер с бд
 и выполняет вставку в таблицу status_stream
 */
-func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB refreshstream.RefreshStream, err *ce.Error) *ce.Error {
+func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB refreshstream.RefreshStream, err ce.IError) ce.IError {
 	if err != nil {
 		a.log.Error(err.Error())
 		insertStructStatusStream := statusstream.StatusStream{StreamId: camDB.Id, StatusResponse: false}
 		err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 		if err != nil {
 			a.log.Error("cannot insert to table status_stream")
-			a.err.NextError(err)
+			a.err.NextError(err.GetError())
 			return a.err
 		}
 		a.log.Debug("Success insert to table status_stream")
@@ -49,7 +49,7 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 	err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 	if err != nil {
 		a.log.Error("cannot insert to table status_stream")
-		a.err.NextError(err)
+		a.err.NextError(err.GetError())
 		return a.err
 	}
 	a.log.Debug("Success insert to table status_stream")

@@ -6,10 +6,10 @@ import (
 )
 
 type RTSPCommon interface {
-	GetRtsp() (map[string]interface{}, *ce.Error)
-	PostAddRTSP(camDB refreshstream.RefreshStream) *ce.Error
-	PostRemoveRTSP(camRTSP string) *ce.Error
-	PostEditRTSP(camDB refreshstream.RefreshStream, conf Conf) *ce.Error
+	GetRtsp() (map[string]interface{}, ce.IError)
+	PostAddRTSP(camDB refreshstream.RefreshStream) ce.IError
+	PostRemoveRTSP(camRTSP string) ce.IError
+	PostEditRTSP(camDB refreshstream.RefreshStream, conf Conf) ce.IError
 }
 
 type RTSPUseCase interface {

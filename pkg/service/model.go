@@ -31,7 +31,7 @@ type app struct {
 	statusStreamRepo  statusstream.StatusStreamRepository
 	rtspRepo          rtspsimpleserver.RTSPRepository
 
-	err *ce.Error
+	err ce.IError
 }
 
 // NewApp инициализирует прототип приложения
@@ -45,8 +45,8 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, *ce.Error) {
 
 	db, e := database.CreateDBConnection(ctx, cfg)
 	if e != nil {
-		err.NextError(e)
-		return nil, err
+		err.NextError(e.GetError())
+		return nil, err.GetError()
 	}
 
 	sigChan := make(chan os.Signal, 1)

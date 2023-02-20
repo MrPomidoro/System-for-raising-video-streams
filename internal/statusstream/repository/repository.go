@@ -13,7 +13,7 @@ import (
 type statusStreamRepository struct {
 	db  *sql.DB
 	log *zap.Logger
-	err *ce.Error
+	err ce.IError
 }
 
 func NewStatusStreamRepository(db *sql.DB, log *zap.Logger) *statusStreamRepository {
@@ -26,7 +26,7 @@ func NewStatusStreamRepository(db *sql.DB, log *zap.Logger) *statusStreamReposit
 
 // Insert отправляет запрос на добавление лога
 func (s statusStreamRepository) Insert(ctx context.Context,
-	ss *statusstream.StatusStream) *ce.Error {
+	ss *statusstream.StatusStream) ce.IError {
 
 	query := fmt.Sprintf(statusstream.InsertToStatusStream, ss.StreamId, ss.StatusResponse)
 	s.log.Debug("Query to database:\n\t" + query)

@@ -15,7 +15,7 @@ import (
 
 // CreateDBConnection заполняет структуру данными из конфига и вызывает функцию connectToDB(),
 // дающую подключение к базе данных
-func CreateDBConnection(ctx context.Context, cfg *config.Config) (*DB, *ce.Error) {
+func CreateDBConnection(ctx context.Context, cfg *config.Config) (*DB, ce.IError) {
 	var db DB
 	db.err = ce.NewError(ce.FatalLevel, "50.4.1", "error at database operation level")
 

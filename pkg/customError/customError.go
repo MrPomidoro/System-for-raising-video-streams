@@ -13,6 +13,7 @@ const (
 
 type IError interface {
 	Error() string
+	GetError() *Error
 
 	SetLevel(level int)
 	SetCode(code string)
@@ -38,7 +39,7 @@ type Error struct {
 }
 
 // NewError инициализирует новую ошибку
-func NewError(level int, code, desc string) *Error {
+func NewError(level int, code, desc string) IError {
 	return &Error{
 		level: level,
 		code:  code,
@@ -86,6 +87,10 @@ func (e *Error) defineLevel() string {
 // level, code, desc, err задаются отдельно функциями SetXXX
 func (e *Error) NextError(deep *Error) {
 	e.deep = deep
+}
+
+func (e *Error) GetError() *Error {
+	return e
 }
 
 // SetError настривает новый текст поля err,

@@ -13,7 +13,7 @@ import (
 type refreshStreamRepository struct {
 	db  *sql.DB
 	log *zap.Logger
-	err *ce.Error
+	err ce.IError
 }
 
 func NewRefreshStreamRepository(db *sql.DB, log *zap.Logger) *refreshStreamRepository {
@@ -25,7 +25,7 @@ func NewRefreshStreamRepository(db *sql.DB, log *zap.Logger) *refreshStreamRepos
 }
 
 // Get отправляет запрос на получение данных из таблицы
-func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refreshstream.RefreshStream, *ce.Error) {
+func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refreshstream.RefreshStream, ce.IError) {
 	var query string
 
 	switch status {
@@ -58,7 +58,7 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 }
 
 // Update отправляет запрос на изменение поля stream_status
-func (s refreshStreamRepository) Update(ctx context.Context, stream string) *ce.Error {
+func (s refreshStreamRepository) Update(ctx context.Context, stream string) ce.IError {
 
 	query := fmt.Sprintf(refreshstream.QueryEditStatus, stream)
 	s.log.Debug("Query to database:\n\t" + query)

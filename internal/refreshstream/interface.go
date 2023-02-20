@@ -7,8 +7,8 @@ import (
 )
 
 type RefreshStreamCommon interface {
-	Get(ctx context.Context, status bool) ([]RefreshStream, *ce.Error)
-	Update(ctx context.Context, stream string) *ce.Error
+	Get(ctx context.Context, status bool) ([]RefreshStream, ce.IError)
+	Update(ctx context.Context, stream string) ce.IError
 }
 
 type RefreshStreamRepository interface {

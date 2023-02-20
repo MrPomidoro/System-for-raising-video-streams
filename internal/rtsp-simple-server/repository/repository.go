@@ -17,7 +17,7 @@ import (
 type rtspRepository struct {
 	cfg *config.Config
 	log *zap.Logger
-	err *ce.Error
+	err ce.IError
 }
 
 func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
@@ -29,7 +29,7 @@ func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
 }
 
 // GetRtsp отправляет GET запрос на получение данных
-func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, *ce.Error) {
+func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, ce.IError) {
 	var item interface{}
 	var res map[string]interface{}
 
@@ -67,7 +67,7 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, *ce.Error) {
 }
 
 // PostAddRTSP отправляет POST запрос на добавление потока
-func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) *ce.Error {
+func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) ce.IError {
 
 	// Парсинг поля RunOnReady
 	var runOnReady string
@@ -118,7 +118,7 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) *ce.E
 }
 
 // PostRemoveRTSP отправляет POST запрос на удаление потока
-func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) *ce.Error {
+func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) ce.IError {
 	// Парсинг URL
 	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "remove", camRTSP)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostRemove)
@@ -137,7 +137,7 @@ func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) *ce.Error {
 }
 
 // PostEditRTSP отправляет POST запрос на изменение потока
-func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) *ce.Error {
+func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) ce.IError {
 
 	var protocol = camDB.Protocol.String
 	if protocol == "" && conf.SourceProtocol == "" {

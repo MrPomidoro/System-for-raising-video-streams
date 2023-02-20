@@ -12,7 +12,7 @@ type Config struct {
 	Server             `yaml:"server"`
 	Database           `yaml:"database"`
 	Rtsp_simple_server `yaml:"rtsp_simple_server"`
-	err                ce.Error
+	err                ce.IError
 }
 
 // Logger содержит параметры логгера

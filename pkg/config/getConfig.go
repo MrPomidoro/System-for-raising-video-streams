@@ -10,9 +10,9 @@ import (
 )
 
 // GetConfig инициализирует и заполняет структуру конфигурационного файла
-func GetConfig() (*Config, *ce.Error) {
+func GetConfig() (*Config, ce.IError) {
 	var cfg Config
-	cfg.err = *ce.NewError(ce.FatalLevel, "50.1.1", "error at the level of reading and processing the config")
+	cfg.err = ce.NewError(ce.FatalLevel, "50.1.1", "error at the level of reading and processing the config")
 
 	// Чтение пути до конфигурационного файла
 	configPath := readConfigPath()

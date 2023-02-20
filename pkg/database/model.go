@@ -21,7 +21,7 @@ type database struct {
 	dBConnectionTimeoutSecond time.Duration
 	log                       *zap.Logger
 
-	err *ce.Error
+	err ce.IError
 }
 
 type DB struct {
