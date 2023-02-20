@@ -75,26 +75,24 @@ func (db *DB) connectToDB(cfg config.Config) (*sql.DB, error) {
 }
 
 // CloseDBConnection реализует отключение от базы данных
-func (db *DB) CloseDBConnection(cfg *config.Config) error {
+func (db *DB) CloseDBConnection(cfg *config.Config) *ce.Error {
 
 	if err := db.Db.Close(); err != nil {
-		db.err.SetError(err)
-		// db.log.Error(fmt.Sprintf("cannot close database connection: %v", err))
 		return db.err.SetError(err)
 	}
 
-	db.log.Debug("Established closing of connection to database")
+	db.log.Info("Established closing of connection to database")
 	return nil
 }
 
 // DBPing реализует переподключение к базе данных при необходимости
 // Происходит проверка контекста - если он закрыт, DBPing прекращаеи работу
 func (db *DB) DBPing(ctx context.Context, cfg *config.Config) {
+	errChan := make(chan error)
+	defer close(errChan)
 
 loop:
 	for {
-		errChan := make(chan error)
-		defer close(errChan)
 		db.ping(errChan)
 
 		select {
