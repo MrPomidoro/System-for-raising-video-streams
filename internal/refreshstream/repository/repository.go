@@ -34,7 +34,7 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 	case false:
 		query = refreshstream.QueryStateFalse
 	}
-	s.log.Debug(query)
+	s.log.Debug("Query to database:\n\t" + query)
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
@@ -61,7 +61,7 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 func (s refreshStreamRepository) Update(ctx context.Context, stream string) *ce.Error {
 
 	query := fmt.Sprintf(refreshstream.QueryEditStatus, stream)
-	s.log.Debug(query)
+	s.log.Debug("Query to database:\n\t" + query)
 
 	_, err := s.db.ExecContext(ctx, query)
 	if err != nil {

@@ -29,7 +29,7 @@ func (s statusStreamRepository) Insert(ctx context.Context,
 	ss *statusstream.StatusStream) *ce.Error {
 
 	query := fmt.Sprintf(statusstream.InsertToStatusStream, ss.StreamId, ss.StatusResponse)
-	s.log.Debug(query)
+	s.log.Debug("Query to database:\n\t" + query)
 
 	_, err := s.db.ExecContext(ctx, query)
 	if err != nil {

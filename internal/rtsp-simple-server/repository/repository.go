@@ -35,6 +35,7 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, *ce.Error) {
 
 	// Формирование URL для get запроса
 	URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Url)
+	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLGet)
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	// Отложенное закрытие тела ответа
@@ -99,6 +100,7 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) *ce.E
 
 	// Парсинг URL
 	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "add", camDB.Stream.String)
+	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostAdd)
 
 	// Запрос
 	resp, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
@@ -116,6 +118,7 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) *ce.E
 func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) *ce.Error {
 	// Парсинг URL
 	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "remove", camRTSP)
+	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostRemove)
 
 	var buf []byte
 	// Запрос
@@ -160,6 +163,7 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf
 
 	// Парсинг URL
 	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "edit", camDB.Stream.String)
+	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostEdit)
 
 	// Запрос
 	resp, err := http.Post(URLPostEdit, "application/json", bytes.NewBuffer(postJson))
