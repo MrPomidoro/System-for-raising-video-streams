@@ -144,34 +144,32 @@ func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) ce.IError {
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostRemove)
 
 	var buf []byte
+
 	// Запрос
 	resp, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
-	if resp != nil {
-		defer resp.Body.Close()
-	}
 	if err != nil {
 		return rtsp.err.SetError(err)
 	}
-
+	resp.Body.Close()
 	return nil
 }
 
 // PostEditRTSP отправляет POST запрос на изменение потока
-func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) ce.IError {
+func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, sconf rtspsimpleserver.SConf) ce.IError {
 
 	var protocol = camDB.Protocol.String
-	if protocol == "" && conf.SourceProtocol == "" {
+	if protocol == "" && sconf.Conf.SourceProtocol == "" {
 		protocol = "tcp"
 	}
 
-	var runOnReady = conf.RunOnReady
+	var runOnReady = sconf.Conf.RunOnReady
 	if rtsp.cfg.Run != "" {
 		runOnReady = fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
 	} else {
 		runOnReady = ""
 	}
 
-	var source = conf.Source
+	var source = sconf.Conf.Source
 	if source == "" {
 		source = fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
 	}

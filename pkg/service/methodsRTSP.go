@@ -119,11 +119,11 @@ func (a *app) editCamerasToRTSP(ctx context.Context, confArr []rtspsimpleserver.
 				continue
 			}
 
-			// err := a.rtspRepo.PostEditRTSP(camDB, sconf)
-			// if err != nil {
-			// 	a.err.NextError(err.GetError())
-			// 	return a.err
-			// }
+			err := a.rtspRepo.PostEditRTSP(camDB, sconf)
+			if err != nil {
+				a.err.NextError(err.GetError())
+				return a.err
+			}
 
 			// // Запись в базу данных результата выполнения
 			// err = a.insertIntoStatusStream("edit", ctx, camDB, err)

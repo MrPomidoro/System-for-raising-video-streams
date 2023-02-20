@@ -9,7 +9,7 @@ type RTSPCommon interface {
 	GetRtsp() ([]SConf, ce.IError)
 	PostAddRTSP(camDB refreshstream.RefreshStream) ce.IError
 	PostRemoveRTSP(camRTSP string) ce.IError
-	PostEditRTSP(camDB refreshstream.RefreshStream, conf Conf) ce.IError
+	PostEditRTSP(camDB refreshstream.RefreshStream, conf SConf) ce.IError
 }
 
 type RTSPUseCase interface {
