@@ -9,6 +9,7 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
 /*
@@ -36,21 +37,23 @@ getDBAndApi реализует получение списка камер с б�
 На выходе: список с бд, список с rtsp, ошибка
 */
 func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
-	map[string]interface{}, error) {
+	map[string]interface{}, *ce.Error) {
 	var resRTSP map[string]interface{}
 	var resDB []refreshstream.RefreshStream
 
 	// Отправка запроса к базе
 	resDB, err := a.getReqFromDB(ctx)
 	if err != nil {
-		return []refreshstream.RefreshStream{}, map[string]interface{}{}, a.err.SetError(err)
+		a.err.NextError(err)
+		return []refreshstream.RefreshStream{}, map[string]interface{}{}, a.err
 	}
 	a.log.Debug("Get response from database")
 
 	// Отправка запроса к rtsp
 	resRTSP, err = a.rtspRepo.GetRtsp()
 	if err != nil {
-		return []refreshstream.RefreshStream{}, map[string]interface{}{}, a.err.SetError(err)
+		a.err.NextError(err)
+		return []refreshstream.RefreshStream{}, map[string]interface{}{}, a.err
 	}
 	a.log.Debug("Get response from rtsp-simple-server")
 
@@ -82,11 +85,12 @@ func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bo
 }
 
 // differentCount выполняется в случае, если число данных в базе и в rtsp, возвращает ошибку при её наличии
-func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) error {
+func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) *ce.Error {
 	a.log.Debug("Count of data is different")
 	err := a.addAndRemoveData(ctx, dataRTSP, dataDB)
 	if err != nil {
-		return a.err.SetError(err)
+		a.err.NextError(err)
+		return a.err
 	}
 	return nil
 }
