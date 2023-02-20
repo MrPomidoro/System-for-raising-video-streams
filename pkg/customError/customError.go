@@ -13,14 +13,14 @@ const (
 
 type IError interface {
 	Error() string
-	GetError() *Error
+	getError() *Error
 
 	SetLevel(level int)
 	SetCode(code string)
 	SetDesc(desc string)
 
 	SetError(err error) *Error
-	NextError(err *Error)
+	NextError(err IError)
 }
 
 // Error - ошибка, представленная в виде односвязного списка,
@@ -85,11 +85,11 @@ func (e *Error) defineLevel() string {
 
 // NextError создаёт новую ошибку, наследуя переданную deep
 // level, code, desc, err задаются отдельно функциями SetXXX
-func (e *Error) NextError(deep *Error) {
-	e.deep = deep
+func (e *Error) NextError(deep IError) {
+	e.deep = deep.getError()
 }
 
-func (e *Error) GetError() *Error {
+func (e *Error) getError() *Error {
 	return e
 }
 
