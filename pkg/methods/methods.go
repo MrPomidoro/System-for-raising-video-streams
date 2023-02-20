@@ -198,7 +198,7 @@ GetCamsForAdd - функция, принимающая на вход резул�
 */
 func GetCamsForAdd(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) []string {
 
-	// Слайс с камерами, отсутствующим в rtsp, но имеющимися в базе
+	// Слайс с камерами, отсутствующими в rtsp, но имеющимися в базе
 	var resSliceAdd []string
 	// Счётчик
 	var doubleAppend int
