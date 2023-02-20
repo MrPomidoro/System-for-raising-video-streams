@@ -35,7 +35,7 @@ type app struct {
 }
 
 // NewApp инициализирует прототип приложения
-func NewApp(ctx context.Context, cfg *config.Config) (*app, *ce.Error) {
+func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	err := ce.NewError(ce.ErrorLevel, "50.3.1", "error at application level")
 	log := logger.NewLogger(cfg)
 
