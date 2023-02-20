@@ -10,10 +10,11 @@ import (
 )
 
 // getReqFromDB реализует Get запрос на получение списка камер из базы данных
-func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, error) {
+func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, *ce.Error) {
 	req, err := a.refreshStreamRepo.Get(ctx, true)
 	if err != nil {
-		return req, a.err.SetError(err)
+		a.err.NextError(err)
+		return req, a.err
 	}
 	a.log.Debug("Received response from the database")
 
@@ -32,7 +33,8 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 		err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 		if err != nil {
 			a.log.Error("cannot insert to table status_stream")
-			return a.err.SetError(err)
+			a.err.NextError(err)
+			return a.err
 		}
 		a.log.Debug("Success insert to table status_stream")
 
@@ -44,7 +46,8 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, camDB r
 	err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 	if err != nil {
 		a.log.Error("cannot insert to table status_stream")
-		return a.err.SetError(err)
+		a.err.NextError(err)
+		return a.err
 	}
 	a.log.Debug("Success insert to table status_stream")
 
