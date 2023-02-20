@@ -29,41 +29,62 @@ func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
 }
 
 // GetRtsp отправляет GET запрос на получение данных
-func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, ce.IError) {
-	var item interface{}
-	var res map[string]interface{}
+func (rtsp *rtspRepository) GetRtsp() ([]rtspsimpleserver.SConf, ce.IError) {
 
 	// Формирование URL для get запроса
 	URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Url)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLGet)
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
-	// Отложенное закрытие тела ответа
-	if resp != nil {
-		defer resp.Body.Close()
-	}
 	if err != nil {
-		return res, rtsp.err.SetError(err)
+		return nil, rtsp.err.SetError(err)
 	}
+	// Закрытие тела ответа
+	defer resp.Body.Close()
 	rtsp.log.Debug("Received response from rtsp-simple-server")
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return res, rtsp.err.SetError(err)
+		return nil, rtsp.err.SetError(err)
 	}
 	rtsp.log.Debug("Success read body")
 
+	var item map[string]interface{}
 	err = json.Unmarshal(body, &item)
 	if err != nil {
-		return res, rtsp.err.SetError(err)
+		return nil, rtsp.err.SetError(err)
 	}
 	rtsp.log.Debug("Success unmarshal body")
 
-	res = item.(map[string]interface{})
-	if len(res) == 0 {
+	// items := item.(map[string]interface{})
+	if len(item) == 0 {
 		return nil, rtsp.err.SetError(fmt.Errorf("response from rtsp not received"))
 	}
+
+	var res []rtspsimpleserver.SConf
+	for _, ress := range item {
+		ress1 := ress.(map[string]interface{})
+		for stream, i := range ress1 {
+			sconf := rtspsimpleserver.SConf{}
+			sconf.Stream = stream
+			im := i.(map[string]interface{})
+			for field, j := range im {
+				if field == "conf" {
+					transcode(j, &sconf.Conf)
+					break
+				}
+			}
+			res = append(res, sconf)
+		}
+	}
+	// fmt.Printf("%+v\n\n", sConfs)
 	return res, nil
+}
+
+func transcode(in, out interface{}) {
+	buf := new(bytes.Buffer)
+	json.NewEncoder(buf).Encode(in)
+	json.NewDecoder(buf).Decode(out)
 }
 
 // PostAddRTSP отправляет POST запрос на добавление потока
