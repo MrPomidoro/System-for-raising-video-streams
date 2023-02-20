@@ -6,7 +6,7 @@ import (
 )
 
 type RTSPCommon interface {
-	GetRtsp() (map[string]interface{}, ce.IError)
+	GetRtsp() ([]SConf, ce.IError)
 	PostAddRTSP(camDB refreshstream.RefreshStream) ce.IError
 	PostRemoveRTSP(camRTSP string) ce.IError
 	PostEditRTSP(camDB refreshstream.RefreshStream, conf Conf) ce.IError

@@ -1,7 +1,11 @@
 package rtspsimpleserver
 
+type SConf struct {
+	Stream string `json:"stream"`
+	Conf   Conf
+}
+
 type Conf struct {
-	Stream                     string `json:"stream"`
 	SourceProtocol             string `json:"sourceProtocol"`
 	SourceOnDemandStartTimeout string `json:"sourceOnDemandStartTimeout"`
 	SourceOnDemandCloseAfter   string `json:"sourceOnDemandCloseAfter"`
