@@ -49,9 +49,13 @@ func (e Error) Error() string {
 	output.WriteString("\n")
 
 	for e.deep != nil {
-
-		output.WriteString(fmt.Sprintf("\tlevel: %s, code: %s, description: %s, error: %v;\n",
-			e.defineLevel(), e.code, e.desc, e.err))
+		if e.err == nil {
+			output.WriteString(fmt.Sprintf("\tlevel: %s, code: %s, description: %s\n",
+				e.defineLevel(), e.code, e.desc))
+		} else {
+			output.WriteString(fmt.Sprintf("\tlevel: %s, code: %s, description: %s, error: %v\n",
+				e.defineLevel(), e.code, e.desc, e.err))
+		}
 
 		e = *e.deep
 	}
@@ -78,9 +82,8 @@ func (e *Error) defineLevel() string {
 
 // NextError создаёт новую ошибку, наследуя переданную deep
 // level, code, desc, err задаются отдельно функциями SetXXX
-func (e *Error) NextError(deep *Error) *Error {
+func (e *Error) NextError(deep *Error) {
 	e.deep = deep
-	return e
 }
 
 // SetError настривает новый текст поля err,
