@@ -30,10 +30,10 @@ func (a *app) Run(ctx context.Context) {
 
 	go a.db.DBPing(ctx, a.cfg)
 
+	// var mu sync.Mutex
+
 loop:
 	for {
-		fmt.Println("")
-
 		select {
 
 		// Если контекст закрыт, loop завершается
@@ -42,14 +42,15 @@ loop:
 
 		// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 		case <-tick.C:
-			fmt.Println("aaaaaaaaaaaa")
+
 			// Получение данных от базы данных и от rtsp
 			dataDB, dataRTSP, err := a.getDBAndApi(ctx)
 			if err != nil {
 				a.log.Error(err.Error())
 				continue
 			}
-			lenResDB, lenResRTSP := methods.CheckEmptyData(dataDB, dataRTSP)
+
+			lenResDB, lenResRTSP := methods.GetLensData(dataDB, dataRTSP)
 
 			// ---------------------------------------------------------- //
 			//   Сравнение числа записей в базе данных и записей в rtsp   //
@@ -64,13 +65,14 @@ loop:
 					- отправка API,
 					- запись в status_stream.
 			*/
-			return
+
 			if lenResDB == lenResRTSP {
 				a.log.Info(fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
 
 				// Проверка одинаковости данных по стримам
 				isEqualCount, identity, confArr := methods.CheckIdentityAndCountOfData(dataDB, dataRTSP, a.cfg)
 
+				return // edit
 				// Если число данных совпадает и данные одинаковые ИЛИ если число данных совпадает, но данные отличаются,
 				// метод equalOrIdentityData возвращает true
 				eqId := a.equalOrIdentityData(ctx, isEqualCount, identity, confArr, dataDB)
@@ -78,6 +80,7 @@ loop:
 					continue
 				}
 
+				return // edit
 				// Если число данных отличается, выполняется differentCount
 				err := a.differentCount(ctx, dataDB, dataRTSP)
 				if err != nil {
@@ -95,6 +98,9 @@ loop:
 			} else if lenResDB > lenResRTSP {
 
 				a.log.Info(fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", lenResDB, lenResRTSP))
+
+				return // edit
+
 				err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
 				if err != nil {
 					a.log.Error(err.Error())
@@ -118,7 +124,7 @@ loop:
 					a.log.Error(err.Error())
 					continue
 				}
-				lenResDBLESS, lenResRTSPLESS := methods.CheckEmptyData(dataDB, dataRTSP)
+				lenResDBLESS, lenResRTSPLESS := methods.GetLensData(dataDB, dataRTSP)
 
 				// Сравнение числа записей в базе данных и записей в rtsp после нового запроса
 				if lenResDBLESS == lenResRTSPLESS {
@@ -126,12 +132,16 @@ loop:
 					// Проверка одинаковости данных по стримам
 					isEqualCount, identity, confArr := methods.CheckIdentityAndCountOfData(dataDB, dataRTSP, a.cfg)
 
+					return // edit
+
 					// Если число данных совпадает и данные одинаковые ИЛИ если число данных совпадает, но данные отличаются,
 					// метод equalOrIdentityData возвращает true
 					eqId := a.equalOrIdentityData(ctx, isEqualCount, identity, confArr, dataDB)
 					if eqId {
 						continue
 					}
+
+					return // edit
 
 					// Если число данных отличается, выполняется differentCount
 					err := a.differentCount(ctx, dataDB, dataRTSP)
@@ -142,6 +152,7 @@ loop:
 
 				} else {
 
+					return // edit
 					err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
 					if err != nil {
 						a.log.Error(err.Error())
