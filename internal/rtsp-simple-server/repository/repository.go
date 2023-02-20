@@ -60,6 +60,9 @@ func (rtsp *rtspRepository) GetRtsp() (map[string]interface{}, *ce.Error) {
 	rtsp.log.Debug("Success unmarshal body")
 
 	res = item.(map[string]interface{})
+	if len(res) == 0 {
+		return nil, rtsp.err.SetError(fmt.Errorf("response from rtsp not received"))
+	}
 	return res, nil
 }
 

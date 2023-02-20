@@ -16,8 +16,11 @@ func (a *app) getReqFromDB(ctx context.Context) ([]refreshstream.RefreshStream, 
 		a.err.NextError(err)
 		return req, a.err
 	}
-	a.log.Debug("Received response from the database")
+	if len(req) == 0 {
+		return nil, a.err.SetError(fmt.Errorf("response from database not received"))
+	}
 
+	a.log.Debug("Received response from the database")
 	return req, nil
 }
 

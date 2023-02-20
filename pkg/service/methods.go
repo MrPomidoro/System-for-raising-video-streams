@@ -51,17 +51,15 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 	resDB, err := a.getReqFromDB(ctx)
 	if err != nil {
 		a.err.NextError(err)
-		return []refreshstream.RefreshStream{}, map[string]interface{}{}, a.err
+		return nil, map[string]interface{}{}, a.err
 	}
-	// a.log.Debug("Get response from database")
 
 	// Отправка запроса к rtsp
 	resRTSP, err = a.rtspRepo.GetRtsp()
 	if err != nil {
 		a.err.NextError(err)
-		return []refreshstream.RefreshStream{}, map[string]interface{}{}, a.err
+		return nil, map[string]interface{}{}, a.err
 	}
-	// a.log.Debug("Get response from rtsp-simple-server")
 
 	return resDB, resRTSP, nil
 }
