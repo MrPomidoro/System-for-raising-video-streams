@@ -55,7 +55,7 @@ removeCamerasToRTSP - функция, принимающая на вход сп�
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
 func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
-	dataRTSP map[string]interface{}) ce.IError {
+	dataRTSP []rtspsimpleserver.SConf) ce.IError {
 
 	dataDB, err := a.refreshStreamRepo.Get(ctx, false)
 	if err != nil {
@@ -64,40 +64,40 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, resSliceRemove []string,
 	}
 
 	// Цикл для извлечения данных из структуры выбранной камеры
-	for _, camsRTSP := range dataRTSP {
+	for _, camRTSP := range dataRTSP {
 		// Для возможности извлечения данных
-		camsRTSPMap := camsRTSP.(map[string]interface{})
+		// camsRTSPMap := camsRTSP.(map[string]interface{})
 
 		// camRTSP - стрим камеры
-		for camRTSP := range camsRTSPMap {
+		// for camRTSP := range camsRTSPMap {
 
-			// Перебор всех камер, которые нужно удалить
-			for _, elemRemove := range resSliceRemove {
-				if camRTSP != elemRemove {
+		// Перебор всех камер, которые нужно удалить
+		for _, elemRemove := range resSliceRemove {
+			if camRTSP.Stream != elemRemove {
+				continue
+			}
+
+			for _, camDB := range dataDB {
+				if camDB.Stream.String != elemRemove {
 					continue
 				}
 
-				for _, camDB := range dataDB {
-					if camDB.Stream.String != elemRemove {
-						continue
-					}
+				err := a.rtspRepo.PostRemoveRTSP(camRTSP.Stream)
+				if err != nil {
+					a.err.NextError(err.GetError())
+					return a.err
+				}
 
-					err := a.rtspRepo.PostRemoveRTSP(camRTSP)
-					if err != nil {
-						a.err.NextError(err.GetError())
-						return a.err
-					}
-
-					// Запись в базу данных результата выполнения
-					err = a.insertIntoStatusStream("remove", ctx, camDB, err)
-					if err != nil {
-						a.err.NextError(err.GetError())
-						return a.err
-					}
+				// Запись в базу данных результата выполнения
+				err = a.insertIntoStatusStream("remove", ctx, camDB, err)
+				if err != nil {
+					a.err.NextError(err.GetError())
+					return a.err
 				}
 			}
 		}
 	}
+	// }
 	return nil
 }
 
