@@ -18,7 +18,7 @@ func main() {
 	// Чтение конфигурационного файла
 	cfg, err := config.GetConfig()
 	if err != nil {
-		cerr.NextError(err)
+		cerr.NextError(err.GetError())
 		fmt.Println(cerr.SetError(err).Error())
 		return
 	}
@@ -27,8 +27,8 @@ func main() {
 
 	// Инициализация прототипа приложения
 	app, err := service.NewApp(ctx, cfg)
-	if err != nil {
-		cerr.NextError(err)
+	if err.GetError() != nil {
+		cerr.NextError(err.GetError())
 		fmt.Println(cerr.Error())
 		// fmt.Println(cerr.SetError().Error())
 		return
@@ -39,7 +39,7 @@ func main() {
 
 	// Ожидание прерывающего сигнала
 	// app.GracefulShutdown(app.SigChan)
-	app.GracefulShutdown(ctx, cancel)
+	app.GracefulShutdown(cancel)
 }
 
 // */
