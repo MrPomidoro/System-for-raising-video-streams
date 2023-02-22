@@ -43,22 +43,69 @@ func (a *app) getDBAndApi(ctx context.Context) ([]refreshstream.RefreshStream,
 	[]rtspsimpleserver.SConf, ce.IError) {
 	var resRTSP []rtspsimpleserver.SConf
 	var resDB []refreshstream.RefreshStream
+	var err ce.IError
 
-	// dataDB := make(chan refreshstream.RefreshStream)
-	// dataRTSP := make(chan)
+	dataDBchan := make(chan refreshstream.RefreshStream)
+	dataRTSPchan := make(chan rtspsimpleserver.SConf)
 
-	// Отправка запроса к базе
-	resDB, err := a.getReqFromDB(ctx)
-	if err != nil {
-		a.err.NextError(err)
-		return nil, nil, a.err
+	select {
+	case <-ctx.Done():
+	default:
+		// Отправка запроса к базе
+		go func() {
+			// resDB, err = a.getReqFromDB(ctx, dataDBchan)
+			a.getReqFromDB(ctx, dataDBchan)
+			if err != nil {
+				a.err.NextError(err)
+				a.log.Error(a.err.Error())
+				return
+				// return nil, nil, a.err
+			}
+		}()
+
+		// Отправка запроса к rtsp
+		go func() {
+			// resRTSP, err = a.rtspRepo.GetRtsp()
+			a.rtspRepo.GetRtsp(ctx, dataRTSPchan)
+			if err != nil {
+				a.err.NextError(err)
+				a.log.Error(a.err.Error())
+				return
+				// return nil, nil, a.err
+			}
+		}()
+
+	loop:
+		for {
+			select {
+			case <-ctx.Done():
+				return resDB, resRTSP, nil
+
+			case v, ok := <-dataDBchan:
+				if !ok {
+					break loop
+				}
+				fmt.Println("v from db") // тут всё ок
+				resDB = append(resDB, v)
+			}
+		}
 	}
+	fmt.Println("resDB", resDB)
 
-	// Отправка запроса к rtsp
-	resRTSP, err = a.rtspRepo.GetRtsp()
-	if err != nil {
-		a.err.NextError(err)
-		return nil, nil, a.err
+loop2:
+	for {
+		select {
+		case <-ctx.Done():
+			return resDB, resRTSP, nil
+		case v, ok := <-dataRTSPchan:
+			time.Sleep(100 * time.Millisecond)
+			if !ok {
+				fmt.Println("закрыто ртсп ваше")
+				break loop2
+			}
+			fmt.Println("v from rtsp", v)
+			resRTSP = append(resRTSP, v)
+		}
 	}
 
 	return resDB, resRTSP, nil
