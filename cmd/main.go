@@ -6,14 +6,14 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/service"
+	service "github.com/Kseniya-cha/System-for-raising-video-streams/storage"
 )
 
 // /*
 func main() {
 	// Инициализация контекста
 	ctx, cancel := context.WithCancel(context.Background())
-	cerr := ce.NewError(ce.FatalLevel, "50.0.0", "error at main package level")
+	cerr := ce.NewError(ce.FatalLevel, "", "error at main package level")
 
 	// Чтение конфигурационного файла
 	cfg, err := config.GetConfig()
