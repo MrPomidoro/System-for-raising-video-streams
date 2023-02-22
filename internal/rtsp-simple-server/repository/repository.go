@@ -25,7 +25,7 @@ func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
 	return &rtspRepository{
 		cfg: cfg,
 		log: log,
-		err: ce.NewError(ce.ErrorLevel, "50.4.3", "rtsp-simple-server entity error at database operation level"),
+		err: ce.ErrorRTSP,
 	}
 }
 

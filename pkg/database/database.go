@@ -17,7 +17,7 @@ import (
 // дающую подключение к базе данных
 func CreateDBConnection(ctx context.Context, cfg *config.Config) (*DB, ce.IError) {
 	var db DB
-	db.err = ce.NewError(ce.FatalLevel, "50.4.1", "error at database operation level")
+	db.err = ce.ErrorDatabase
 
 	db.port = cfg.Port
 	db.host = cfg.Host

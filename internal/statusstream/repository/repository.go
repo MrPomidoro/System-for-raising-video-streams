@@ -20,7 +20,7 @@ func NewStatusStreamRepository(db *sql.DB, log *zap.Logger) *statusStreamReposit
 	return &statusStreamRepository{
 		db:  db,
 		log: log,
-		err: ce.NewError(ce.ErrorLevel, "50.4.4", "status stream entity error at database operation level"),
+		err: ce.ErrorStatusStream,
 	}
 }
 
