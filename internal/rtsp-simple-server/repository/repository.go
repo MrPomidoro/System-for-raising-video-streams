@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -29,7 +30,10 @@ func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
 }
 
 // GetRtsp отправляет GET запрос на получение данных
-func (rtsp *rtspRepository) GetRtsp() ([]rtspsimpleserver.SConf, ce.IError) {
+func (rtsp *rtspRepository) GetRtsp(ctx context.Context,
+	dataRTSPchan chan rtspsimpleserver.SConf) ([]rtspsimpleserver.SConf, ce.IError) {
+
+	defer close(dataRTSPchan)
 
 	// Формирование URL для get запроса
 	URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Url)
@@ -73,7 +77,14 @@ func (rtsp *rtspRepository) GetRtsp() ([]rtspsimpleserver.SConf, ce.IError) {
 					break
 				}
 			}
+
 			res = append(res, sconf)
+
+			select {
+			case dataRTSPchan <- sconf:
+			case <-ctx.Done():
+				return res, nil
+			}
 		}
 	}
 	// fmt.Printf("%+v\n\n", sConfs)
@@ -107,18 +118,19 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) ce.IE
 	source := fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
 
 	// Формирование джейсона для отправки
-	postJson := []byte(fmt.Sprintf(`{
-			"source": "%s",
-			"sourceProtocol": "%s",
-			"sourceOnDemandStartTimeout": "10s",
-			"sourceOnDemandCloseAfter": "10s",
-			"readUser": "",
-			"readPass": "",
-			"runOnDemandStartTimeout": "5s",
-			"runOnDemandCloseAfter": "5s",
-			"runOnReady": "%s",
-			"runOnReadyRestart": true,
-			"runOnReadRestart": false
+	postJson := []byte(fmt.Sprintf(`
+	{
+		"sourceProtocol": "%s",
+		"source": "%s",
+		"sourceOnDemandCloseAfter": "10s",
+		"sourceOnDemandStartTimeout": "10s",
+		"readPass": "",
+		"readUser": "",
+		"runOnDemandCloseAfter": "5s",
+		"runOnDemandStartTimeout": "5s",
+		"runOnReadyRestart": true,
+		"runOnReady": "%s",
+		"runOnReadRestart": false
 	}`, source, protocol, runOnReady))
 
 	// Парсинг URL
@@ -175,11 +187,12 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, scon
 	}
 
 	// Формирование джейсона для отправки
-	postJson := []byte(fmt.Sprintf(`{
-			"source": "%s",
-			"sourceProtocol": "%s",
-			"runOnReadRestart": false,
-			"runOnReady": "%s"
+	postJson := []byte(fmt.Sprintf(`
+	{
+		"sourceProtocol": "%s",
+		"source": "%s",
+		"runOnReady": "%s"
+		"runOnReadRestart": false,
 	}`, source, protocol, runOnReady))
 
 	// Парсинг URL
