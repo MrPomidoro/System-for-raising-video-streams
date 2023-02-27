@@ -120,11 +120,10 @@ func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 }
 
 /*
-equalOrIdentityData проверяет isEqualCount и identity:
-если оба - true, возвращает true;
-если isEqualCount - true, а identity - false, изменяет потоки и возвращает true;
-иначе возвращает false
-*/
+// equalOrIdentityData проверяет isEqualCount и identity:
+// если оба - true, возвращает true;
+// если isEqualCount - true, а identity - false, изменяет потоки и возвращает true;
+// иначе возвращает false
 func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bool,
 	sconfArr []rtspsimpleserver.SConf) bool {
 
@@ -142,6 +141,7 @@ func (a *app) equalOrIdentityData(ctx context.Context, isEqualCount, identity bo
 	}
 	return false
 }
+*/
 
 // differentCount выполняется в случае, если число данных в базе и в rtsp отличается, возвращает ошибку при её наличии
 func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.RefreshStream, dataRTSP []rtspsimpleserver.SConf) ce.IError {
@@ -180,32 +180,33 @@ func ConvertDBtoRTSP(cfg *config.Config, camDB refreshstream.RefreshStream) rtsp
 		protocol = "tcp"
 	}
 
-	source := fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
-
 	return rtspsimpleserver.SConf{
 		Stream: camDB.Stream.String,
 		Conf: rtspsimpleserver.Conf{
 			SourceProtocol: protocol,
 			RunOnReady:     runOnReady,
-			Source:         source,
+			Source:         fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String),
 		},
 		Id: camDB.Id,
 	}
 }
 
 // GetCamsAdd - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
-// возвращающая список камер, отсутствующих в rtsp, но имеющихся в базе
+// возвращающая мапу камер, отсутствующих в rtsp, но имеющихся в базе
 func (a *app) getCamsAdd(dataDB []refreshstream.RefreshStream,
-	dataRTSP map[string]rtspsimpleserver.SConf) []rtspsimpleserver.SConf {
+	dataRTSP map[string]rtspsimpleserver.SConf) map[string]rtspsimpleserver.SConf {
 
-	camsForAdd := []rtspsimpleserver.SConf{}
+	// camsForAdd := []rtspsimpleserver.SConf{}
+	camsForAdd := make(map[string]rtspsimpleserver.SConf)
 
 	for _, camDB := range dataDB {
+		// Если камера есть в бд, но отсутствует в ртсп, добавляется в список
 		if _, ok := dataRTSP[camDB.Stream.String]; ok {
 			continue
 		}
 		cam := ConvertDBtoRTSP(a.cfg, camDB)
-		camsForAdd = append(camsForAdd, cam)
+		camsForAdd[cam.Stream] = cam
+		// camsForAdd = append(camsForAdd, cam)
 	}
 
 	return camsForAdd
@@ -214,18 +215,19 @@ func (a *app) getCamsAdd(dataDB []refreshstream.RefreshStream,
 // GetCamsEdit - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // возвращающая список камер, имеющихся в rtsp, но отсутствующих в базе
 func (a *app) getCamsEdit(cfg *config.Config, dataDB []refreshstream.RefreshStream,
-	dataRTSP map[string]rtspsimpleserver.SConf) []rtspsimpleserver.SConf {
+	dataRTSP map[string]rtspsimpleserver.SConf) map[string]rtspsimpleserver.SConf {
 
-	camsForEdit := []rtspsimpleserver.SConf{}
+	camsForEdit := make(map[string]rtspsimpleserver.SConf)
 
 	for _, camDB := range dataDB {
-		cam := ConvertDBtoRTSP(cfg, camDB)
 
+		cam := ConvertDBtoRTSP(cfg, camDB)
+		// Проверяется, совпадают ли данные
 		if reflect.DeepEqual(cam.Conf, dataRTSP[camDB.Stream.String]) {
 			continue
 		}
-
-		camsForEdit = append(camsForEdit, cam)
+		// Если не совпадают, камера добавляется в мапу
+		camsForEdit[cam.Stream] = cam
 	}
 
 	return camsForEdit
@@ -238,6 +240,7 @@ func getCamsRemove(dataDB []refreshstream.RefreshStream,
 
 	for _, camDB := range dataDB {
 		if _, ok := dataRTSP[camDB.Stream.String]; ok {
+			// Если камера есть и в бд, и в ртсп, она удаляется из мапы
 			delete(dataRTSP, camDB.Stream.String)
 		}
 	}

@@ -14,7 +14,7 @@ addCamerasToRTSP - функция, принимающая на вход спис
 в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
-func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd []rtspsimpleserver.SConf) ce.IError {
+func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd map[string]rtspsimpleserver.SConf) ce.IError {
 
 	// Перебор всех элементов списка камер на добавление
 	for _, camAdd := range camsAdd {
@@ -85,13 +85,9 @@ editCamerasToRTSP - функция, принимающая на вход спи�
 в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
 добавляет в таблицу status_stream запись с результатом выполнения запроса
 */
-func (a *app) editCamerasToRTSP(ctx context.Context, camsForEdit []rtspsimpleserver.SConf) ce.IError {
-	// for _, camDB := range dataDB {
-	for _, cam := range camsForEdit {
+func (a *app) editCamerasToRTSP(ctx context.Context, camsForEdit map[string]rtspsimpleserver.SConf) ce.IError {
 
-		// if camDB.Stream.String != sconf.Stream {
-		// 	continue
-		// }
+	for _, cam := range camsForEdit {
 
 		if cam.Conf.SourceProtocol == "" && cam.Conf.Source == "" && (cam.Conf.RunOnReady == "" && a.cfg.Run != "") {
 			continue
@@ -110,7 +106,7 @@ func (a *app) editCamerasToRTSP(ctx context.Context, camsForEdit []rtspsimpleser
 			return a.err
 		}
 	}
-	// }
+
 	return nil
 }
 
@@ -122,14 +118,14 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	dataDB []refreshstream.RefreshStream) ce.IError {
 
 	// Получение списков камер на добавление и удаление
-	resSliceAdd := a.getCamsAdd(dataDB, dataRTSP)
+	camsAdd := a.getCamsAdd(dataDB, dataRTSP)
 	getCamsRemove(dataDB, dataRTSP)
 
-	a.log.Debug(fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", resSliceAdd, dataRTSP))
+	a.log.Debug(fmt.Sprintf("Elements to be added: %v --- Elements to be removed: %v", camsAdd, dataRTSP))
 
 	// Добавление камер
-	if resSliceAdd != nil {
-		err := a.addCamerasToRTSP(ctx, resSliceAdd)
+	if camsAdd != nil {
+		err := a.addCamerasToRTSP(ctx, camsAdd)
 		if err != nil {
 			a.err.NextError(err)
 			return a.err
