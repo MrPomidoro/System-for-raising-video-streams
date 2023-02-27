@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	service "github.com/Kseniya-cha/System-for-raising-video-streams/cmd"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	service "github.com/Kseniya-cha/System-for-raising-video-streams/storage"
 )
 
 // /*
