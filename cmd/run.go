@@ -87,7 +87,7 @@ loop:
 			case len(dataDB) > len(dataRTSP):
 
 				a.log.Info(fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", len(dataDB), len(dataRTSP)))
-				time.Sleep(5 * time.Second)
+				// time.Sleep(5 * time.Second)
 
 				err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
 				if err != nil {

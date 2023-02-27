@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
-	statusstream "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
@@ -36,24 +35,32 @@ insertIntoStatusStream принимает результат выполнени�
 func (a *app) insertIntoStatusStream(method string, ctx context.Context, cam rtspsimpleserver.SConf, err ce.IError) ce.IError {
 	if err != nil {
 		a.log.Error(err.Error())
-		insertStructStatusStream := statusstream.StatusStream{StreamId: cam.Id, StatusResponse: false}
-		err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
-		if err != nil {
-			a.err.NextError(err)
-			return a.err.SetError(fmt.Errorf("cannot insert stream %s to table status_stream", cam.Stream))
+
+		if ctx.Err() != nil {
+			return a.err.SetError(ctx.Err())
 		}
-		a.log.Debug("Success insert to table status_stream")
+
+		// insertStructStatusStream := statusstream.StatusStream{StreamId: cam.Id, StatusResponse: false}
+		// err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
+		// if err != nil {
+		// 	a.err.NextError(err)
+		// 	return a.err.SetError(fmt.Errorf("cannot insert stream %s to table status_stream", cam.Stream))
+		// }
+		// a.log.Debug("Success insert to table status_stream")
 
 		return nil
 	}
 
 	a.log.Debug(fmt.Sprintf("Success complete post request for %s config %s", method, cam.Stream))
-	insertStructStatusStream := statusstream.StatusStream{StreamId: cam.Id, StatusResponse: true}
-	err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
-	if err != nil {
-		a.err.NextError(err)
-		return a.err.SetError(fmt.Errorf("cannot insert to table status_stream"))
+	if ctx.Err() != nil {
+		return a.err.SetError(ctx.Err())
 	}
+	// insertStructStatusStream := statusstream.StatusStream{StreamId: cam.Id, StatusResponse: true}
+	// err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
+	// if err != nil {
+	// 	a.err.NextError(err)
+	// 	return a.err.SetError(fmt.Errorf("cannot insert to table status_stream"))
+	// }
 	a.log.Debug("Success insert to table status_stream")
 
 	return nil

@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
@@ -27,7 +26,8 @@ func NewRefreshStreamRepository(db *sql.DB, log *zap.Logger) *refreshStreamRepos
 // Get отправляет запрос на получение данных из таблицы
 func (s refreshStreamRepository) Get(ctx context.Context, status bool, dataDBchan chan refreshstream.RefreshStream) ce.IError {
 	var query string
-	ctx, _ = context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	defer close(dataDBchan)
 
 	switch status {
@@ -64,15 +64,15 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool, dataDBcha
 }
 
 // Update отправляет запрос на изменение поля stream_status
-func (s refreshStreamRepository) Update(ctx context.Context, stream string) ce.IError {
+// func (s refreshStreamRepository) Update(ctx context.Context, stream string) ce.IError {
 
-	query := fmt.Sprintf(refreshstream.QueryEditStatus, stream)
-	s.log.Debug("Query to database:\n\t" + query)
+// 	query := fmt.Sprintf(refreshstream.QueryEditStatus, stream)
+// 	s.log.Debug("Query to database:\n\t" + query)
 
-	_, err := s.db.ExecContext(ctx, query)
-	if err != nil {
-		return s.err.SetError(err)
-	}
+// 	_, err := s.db.ExecContext(ctx, query)
+// 	if err != nil {
+// 		return s.err.SetError(err)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
