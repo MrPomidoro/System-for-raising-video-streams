@@ -8,6 +8,7 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
+	"go.uber.org/zap"
 
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	_ "github.com/lib/pq"
@@ -87,37 +88,37 @@ func (db *DB) CloseDBConnection(cfg *config.Config) *ce.Error {
 
 // DBPing реализует переподключение к базе данных при необходимости
 // Происходит проверка контекста - если он закрыт, DBPing прекращаеи работу
-func (db *DB) DBPing(ctx context.Context, cfg *config.Config) {
-	errChan := make(chan error)
+func (db *DB) DBPing(ctx context.Context, cfg *config.Config, log *zap.Logger, errChan chan error) {
+
 	defer close(errChan)
 
 loop:
 	for {
-		db.ping(errChan)
+		if ctx.Err() != nil {
+			break loop
+		}
+		go db.ping(ctx, errChan)
 
+		time.Sleep(3 * time.Second)
 		select {
 		case <-ctx.Done():
 			break loop
 		case err := <-errChan:
-			db.log.Debug(fmt.Sprintf("cannot connect to database %s", err))
-			db.log.Debug("Try reconnect to database...")
-
-			var db DB
-			db.port = cfg.Port
-			db.host = cfg.Host
-			db.dbName = cfg.DbName
-			db.user = cfg.User
-			db.password = cfg.Password
-			db.driver = cfg.Driver
-			db.dBConnectionTimeoutSecond = cfg.DbConnectionTimeoutSecond
+			log.Debug(fmt.Sprintf("cannot connect to database: %s", err))
+			log.Info("Try reconnect to database...")
 
 			db.connectToDB(*cfg)
+		default:
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
 }
 
-func (db *DB) ping(errChan chan error) {
+func (db *DB) ping(ctx context.Context, errChan chan error) {
+	if ctx.Err() != nil {
+		close(errChan)
+		return
+	}
 	err := db.Db.Ping()
 	if err != nil {
 		errChan <- err
