@@ -6,6 +6,7 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
 )
 
 /*
@@ -17,7 +18,9 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 
 	// Получение списков камер на добавление и удаление
 	camsAdd := a.getCamsAdd(dataDB, dataRTSP)
-	getCamsRemove(dataDB, dataRTSP)
+	dataRTSPCopy := make(map[string]rtspsimpleserver.SConf)
+	methods.Transcode(dataRTSP, dataRTSPCopy)
+	getCamsRemove(dataDB, dataRTSPCopy)
 
 	// Добавление камер
 	if camsAdd != nil {
@@ -29,7 +32,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	}
 
 	// Удаление камер
-	err := a.removeCamerasToRTSP(ctx, dataRTSP)
+	err := a.removeCamerasToRTSP(ctx, dataRTSPCopy)
 	if err != nil {
 		a.err.NextError(err)
 		return a.err
