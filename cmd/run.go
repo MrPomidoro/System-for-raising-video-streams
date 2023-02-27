@@ -14,7 +14,8 @@ import (
 func (a *app) Run(ctx context.Context) {
 	a.log.Info("Start service")
 
-	ctx, _ = context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	// Канал для периодического выполнения алгоритма
 	tick := time.NewTicker(a.cfg.RefreshTime)
