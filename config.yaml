@@ -23,4 +23,4 @@ database:
 rtsp_simple_server:
   run: #usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --stream_path %s --camera_id %s
   url: http://10.100.100.228:9997 # адрес для подключения к api rtsp-simple-server
-  refreshTime: 3s # периодичность запроса и сверки
+  refreshTime: 10s # периодичность запроса и сверки
