@@ -11,6 +11,7 @@ import (
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
 	"go.uber.org/zap"
 )
 
@@ -29,10 +30,10 @@ func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
 }
 
 // GetRtsp отправляет GET запрос на получение данных
-func (rtsp *rtspRepository) GetRtsp(ctx context.Context,
-	dataRTSPchan chan rtspsimpleserver.SConf) ([]rtspsimpleserver.SConf, ce.IError) {
+func (rtsp *rtspRepository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserver.SConf, ce.IError) {
 
-	defer close(dataRTSPchan)
+	// defer close(dataRTSPchan)
+	res := make(map[string]rtspsimpleserver.SConf)
 
 	// Формирование URL для get запроса
 	URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Url)
@@ -40,7 +41,7 @@ func (rtsp *rtspRepository) GetRtsp(ctx context.Context,
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	if err != nil {
-		return nil, rtsp.err.SetError(err)
+		return res, rtsp.err.SetError(err)
 	}
 	// Закрытие тела ответа
 	defer resp.Body.Close()
@@ -48,54 +49,48 @@ func (rtsp *rtspRepository) GetRtsp(ctx context.Context,
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, rtsp.err.SetError(err)
+		return res, rtsp.err.SetError(err)
 	}
 	rtsp.log.Debug("Success read body")
 
 	var item map[string]interface{}
 	err = json.Unmarshal(body, &item)
 	if err != nil {
-		return nil, rtsp.err.SetError(err)
+		return res, rtsp.err.SetError(err)
 	}
 	if len(item) == 0 {
-		return nil, rtsp.err.SetError(fmt.Errorf("response from rtsp not received"))
+		return res, rtsp.err.SetError(fmt.Errorf("response from rtsp not received"))
 	}
 
 	rtsp.log.Debug("Success unmarshal body")
 
-	var res []rtspsimpleserver.SConf
+	// var res []rtspsimpleserver.SConf
 	for _, ress := range item {
-		ress1 := ress.(map[string]interface{})
+		item1 := ress.(map[string]interface{})
 
-		for stream, i := range ress1 {
-			sconf := rtspsimpleserver.SConf{}
-			sconf.Stream = stream
+		for stream, i := range item1 {
+			cam := rtspsimpleserver.SConf{}
+			cam.Stream = stream
 
-			im := i.(map[string]interface{})
-			for field, j := range im {
-				if field == "conf" {
-					transcode(j, &sconf.Conf)
-					break
-				}
-			}
+			fileds := i.(map[string]interface{})
+			// for field, j := range im {
+			// if field == "conf" {
+			methods.Transcode(fileds["conf"], &cam.Conf)
+			res[stream] = cam
+			// 		break
+			// 	}
+			// }
 
-			res = append(res, sconf)
+			// res = append(res, cam)
 
-			select {
-			case dataRTSPchan <- sconf:
-			case <-ctx.Done():
-				return res, nil
-			}
+			// select {
+			// case dataRTSPchan <- cam:
+			// case <-ctx.Done():
+			// return rtsp.err.SetError(ctx.Err())
+			// }
 		}
 	}
-	// fmt.Printf("%+v\n\n", sConfs)
 	return res, nil
-}
-
-func transcode(in, out interface{}) {
-	buf := new(bytes.Buffer)
-	json.NewEncoder(buf).Encode(in)
-	json.NewDecoder(buf).Decode(out)
 }
 
 // PostAddRTSP отправляет POST запрос на добавление потока

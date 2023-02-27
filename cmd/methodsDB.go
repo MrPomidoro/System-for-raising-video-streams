@@ -61,7 +61,7 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, cam rts
 	// 	a.err.NextError(err)
 	// 	return a.err.SetError(fmt.Errorf("cannot insert to table status_stream"))
 	// }
-	a.log.Debug("Success insert to table status_stream")
+	// a.log.Debug("Success insert to table status_stream")
 
 	return nil
 }

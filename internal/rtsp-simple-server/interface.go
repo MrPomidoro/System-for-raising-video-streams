@@ -8,7 +8,7 @@ import (
 
 type RTSPCommon interface {
 	// GetRtsp отправляет GET запрос на получение данных
-	GetRtsp(ctx context.Context, dataRTSPchan chan SConf) ([]SConf, ce.IError)
+	GetRtsp(ctx context.Context) (map[string]SConf, ce.IError)
 	// PostAddRTSP отправляет POST запрос на добавление потока
 	PostAddRTSP(camDB SConf) ce.IError
 	// PostRemoveRTSP отправляет POST запрос на удаление потока
