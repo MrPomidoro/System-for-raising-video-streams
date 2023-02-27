@@ -6,27 +6,34 @@ import (
 	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	"go.uber.org/zap"
 )
 
 type statusStreamRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	log *zap.Logger
+	err ce.IError
 }
 
-func NewStatusStreamRepository(db *sql.DB) *statusStreamRepository {
+func NewStatusStreamRepository(db *sql.DB, log *zap.Logger) *statusStreamRepository {
 	return &statusStreamRepository{
-		db: db,
+		db:  db,
+		log: log,
+		err: ce.ErrorStatusStream,
 	}
 }
 
 // Insert отправляет запрос на добавление лога
 func (s statusStreamRepository) Insert(ctx context.Context,
-	ss *statusstream.StatusStream) error {
+	ss *statusstream.StatusStream) ce.IError {
 
 	query := fmt.Sprintf(statusstream.InsertToStatusStream, ss.StreamId, ss.StatusResponse)
+	s.log.Debug("Query to database:\n\t" + query)
 
 	_, err := s.db.ExecContext(ctx, query)
 	if err != nil {
-		return fmt.Errorf("cannot insert: %v", err)
+		return s.err.SetError(err)
 	}
 
 	return nil

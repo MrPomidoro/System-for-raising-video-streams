@@ -1,231 +1,174 @@
 package methods
 
-import (
-	"fmt"
-
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
-	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-)
-
 /*
 CheckIdentityAndCountOfData - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp, возвращающая
   - (true, true), если количество камер в базе и в rtsp одинаковое;
   - (true, false), если количество камер в базе и в rtsp одинаковое, но сами данные отличаются;
   - (false, false), если количество камер в базе и в rtsp отличается.
 
-Также возвращается список, содержащий поля sourceProtocol и runOnReady, если в rtsp они отличаются от данных из бд,
+Также возвращает список, содержащий поля sourceProtocol и runOnReady, если в rtsp они отличаются от данных из бд,
 и стрим камеры (всегда)
 */
-func CheckIdentityAndCountOfData(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}, cfg *config.Config) (bool, bool, []rtspsimpleserver.Conf) {
+// func CheckIdentityAndCountOfData(dataDB []refreshstream.RefreshStream, dataRTSP map[string]rtspsimpleserver.Conf,
+// 	cfg *config.Config) (bool, bool, []rtspsimpleserver.SConf) {
 
-	var confArr []rtspsimpleserver.Conf
+// 	var sconfArr []rtspsimpleserver.SConf
 
-	// Счётчик для подсчёта совпадающих стримов камер
-	var count int
-	// Счётчик для подсчёта камер, у которых совпадают поля
-	var identity int
+// 	// Счётчик для подсчёта совпадающих стримов камер
+// 	var count int
+// 	// Счётчик для подсчёта камер, у которых совпадают поля
+// 	var identity int
 
-	// Перебор элементов списка структур
-	for _, camDB := range dataDB {
+// 	// Перебор элементов списка структур
+// 	for _, camDB := range dataDB {
+// 		var sconf rtspsimpleserver.SConf
 
-		// Перебор элементов мапы, _ - "items"
-		for _, camsRTSP := range dataRTSP {
+// 		// Перебор элементов мапы, _ - "items"
+// 		for _, camRTSP := range dataRTSP {
 
-			// Для возможности извлечения данных
-			camsRTSPMap := camsRTSP.(map[string]interface{})
+// 			// Если stream из базы данных не совпадает с rtsp, итерация пропускается
+// 			if camDB.Stream.String != camRTSP.Stream {
+// 				continue
+// 			}
+// 			// Если совпадает - увеличивается счётчик количества совпадающих стримов
+// 			count++
 
-			var conf rtspsimpleserver.Conf
+// 			// ------------------------------------------- //
+// 			//   Проверка одинаковости данных для камеры   //
+// 			// ------------------------------------------- //
 
-			// camStreamRTSP - стрим камеры, camFields - все поля камеры (conf, confName, source etc)
-			for camStreamRTSP, camFields := range camsRTSPMap {
+// 			sconf.Stream = camRTSP.Stream
 
-				// Если stream из базы данных не совпадает с rtsp, итерация пропускается
-				if camDB.Stream.String != camStreamRTSP {
-					continue
-				}
-				// Если совпадает - увеличивается счётчик количества совпадающих стримов
-				count++
+// 			if camRTSP.Conf.SourceProtocol == camDB.Protocol.String {
+// 				identity++
+// 			} else {
+// 				sconf.Conf.SourceProtocol = camDB.Protocol.String
+// 			}
 
-				// ------------------------------------------- //
-				//   Проверка одинаковости данных для камеры   //
-				// ------------------------------------------- //
+// 			// парсинг поля runOnReady
+// 			var runOnReady string
+// 			// sconf.Conf.RunOnReady = runOnReady
 
-				camFieldsMap := camFields.(map[string]interface{}) // для извлечения данных
+// 			if cfg.Run == "" {
+// 				if camRTSP.Conf.RunOnReady == "" {
+// 					// if camFieldMap["runOnReady"].(string) == "" {
+// 					identity++
+// 				}
+// 			} else {
+// 				runOnReady = fmt.Sprintf(cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+// 				if camRTSP.Conf.RunOnReady == runOnReady {
+// 					identity++
+// 				} else {
+// 					sconf.Conf.RunOnReady = runOnReady
+// 				}
+// 			}
 
-				// camFieldName - имя поля ("conf"), camField - значение (поля) этого поля ("sourceProtocol")
-				for camFieldName, camField := range camFieldsMap {
-					// рассматриваем только поле conf
-					if camFieldName != "conf" {
-						continue
-					}
+// 			// парсинг поля source
+// 			var source = fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
 
-					camFieldMap := camField.(map[string]interface{}) // для извлечения данных
+// 			if camRTSP.Conf.Source == source {
+// 				// if camFieldMap["source"].(string) == source {
+// 				identity++
+// 				// continue
+// 			} else {
+// 				sconf.Conf.Source = source
+// 			}
+// 			break
+// 		}
+// 		sconfArr = append(sconfArr, sconf)
+// 	}
+// 	// }
 
-					conf.Stream = camStreamRTSP
+// 	lenDB := len(dataDB)
+// 	// Если счётчик равен длине списка с базы данных, данные совпадают
+// 	countEqual, identityEqual := compareDBandRTSP(count, identity, lenDB)
+// 	return countEqual, identityEqual, sconfArr
+// }
 
-					// Если значение поля в rtsp отличается от значения в бд, данные из бд вносятся в структуру
-					if camFieldMap["sourceProtocol"].(string) == camDB.Protocol.String {
-						identity++
-					} else {
-						conf.SourceProtocol = camDB.Protocol.String
-					}
+// // compareDBandRTSP сравнивает счётчик count и длине списка с базы данных,
+// // а также счетчик identity с утроенной длиной списка с базы данных
+// func compareDBandRTSP(count, identity, lenDB int) (bool, bool) {
+// 	if count != lenDB {
+// 		return false, false
+// 	} else if count == lenDB && identity == 3*lenDB {
+// 		return true, true
+// 	} else if count == lenDB && identity != 3*lenDB {
+// 		return true, false
+// 	}
+// 	return false, false
+// }
 
-					// парсинг поля runOnReady
-					var runOnReady string
-					conf.RunOnReady = runOnReady
+// //
 
-					if cfg.Run == "" {
-						if camFieldMap["runOnReady"].(string) == "" {
-							identity++
-						}
-					} else {
-						runOnReady = fmt.Sprintf(cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
-						if camFieldMap["runOnReady"].(string) == runOnReady {
-							identity++
-						} else {
-							conf.RunOnReady = runOnReady
-						}
-					}
+// // GetLensData проверяет, что полученные ответы от rtsp и базы не пустые, и возвращает их длины
+// func GetLensData(resDB []refreshstream.RefreshStream, resRTSP map[string]rtspsimpleserver.Conf) (int, int) {
+// 	return len(resDB), len(resRTSP)
+// }
 
-					// парсинг поля source
-					var source = fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
+// //
+// //
+// //
 
-					if camFieldMap["source"].(string) == source {
-						identity++
-						continue
-					} else {
-						conf.Source = source
-					}
+// /*
+// GetCamsForRemove - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
+// возвращающая список камер, имеющихся в rtsp, но отсутствующих в базе
+// */
+// func GetCamsForRemove(dataDB []refreshstream.RefreshStream, dataRTSP []rtspsimpleserver.SConf) []string {
 
-				}
-				break
+// 	// СлаcamDB.Stream.Stringйс с камерами, отсутствующим в rtsp, но имеющимися в базе
+// 	var resSliceRemove []string
+// 	// Счётчик
+// 	var doubleRemove int
 
-			}
-			confArr = append(confArr, conf)
-		}
-	}
+// 	// Перебор элементов списка структур
+// 	for _, camDB := range dataDB {
+// 		// Перебор элементов мапы
+// 		for _, camRTSP := range dataRTSP {
+// 			if camDB.Stream.String == camRTSP.Stream {
+// 				doubleRemove++
+// 			}
 
-	lenDB := len(dataDB)
-	// Если счётчик равен длине списка с базы данных, данные совпадают
-	countEqual, identityEqual := compareDBandRTSP(count, identity, lenDB)
-	return countEqual, identityEqual, confArr
-}
+// 			// Если значение счётчика ненулевое, камера добавляется в список на удаление
+// 			if doubleRemove != 0 {
+// 				continue
+// 			}
+// 			resSliceRemove = append(resSliceRemove, camRTSP.Stream)
+// 			doubleRemove = 0
+// 		}
+// 	}
 
-// compareDBandRTSP сравнивает счётчик count и длине списка с базы данных,
-// а также счетчик identity с утроенной длиной списка с базы данных
-func compareDBandRTSP(count, identity, lenDB int) (bool, bool) {
-	if count != lenDB {
-		return false, false
-	} else if count == lenDB && identity == 3*lenDB {
-		return true, true
-	} else if count == lenDB && identity != 3*lenDB {
-		return true, false
-	}
-	return false, false
-}
+// 	return resSliceRemove
+// }
 
-//
+// /*
+// GetCamsForAdd - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
+// возвращающая список камер, отсутствующих в rtsp, но имеющихся в базе
+// */
+// func GetCamsForAdd(dataDB []refreshstream.RefreshStream, dataRTSP []rtspsimpleserver.SConf) []string {
 
-// checkEmptyData проверяет, что полученные ответы от rtsp и базы не пустые, и возвращает их длины
-func CheckEmptyData(resDB []refreshstream.RefreshStream, resRTSP map[string]interface{}) (int, int) {
-	var lenResRTSP int
+// 	// Слайс с камерами, отсутствующими в rtsp, но имеющимися в базе
+// 	var resSliceAdd []string
+// 	// Счётчик
+// 	var doubleAppend int
 
-	// Проверка, что ответ от базы данных не пустой
-	if len(resDB) == 0 {
-		return 0, 0
-	}
+// 	// Перебор камер с дб
+// 	for _, camDB := range dataDB {
+// 		// Перебор камер с rtsp
+// 		for _, camRTSP := range dataRTSP {
 
-	// Определение числа потоков с rtsp
-	for _, items := range resRTSP { // items - поле "items"
-		// мапа: ключ - номер камеры, значения - остальные поля этой камеры
-		camsMap := items.(map[string]interface{})
-		lenResRTSP = len(camsMap) // количество камер
-	}
+// 			// Если совпадают, инкрементится счётчик doubleAppend
+// 			if camRTSP.Stream == camDB.Stream.String {
+// 				doubleAppend++
+// 			}
 
-	// Проверка, что ответ от rtsp данных не пустой
-	if lenResRTSP == 0 {
-		return 0, 0
-	}
+// 			// Если значение счётчика ненулевое, камера попадает в список на добавление
+// 			if doubleAppend != 0 {
+// 				continue
+// 			}
+// 			resSliceAdd = append(resSliceAdd, camDB.Stream.String)
+// 			doubleAppend = 0
+// 		}
+// 	}
 
-	return len(resDB), lenResRTSP
-}
-
-//
-//
-//
-
-/*
-GetCamsForRemove - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
-возвращающая список камер, имеющихся в rtsp, но отсутствующих в базе
-*/
-func GetCamsForRemove(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) []string {
-
-	// Слайс с камерами, отсутствующим в rtsp, но имеющимися в базе
-	var resSliceRemove []string
-	// Счётчик
-	var doubleRemove int
-
-	// Перебор элементов мапы
-	for _, camsRTSP := range dataRTSP {
-		// Для возможности извлечения данных
-		camsRTSPMap := camsRTSP.(map[string]interface{})
-		// camRTSP - стрим камеры
-		for camRTSP := range camsRTSPMap {
-			// Перебор элементов списка структур
-			for _, camDB := range dataDB {
-
-				if camDB.Stream.String == camRTSP {
-					doubleRemove++
-					break
-				}
-			}
-
-			// Если значение счётчика ненулевое, камера добавляется в список на удаление
-			if doubleRemove == 0 {
-				resSliceRemove = append(resSliceRemove, camRTSP)
-			}
-			doubleRemove = 0
-		}
-	}
-
-	return resSliceRemove
-}
-
-/*
-GetCamsForAdd - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
-возвращающая список камер, отсутствующих в rtsp, но имеющихся в базе
-*/
-func GetCamsForAdd(dataDB []refreshstream.RefreshStream, dataRTSP map[string]interface{}) []string {
-
-	// Слайс с камерами, отсутствующим в rtsp, но имеющимися в базе
-	var resSliceAdd []string
-	// Счётчик
-	var doubleAppend int
-
-	// Перебор элементов списка структур
-	for _, camDB := range dataDB {
-
-		// Перебор элементов мапы
-		for _, camsRTSP := range dataRTSP {
-			// Для возможности извлечения данных
-			camsRTSPMap := camsRTSP.(map[string]interface{})
-			// camRTSP - стрим камеры
-			for camRTSP := range camsRTSPMap {
-				// Если stream из базы данных совпадает с rtsp, счётчики увеличиваются
-				if camDB.Stream.String == camRTSP {
-					doubleAppend++
-					break
-				}
-			}
-		}
-
-		// Если значение счётчика ненулевое, камера попадает в список на добавление
-		if doubleAppend == 0 {
-			resSliceAdd = append(resSliceAdd, camDB.Stream.String)
-		}
-		doubleAppend = 0
-	}
-
-	return resSliceAdd
-}
+// 	return resSliceAdd
+// }

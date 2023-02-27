@@ -2,33 +2,44 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/service"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	service "github.com/Kseniya-cha/System-for-raising-video-streams/storage"
 )
 
-type ctxLogger struct{}
-
+// /*
 func main() {
 	// Инициализация контекста
 	ctx, cancel := context.WithCancel(context.Background())
+	cerr := ce.NewError(ce.FatalLevel, "", "error at main package level")
 
 	// Чтение конфигурационного файла
-	cfg, err := config.ConfigI.GetConfig(config.NewConfig())
-	log := logger.NewLogger(cfg)
+	cfg, err := config.GetConfig()
 	if err != nil {
-		log.Error(err.Error())
+		cerr.NextError(err)
+		fmt.Println(cerr.SetError(err).Error())
+		return
 	}
-	ctx = context.WithValue(ctx, ctxLogger{}, log)
+
+	// log := logger.NewLogger(cfg)
 
 	// Инициализация прототипа приложения
-	app := service.NewApp(ctx, cfg)
+	app, err := service.NewApp(ctx, cfg)
+	if err != nil {
+		cerr.NextError(err)
+		fmt.Println(cerr.Error())
+		// fmt.Println(cerr.SetError().Error())
+		return
+	}
 
 	// Запуск алгоритма в отдельной горутине
-	go service.App.Run(app, ctx)
+	go app.Run(ctx)
 
 	// Ожидание прерывающего сигнала
 	// app.GracefulShutdown(app.SigChan)
-	service.App.GracefulShutdown(app, ctx, cancel)
+	app.GracefulShutdown(cancel)
 }
+
+// */

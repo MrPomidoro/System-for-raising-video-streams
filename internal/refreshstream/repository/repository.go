@@ -6,21 +6,29 @@ import (
 	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	"go.uber.org/zap"
 )
 
 type refreshStreamRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	log *zap.Logger
+	err ce.IError
 }
 
-func NewRefreshStreamRepository(db *sql.DB) *refreshStreamRepository {
+func NewRefreshStreamRepository(db *sql.DB, log *zap.Logger) *refreshStreamRepository {
 	return &refreshStreamRepository{
-		db: db,
+		db:  db,
+		log: log,
+		err: ce.ErrorRefreshStream,
 	}
 }
 
 // Get отправляет запрос на получение данных из таблицы
-func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refreshstream.RefreshStream, error) {
+func (s refreshStreamRepository) Get(ctx context.Context, status bool, dataDBchan chan refreshstream.RefreshStream) ce.IError {
 	var query string
+	ctx, _ = context.WithCancel(ctx)
+	defer close(dataDBchan)
 
 	switch status {
 	case true:
@@ -28,36 +36,42 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 	case false:
 		query = refreshstream.QueryStateFalse
 	}
+	s.log.Debug("Query to database:\n\t" + query)
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("cannot complete Get request: %v", err)
+		// return nil, s.err.SetError(err)
+		return s.err.SetError(err)
 	}
 	defer rows.Close()
 
 	// Слайс копий структур
-	refreshStreamArr := []refreshstream.RefreshStream{}
+	//refreshStreamArr := []refreshstream.RefreshStream{}
 	for rows.Next() {
 		rs := refreshstream.RefreshStream{}
 		err := rows.Scan(&rs.Id, &rs.Auth, &rs.Ip, &rs.Stream,
 			&rs.Portsrv, &rs.Sp, &rs.CamId, &rs.Record_status,
 			&rs.Stream_status, &rs.Record_state, &rs.Stream_state, &rs.Protocol)
 		if err != nil {
-			return nil, err
+			return s.err.SetError(err)
+			// return nil, s.err.SetError(err)
 		}
-		refreshStreamArr = append(refreshStreamArr, rs)
+		dataDBchan <- rs
+		// refreshStreamArr = append(refreshStreamArr, rs)
 	}
-	return refreshStreamArr, nil
+	return nil
+	// return refreshStreamArr, nil
 }
 
 // Update отправляет запрос на изменение поля stream_status
-func (s refreshStreamRepository) Update(ctx context.Context, stream string) error {
+func (s refreshStreamRepository) Update(ctx context.Context, stream string) ce.IError {
 
 	query := fmt.Sprintf(refreshstream.QueryEditStatus, stream)
+	s.log.Debug("Query to database:\n\t" + query)
 
 	_, err := s.db.ExecContext(ctx, query)
 	if err != nil {
-		return fmt.Errorf("cannot send request to update stream_status: %v", err)
+		return s.err.SetError(err)
 	}
 
 	return nil

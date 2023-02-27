@@ -5,22 +5,26 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
 // Database - структура с параметрами для базы данных
-type Database struct {
-	Port     string
-	Host     string
-	Db_name  string
-	User     string
-	Password string
+type database struct {
+	port     string
+	host     string
+	dbName   string
+	user     string
+	password string
 
-	Driver                    string
-	DBConnectionTimeoutSecond time.Duration
-	Log                       *zap.Logger
+	driver                    string
+	dBConnectionTimeoutSecond time.Duration
+	log                       *zap.Logger
+
+	err ce.IError
 }
 
 type DB struct {
-	Database
+	database
 	Db *sql.DB
 }
