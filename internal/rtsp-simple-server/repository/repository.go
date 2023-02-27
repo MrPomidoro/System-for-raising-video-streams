@@ -125,8 +125,8 @@ func (rtsp *rtspRepository) PostAddRTSP(cam rtspsimpleserver.SConf) ce.IError {
 		"sourceOnDemandStartTimeout": "10s",
 		"readPass": "",
 		"readUser": "",
-		"runOnDemandCloseAfter": "5s",
-		"runOnDemandStartTimeout": "5s",
+		"runOnDemandCloseAfter": "10s",
+		"runOnDemandStartTimeout": "10s",
 		"runOnReadyRestart": true,
 		"runOnReady": "%s",
 		"runOnReadRestart": false
@@ -187,10 +187,10 @@ func (rtsp *rtspRepository) PostEditRTSP(cam rtspsimpleserver.SConf) ce.IError {
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`
 	{
-		"sourceProtocol": "%s",
 		"source": "%s",
-		"runOnReady": "%s"
-		"runOnReadRestart": false,
+		"sourceProtocol": "%s",
+		"runOnReady": "%s",
+		"runOnReadRestart": false
 	}`, cam.Conf.Source, cam.Conf.SourceProtocol, cam.Conf.RunOnReady))
 
 	// Парсинг URL

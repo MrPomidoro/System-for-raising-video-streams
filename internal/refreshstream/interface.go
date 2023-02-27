@@ -11,7 +11,7 @@ type RefreshStreamCommon interface {
 	// Get(ctx context.Context, status bool, dataDBchan chan RefreshStream) ([]RefreshStream, ce.IError)
 	Get(ctx context.Context, status bool, dataDBchan chan RefreshStream) ce.IError
 	// Update отправляет запрос на изменение поля stream_status
-	Update(ctx context.Context, stream string) ce.IError
+	// Update(ctx context.Context, stream string) ce.IError
 }
 
 type RefreshStreamRepository interface {
