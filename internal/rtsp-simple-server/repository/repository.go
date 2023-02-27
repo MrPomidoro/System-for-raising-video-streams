@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
@@ -67,9 +66,11 @@ func (rtsp *rtspRepository) GetRtsp(ctx context.Context,
 	var res []rtspsimpleserver.SConf
 	for _, ress := range item {
 		ress1 := ress.(map[string]interface{})
+
 		for stream, i := range ress1 {
 			sconf := rtspsimpleserver.SConf{}
 			sconf.Stream = stream
+
 			im := i.(map[string]interface{})
 			for field, j := range im {
 				if field == "conf" {
@@ -98,24 +99,22 @@ func transcode(in, out interface{}) {
 }
 
 // PostAddRTSP отправляет POST запрос на добавление потока
-func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) ce.IError {
+func (rtsp *rtspRepository) PostAddRTSP(cam rtspsimpleserver.SConf) ce.IError {
 
 	// Парсинг поля RunOnReady
-	var runOnReady string
-	if rtsp.cfg.Run != "" {
-		runOnReady = fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
-	} else {
-		runOnReady = ""
-	}
-
-	// Поле протокола не должно быть пустым
-	// по умолчанию - tcp
-	var protocol = camDB.Protocol.String
-	if protocol == "" {
-		protocol = "tcp"
-	}
-
-	source := fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
+	// var runOnReady string
+	// if rtsp.cfg.Run != "" {
+	// 	runOnReady = fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+	// } else {
+	// 	runOnReady = ""
+	// }
+	// // Поле протокола не должно быть пустым
+	// // по умолчанию - tcp
+	// var protocol = camDB.Protocol.String
+	// if protocol == "" {
+	// 	protocol = "tcp"
+	// }
+	// source := fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
 
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`
@@ -131,10 +130,10 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) ce.IE
 		"runOnReadyRestart": true,
 		"runOnReady": "%s",
 		"runOnReadRestart": false
-	}`, source, protocol, runOnReady))
+	}`, cam.Conf.SourceProtocol, cam.Conf.Source, cam.Conf.RunOnReady))
 
 	// Парсинг URL
-	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "add", camDB.Stream.String)
+	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "add", cam.Stream)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostAdd)
 
 	// Запрос
@@ -150,9 +149,9 @@ func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) ce.IE
 }
 
 // PostRemoveRTSP отправляет POST запрос на удаление потока
-func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) ce.IError {
+func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP rtspsimpleserver.SConf) ce.IError {
 	// Парсинг URL
-	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "remove", camRTSP)
+	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "remove", camRTSP.Stream)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostRemove)
 
 	var buf []byte
@@ -167,24 +166,23 @@ func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) ce.IError {
 }
 
 // PostEditRTSP отправляет POST запрос на изменение потока
-func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, sconf rtspsimpleserver.SConf) ce.IError {
+func (rtsp *rtspRepository) PostEditRTSP(cam rtspsimpleserver.SConf) ce.IError {
 
-	var protocol = camDB.Protocol.String
-	if protocol == "" && sconf.Conf.SourceProtocol == "" {
-		protocol = "tcp"
-	}
-
-	var runOnReady = sconf.Conf.RunOnReady
-	if rtsp.cfg.Run != "" {
-		runOnReady = fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
-	} else {
-		runOnReady = ""
-	}
-
-	var source = sconf.Conf.Source
-	if source == "" {
-		source = fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
-	}
+	// var protocol = camDB.Protocol.String
+	// protocol := camRTSP.Conf.SourceProtocol
+	// if protocol == "" {
+	// 	protocol = "tcp"
+	// }
+	// var runOnReady string
+	// if rtsp.cfg.Run != "" {
+	// 	runOnReady = fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+	// } else {
+	// 	runOnReady = ""
+	// }
+	// var source = sconf.Conf.Source
+	// if source == "" {
+	// 	source = fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String)
+	// }
 
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`
@@ -193,10 +191,10 @@ func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, scon
 		"source": "%s",
 		"runOnReady": "%s"
 		"runOnReadRestart": false,
-	}`, source, protocol, runOnReady))
+	}`, cam.Conf.Source, cam.Conf.SourceProtocol, cam.Conf.RunOnReady))
 
 	// Парсинг URL
-	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "edit", camDB.Stream.String)
+	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "edit", cam.Stream)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostEdit)
 
 	// Запрос
