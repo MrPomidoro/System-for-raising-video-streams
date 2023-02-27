@@ -6,18 +6,13 @@ import (
 )
 
 type ErrorList struct {
-	level int    // уровень ошибки (warn, error, fatal etc)
-	code  string // код ошибки
-	err   error
+	level int // уровень ошибки (warn, error, fatal etc)
 	deep  *ErrorList
-	desc  string // напр, эта ошибка вызвана отказоустойчивостью бд
 }
 
 type ErrorErr struct {
-	level int    // уровень ошибки (warn, error, fatal etc)
-	code  string // код ошибки
+	level int // уровень ошибки (warn, error, fatal etc)
 	err   error
-	desc  string // напр, эта ошибка вызвана отказоустойчивостью бд
 }
 
 func (e ErrorErr) Error() string {

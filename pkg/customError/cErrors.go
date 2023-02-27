@@ -20,7 +20,7 @@ var (
 	ErrorStorage = &Error{
 		level: FatalLevel,
 		code:  "50.2.1",
-		desc:  "error at database operation level",
+		desc:  "error at app operation level",
 		err:   nil,
 		deep:  nil,
 	}

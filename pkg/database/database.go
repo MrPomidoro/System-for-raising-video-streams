@@ -60,19 +60,7 @@ func (db *DB) connectToDB(cfg config.Config) (*sql.DB, error) {
 		return dbSQL, nil
 	} else {
 		return nil, err
-
-		// connLatency := time.Duration(10 * time.Millisecond)
-		// time.Sleep(connLatency)
-		// connTimeout := db.dBConnectionTimeoutSecond
-		// for t := connTimeout; t > 0; t-- {
-		// 	if dbSQL != nil {
-		// 		return dbSQL, nil
-		// 	}
-		// 	time.Sleep(time.Second * 3)
 	}
-
-	// db.log.Warn(fmt.Sprintf("Time waiting of database connection exceeded limit: %v", connTimeout))
-	// return dbSQL, nil
 }
 
 // CloseDBConnection реализует отключение от базы данных
