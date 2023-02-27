@@ -90,6 +90,7 @@ loop:
 					continue
 				}
 
+				a.log.Info("Count of data is same, but the cameras are different")
 				// Если число камер совпадает, но стримы отличаются
 				err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
 				if err != nil {
@@ -168,6 +169,13 @@ loop:
 							continue
 						}
 
+						continue
+					}
+					a.log.Info("Count of data is same, but the cameras are different")
+					// Если число камер совпадает, но стримы отличаются
+					err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
+					if err != nil {
+						a.log.Error(err.Error())
 						continue
 					}
 

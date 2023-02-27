@@ -41,69 +41,24 @@ func (a *app) GracefulShutdown(cancel context.CancelFunc) {
 func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.RefreshStream,
 	map[string]rtspsimpleserver.SConf, ce.IError) {
 
-	resRTSP := make(map[string]rtspsimpleserver.SConf)
-	var resDB []refreshstream.RefreshStream
 	var err ce.IError
 
-	dataDBchan := make(chan refreshstream.RefreshStream)
-	dataRTSPchan := make(chan rtspsimpleserver.SConf)
+	// Отправка запроса к базе
+	resDB, err := a.refreshStreamRepo.Get(ctx, true)
+	if err != nil {
+		a.err.NextError(err)
+		return nil, nil, a.err
+	}
 
-	select {
-	case <-ctx.Done():
-	default:
-		// Отправка запроса к базе
-		go func() {
-			err = a.refreshStreamRepo.Get(ctx, true, dataDBchan)
-			if err != nil {
-				a.err.NextError(err)
-				a.log.Error(a.err.Error())
-				return
-			}
-		}()
-
-		// Отправка запроса к rtsp
-		go func() {
-			a.rtspRepo.GetRtsp(ctx, dataRTSPchan)
-			if err != nil {
-				a.err.NextError(err)
-				a.log.Error(a.err.Error())
-				return
-			}
-		}()
-
-		// Чтение
-	loop:
-		for {
-			select {
-			case <-ctx.Done():
-				return resDB, resRTSP, nil
-
-			case v, ok := <-dataDBchan:
-				if !ok {
-					break loop
-				}
-				resDB = append(resDB, v)
-			}
-		}
-
-	loop2:
-		for {
-			select {
-			case <-ctx.Done():
-				return resDB, resRTSP, nil
-			case v, ok := <-dataRTSPchan:
-				time.Sleep(100 * time.Millisecond)
-				if !ok {
-					break loop2
-				}
-				mu.Lock()
-				resRTSP[v.Stream] = v
-				mu.Unlock()
-			}
-		}
+	// Отправка запроса к rtsp
+	resRTSP, err := a.rtspRepo.GetRtsp(ctx)
+	if err != nil {
+		a.err.NextError(err)
+		return nil, nil, a.err
 	}
 
 	return resDB, resRTSP, nil
+	// return resDB, resRTSP, a.err.SetError(errors.New("ашипка"))
 }
 
 //
