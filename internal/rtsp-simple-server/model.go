@@ -3,6 +3,7 @@ package rtspsimpleserver
 type SConf struct {
 	Stream string `json:"stream"`
 	Conf   Conf
+	Id     int
 }
 
 type Conf struct {
