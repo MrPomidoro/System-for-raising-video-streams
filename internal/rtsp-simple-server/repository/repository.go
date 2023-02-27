@@ -11,6 +11,7 @@ import (
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
 	"go.uber.org/zap"
 )
 
@@ -74,7 +75,7 @@ func (rtsp *rtspRepository) GetRtsp(ctx context.Context) (map[string]rtspsimples
 			fileds := i.(map[string]interface{})
 			// for field, j := range im {
 			// if field == "conf" {
-			transcode(fileds["conf"], &cam.Conf)
+			methods.Transcode(fileds["conf"], &cam.Conf)
 			res[stream] = cam
 			// 		break
 			// 	}
@@ -90,12 +91,6 @@ func (rtsp *rtspRepository) GetRtsp(ctx context.Context) (map[string]rtspsimples
 		}
 	}
 	return res, nil
-}
-
-func transcode(in, out interface{}) {
-	buf := new(bytes.Buffer)
-	json.NewEncoder(buf).Encode(in)
-	json.NewDecoder(buf).Decode(out)
 }
 
 // PostAddRTSP отправляет POST запрос на добавление потока

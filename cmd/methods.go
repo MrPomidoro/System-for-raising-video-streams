@@ -79,7 +79,7 @@ func isCamsSame(dataDB []refreshstream.RefreshStream, dataRTSP map[string]rtspsi
 			}
 		}
 	}
-
+	fmt.Println(counter, len(dataDB))
 	return counter == len(dataDB)
 }
 
