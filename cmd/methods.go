@@ -239,9 +239,6 @@ func getCamsRemove(dataDB []refreshstream.RefreshStream,
 	dataRTSP map[string]rtspsimpleserver.SConf) {
 
 	for _, camDB := range dataDB {
-		if _, ok := dataRTSP[camDB.Stream.String]; ok {
-			// Если камера есть и в бд, и в ртсп, она удаляется из мапы
-			delete(dataRTSP, camDB.Stream.String)
-		}
+		delete(dataRTSP, camDB.Stream.String)
 	}
 }
