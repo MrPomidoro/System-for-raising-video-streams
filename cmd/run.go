@@ -64,18 +64,31 @@ loop:
 			case len(dataDB) == len(dataRTSP):
 				a.log.Info(fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", len(dataDB), len(dataRTSP)))
 
-				// Получение отличающихся камер
-				camsForEdit := a.getCamsEdit(a.cfg, dataDB, dataRTSP)
-				if len(camsForEdit) == 0 {
-					a.log.Info("Data is identity, waiting...")
+				// Если в бд и ртсп одни и те же камеры
+				if isCamsSame(dataDB, dataRTSP) {
+					// Получение отличающихся камер
+					camsForEdit := a.getCamsEdit(a.cfg, dataDB, dataRTSP)
+					if len(camsForEdit) == 0 {
+						a.log.Info("Data is identity, waiting...")
+						continue
+					}
+
+					// Если имеются отличия, отправляется запрос к ртсп на изменение
+					a.log.Info("Count of data is same, but the values are different")
+					err := a.editCamerasToRTSP(ctx, camsForEdit)
+					if err != nil {
+						a.log.Error(err.Error())
+						continue
+					}
+
 					continue
 				}
 
-				// Если имеются отличия, отправляется запрос к ртсп на изменение
-				a.log.Info("Count of data is same, but the values are different")
-				err := a.editCamerasToRTSP(ctx, camsForEdit)
+				// Если число камер совпадает, но стримы отличаются
+				err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
 				if err != nil {
 					a.log.Error(err.Error())
+					continue
 				}
 
 			/*

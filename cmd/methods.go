@@ -110,6 +110,24 @@ func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 //
 //
 
+// isCamsSame проверяет, что камеры в бд и в ртсп совпадают, т.е.
+// количество камер равно, но сами камеры отличаются;
+// напр., камеры в бд: 1, 2, в ртсп: 1, 3 --- камеру 2 добавить, камеру 3 удалить
+// Возвращает true, если камеры совпадают, false - если отличаются
+func isCamsSame(dataDB []refreshstream.RefreshStream, dataRTSP map[string]rtspsimpleserver.SConf) bool {
+
+	counter := 0
+	for _, camDB := range dataDB {
+		for camRTSP := range dataRTSP {
+			if camDB.Stream.String == camRTSP {
+				counter++
+			}
+		}
+	}
+
+	return counter == len(dataDB)
+}
+
 // dbToCompare приводит данные от бд к виду, который можно сравнить с ртсп
 func dbToCompare(cfg *config.Config, camDB refreshstream.RefreshStream) rtspsimpleserver.SConf {
 	// Парсинг поля RunOnReady
