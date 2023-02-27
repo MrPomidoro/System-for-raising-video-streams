@@ -6,14 +6,14 @@ import (
 
 	service "github.com/Kseniya-cha/System-for-raising-video-streams/cmd"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	cerror "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 )
 
-// /*
 func main() {
 	// Инициализация контекста
 	ctx, cancel := context.WithCancel(context.Background())
-	cerr := ce.NewError(ce.FatalLevel, "", "error at main package level")
+	cerr := cerror.NewError(cerror.FatalLevel, "", "error at main package level")
 
 	// Чтение конфигурационного файла
 	cfg, err := config.GetConfig()
@@ -23,14 +23,13 @@ func main() {
 		return
 	}
 
-	// log := logger.NewLogger(cfg)
+	log := logger.NewLogger(cfg)
 
 	// Инициализация прототипа приложения
 	app, err := service.NewApp(ctx, cfg)
 	if err != nil {
 		cerr.NextError(err)
-		fmt.Println(cerr.Error())
-		// fmt.Println(cerr.SetError().Error())
+		log.Error(cerr.Error())
 		return
 	}
 
@@ -41,5 +40,3 @@ func main() {
 	// app.GracefulShutdown(app.SigChan)
 	app.GracefulShutdown(cancel)
 }
-
-// */
