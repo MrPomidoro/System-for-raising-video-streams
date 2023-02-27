@@ -91,11 +91,9 @@ func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 				if !ok {
 					break loop
 				}
-				// fmt.Println("v from db") // тут всё ок
 				resDB = append(resDB, v)
 			}
 		}
-		fmt.Println("resDB", resDB)
 
 	loop2:
 		for {
@@ -105,10 +103,8 @@ func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 			case v, ok := <-dataRTSPchan:
 				time.Sleep(100 * time.Millisecond)
 				if !ok {
-					fmt.Println("закрыто ртсп ваше")
 					break loop2
 				}
-				fmt.Println("v from rtsp", v)
 				mu.Lock()
 				resRTSP[v.Stream] = v
 				mu.Unlock()
@@ -164,7 +160,7 @@ func (a *app) differentCount(ctx context.Context, dataDB []refreshstream.Refresh
 // 	rtspsimpleserver.SConf
 // }
 
-func ConvertDBtoRTSP(cfg *config.Config, camDB refreshstream.RefreshStream) rtspsimpleserver.SConf {
+func DBtoCompare(cfg *config.Config, camDB refreshstream.RefreshStream) rtspsimpleserver.SConf {
 	// Парсинг поля RunOnReady
 	var runOnReady string
 	if cfg.Run != "" {
@@ -204,12 +200,20 @@ func (a *app) getCamsAdd(dataDB []refreshstream.RefreshStream,
 		if _, ok := dataRTSP[camDB.Stream.String]; ok {
 			continue
 		}
-		cam := ConvertDBtoRTSP(a.cfg, camDB)
+		cam := DBtoCompare(a.cfg, camDB)
 		camsForAdd[cam.Stream] = cam
 		// camsForAdd = append(camsForAdd, cam)
 	}
 
 	return camsForAdd
+}
+
+func RTSPtoCompare(camRTSP rtspsimpleserver.SConf) rtspsimpleserver.Conf {
+	return rtspsimpleserver.Conf{
+		SourceProtocol: camRTSP.Conf.SourceProtocol,
+		RunOnReady:     camRTSP.Conf.RunOnReady,
+		Source:         camRTSP.Conf.Source,
+	}
 }
 
 // GetCamsEdit - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
@@ -221,13 +225,14 @@ func (a *app) getCamsEdit(cfg *config.Config, dataDB []refreshstream.RefreshStre
 
 	for _, camDB := range dataDB {
 
-		cam := ConvertDBtoRTSP(cfg, camDB)
+		cam := DBtoCompare(cfg, camDB)
 		// Проверяется, совпадают ли данные
-		if reflect.DeepEqual(cam.Conf, dataRTSP[camDB.Stream.String]) {
+		if reflect.DeepEqual(cam.Conf, RTSPtoCompare(dataRTSP[camDB.Stream.String])) {
 			continue
 		}
 		// Если не совпадают, камера добавляется в мапу
 		camsForEdit[cam.Stream] = cam
+		// fmt.Printf("\n%+v\n%+v\n\n", cam.Conf, RTSPtoCompare(dataRTSP[camDB.Stream.String]))
 	}
 
 	return camsForEdit
