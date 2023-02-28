@@ -4,14 +4,14 @@ import (
 	"context"
 )
 
-type RefreshStreamCommon interface {
+type Common interface {
 	Get(ctx context.Context, status bool) ([]RefreshStream, error)
 }
 
-type RefreshStreamUseCase interface {
-	RefreshStreamCommon
+type UseCase interface {
+	Common
 }
 
-type RefreshStreamRepository interface {
-	RefreshStreamCommon
+type Repository interface {
+	Common
 }

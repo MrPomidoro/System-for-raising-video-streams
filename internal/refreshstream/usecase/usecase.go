@@ -9,10 +9,10 @@ import (
 
 type refreshStreamUseCase struct {
 	db   *sql.DB
-	repo refreshstream.RefreshStreamRepository
+	repo refreshstream.Repository
 }
 
-func NewRefreshStreamUseCase(repo refreshstream.RefreshStreamRepository,
+func NewRefreshStreamUseCase(repo refreshstream.Repository,
 	db *sql.DB) *refreshStreamUseCase {
 	return &refreshStreamUseCase{
 		db:   db,

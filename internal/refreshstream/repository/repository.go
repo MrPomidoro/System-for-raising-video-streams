@@ -39,8 +39,8 @@ func (s refreshStreamRepository) Get(ctx context.Context, status bool) ([]refres
 	for rows.Next() {
 		rs := refreshstream.RefreshStream{}
 		err := rows.Scan(&rs.Id, &rs.Auth, &rs.Ip, &rs.Stream,
-			&rs.Portsrv, &rs.Sp, &rs.CamId, &rs.Record_status,
-			&rs.Stream_status, &rs.Record_state, &rs.Stream_state, &rs.Protocol)
+			&rs.Portsrv, &rs.Sp, &rs.CamId, &rs.RecordStatus,
+			&rs.StreamStatus, &rs.RecordState, &rs.StreamState, &rs.Protocol)
 		if err != nil {
 			return nil, err
 		}
