@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
@@ -61,7 +60,7 @@ func (s repository) Get(ctx context.Context, status bool) ([]refreshstream.Strea
 		}
 		res = append(res, rs)
 	}
-	fmt.Println(res)
+
 	return res, nil
 }
 
