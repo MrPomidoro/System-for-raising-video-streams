@@ -26,9 +26,6 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 
 	// Добавление камер
 	if camsAdd != nil {
-		if ctx.Err() != nil {
-			return a.err.SetError(ctx.Err())
-		}
 		err := a.addCamerasToRTSP(ctx, camsAdd)
 		if err != nil {
 			a.err.NextError(err)
@@ -38,10 +35,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 
 	// Удаление камер
 	if len(dataRTSPCopy) != 0 {
-		if ctx.Err() != nil {
-			return a.err.SetError(ctx.Err())
-		}
-		err := a.removeCamerasToRTSP(ctx, dataRTSPCopy)
+		err := a.removeCamerasFromRTSP(ctx, dataRTSPCopy)
 		if err != nil {
 			a.err.NextError(err)
 			return a.err
@@ -63,7 +57,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd map[string]rtspsimpl
 		if ctx.Err() != nil {
 			return a.err.SetError(ctx.Err())
 		}
-		err := a.rtspRepo.PostAddRTSP(camAdd)
+		err := a.rtspRepo.PostAddRTSP(ctx, camAdd)
 		if err != nil {
 			a.err.NextError(err)
 			return a.err
@@ -98,7 +92,7 @@ func (a *app) removeCamerasFromRTSP(ctx context.Context, dataRTSP map[string]rts
 			return a.err.SetError(ctx.Err())
 		}
 
-		err := a.rtspRepo.PostRemoveRTSP(cam)
+		err := a.rtspRepo.PostRemoveRTSP(ctx, cam)
 		if err != nil {
 			a.err.NextError(err)
 			return a.err
@@ -130,7 +124,7 @@ func (a *app) editCamerasToRTSP(ctx context.Context, camsForEdit map[string]rtsp
 			return a.err.SetError(ctx.Err())
 		}
 
-		err := a.rtspRepo.PostEditRTSP(cam)
+		err := a.rtspRepo.PostEditRTSP(ctx, cam)
 		if err != nil {
 			a.err.NextError(err)
 			return a.err
