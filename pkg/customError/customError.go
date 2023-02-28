@@ -13,19 +13,9 @@ const (
 
 type IError interface {
 	Error() string
-
-	//SetLevel(level int)
-	//SetCode(code string)
-	//SetDesc(desc string)
 	SetError(err error) *Error
-
-	//NextError(err IError)
-
-	//getError() *Error
 }
 
-// Error - ошибка, представленная в виде односвязного списка,
-// удовлетворяет интерфейсу Error
 type Error struct {
 	// уровень ошибки (warn, error, fatal etc)
 	level int
@@ -35,8 +25,6 @@ type Error struct {
 	desc string
 	// текст ошибки
 	err error
-	// ссылка на структуру вложенной ошибки
-	deep *Error
 }
 
 // NewError инициализирует новую ошибку
@@ -48,21 +36,16 @@ func NewError(level int, code, desc string) IError {
 	}
 }
 
+// SetError настривает новый текст поля err,
+// возвращает структуру типа Error
+func (e *Error) SetError(err error) *Error {
+	e.err = err
+	return e
+}
+
 func (e *Error) Error() string {
 	output := strings.Builder{}
 	output.WriteString("\n")
-
-	for e.deep != nil {
-		if e.err == nil {
-			output.WriteString(fmt.Sprintf("\tlevel: %s, code: %s, description: %s\n",
-				e.defineLevel(), e.code, e.desc))
-		} else {
-			output.WriteString(fmt.Sprintf("\tlevel: %s, code: %s, description: %s, error: %v\n",
-				e.defineLevel(), e.code, e.desc, e.err))
-		}
-
-		e = e.deep
-	}
 
 	output.WriteString(fmt.Sprintf("\tlevel: %s, code: %s, description: %s, error: %v",
 		e.defineLevel(), e.code, e.desc, e.err))
@@ -94,13 +77,6 @@ func (e *Error) defineLevel() string {
 //	return e
 //}
 
-// SetError настривает новый текст поля err,
-// возвращает структуру типа Error
-func (e *Error) SetError(err error) *Error {
-	e.err = err
-	return e
-}
-
 //// SetLevel настривает новый текст поля level
 //func (e *Error) SetLevel(level int) {
 //	e.level = level
@@ -116,6 +92,6 @@ func (e *Error) SetError(err error) *Error {
 //	e.desc = desc
 //}
 
-func (e *Error) Marshal() {}
+// func (e *Error) Marshal() {}
 
-func (e *Error) UnMarshal() {}
+// func (e *Error) UnMarshal() {}

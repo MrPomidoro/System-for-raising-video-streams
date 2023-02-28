@@ -79,9 +79,6 @@ func readFlags(cfg *Config) {
 	flag.DurationVar(&cfg.WriteTimeout, "wriTetimeout", cfg.WriteTimeout, "The writetimeout parameter")
 	flag.DurationVar(&cfg.IdleTimeout, "idleTimeout", cfg.IdleTimeout, "The idletimeout parameter")
 
-	// var port int
-	// flag.Int("port", port, "The port parameter")
-	// cfg.Port = uint16(port)
 	flag.IntVar(&cfg.Port, "port", cfg.Port, "The host parameter")
 	flag.StringVar(&cfg.Host, "host", cfg.Host, "The host parameter")
 	flag.StringVar(&cfg.DbName, "dbName", cfg.DbName, "The db_name parameter")

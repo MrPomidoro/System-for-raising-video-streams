@@ -36,12 +36,8 @@ type app struct {
 
 // NewApp инициализирует прототип приложения
 func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
-	err := ce.ErrorStorage
+	err := ce.ErrorApp
 	log := logger.NewLogger(cfg)
-
-	// if !cfg.DatabaseConnect {
-	// 	return nil, err.SetError(fmt.Errorf("no permission to connect to database"))
-	// }
 
 	db, e := postgresql.NewDB(ctx, &cfg.Database, log)
 	if e != nil {

@@ -25,24 +25,25 @@ func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, 
 	return &DB{pool}, nil
 }
 
-func (db *DB) keepAlive(errCh chan<- error) {
+func (db *DB) KeepAlive(errCh chan<- error) {
 	for {
-		select {
-		case <-time.After(3 * time.Second):
-			fmt.Println("Time after 3 second")
-			// Выполняем тестовый запрос, чтобы убедиться, что соединение работает
-			conn, err := db.Conn.Acquire(context.Background())
-			if err != nil {
-				errCh <- fmt.Errorf("failed to acquire connection: %w", err)
-				continue
-			}
-			defer conn.Release()
-
-			if _, err = conn.Exec(context.Background(), "SELECT 1"); err != nil {
-				errCh <- fmt.Errorf("failed to execute test query: %w", err)
-				continue
-			}
+		time.Sleep(3 * time.Second)
+		// select {
+		// case <-time.After(3 * time.Second):
+		fmt.Println("Time after 3 second")
+		// Выполняем тестовый запрос, чтобы убедиться, что соединение работает
+		conn, err := db.Conn.Acquire(context.Background())
+		if err != nil {
+			errCh <- fmt.Errorf("failed to acquire connection: %w", err)
+			continue
 		}
+		defer conn.Release()
+
+		if _, err = conn.Exec(context.Background(), "SELECT 1"); err != nil {
+			errCh <- fmt.Errorf("failed to execute test query: %w", err)
+			continue
+		}
+		// }
 	}
 }
 
@@ -76,7 +77,7 @@ func GetConfig(cfg *config.Database, log *zap.Logger) *pgxpool.Config {
 	config.ConnConfig.Database = cfg.DbName
 
 	// Устанавливаем максимальное количество соединений в пуле
-	config.MaxConns = 10
+	config.MaxConns = 1
 
 	return config
 }
