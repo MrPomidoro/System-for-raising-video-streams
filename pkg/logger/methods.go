@@ -38,7 +38,7 @@ func (l *logger) zapOpts() []zap.Option {
 	return []zap.Option{zap.AddCaller()}
 }
 
-// zapcore methods
+// zapcore transcode
 func (l *logger) newJSONEncode(cfg zapcore.EncoderConfig) zapcore.Encoder {
 	return zapcore.NewJSONEncoder(cfg)
 }
@@ -59,7 +59,7 @@ func (l *logger) addSync(w io.Writer) zapcore.WriteSyncer {
 	return zapcore.AddSync(w)
 }
 
-// zap methods
+// zap transcode
 func (l *logger) newProductionEncoderConfig() zapcore.EncoderConfig {
 	return zap.NewProductionEncoderConfig()
 }

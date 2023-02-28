@@ -6,7 +6,7 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/transcode"
 )
 
 /*
@@ -21,7 +21,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	// Получение мапы камер на удаление; создаётся копия исходной мапы
 	// с помощью метода Transcode, чтобы исходная не изменялась
 	dataRTSPCopy := make(map[string]rtspsimpleserver.SConf)
-	methods.Transcode(dataRTSP, dataRTSPCopy)
+	transcode.Transcode(dataRTSP, dataRTSPCopy)
 	a.getCamsRemove(dataDB, dataRTSPCopy)
 
 	// Добавление камер

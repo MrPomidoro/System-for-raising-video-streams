@@ -11,7 +11,7 @@ import (
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/transcode"
 	"go.uber.org/zap"
 )
 
@@ -73,7 +73,7 @@ func (rtsp *rtspRepository) GetRtsp(ctx context.Context) (map[string]rtspsimples
 			cam.Stream = stream
 
 			fileds := i.(map[string]interface{})
-			methods.Transcode(fileds["conf"], &cam.Conf)
+			transcode.Transcode(fileds["conf"], &cam.Conf)
 			res[stream] = cam
 		}
 	}
