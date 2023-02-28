@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -59,9 +58,7 @@ loop:
 
 			camsAdd := a.getCamsAdd(dataDB, dataRTSP)
 
-			// Получение отличающихся камер поля
 			camsEdit := a.getCamsEdit(dataDB, dataRTSP, camsAdd, camsRemove)
-			fmt.Println(camsEdit)
 
 			if len(camsEdit) == 0 && (len(camsRemove) == 0 || len(camsAdd) == 0) {
 				a.log.Info("Data is identity, waiting...")
@@ -80,7 +77,6 @@ loop:
 			if len(camsEdit) != 0 {
 				// Если имеются отличия, отправляется запрос к ртсп на изменение
 				a.log.Info("Cameras is same, but its values are different")
-				fmt.Println("camsForEdit", camsEdit)
 				err := a.editCamerasToRTSP(ctx, camsEdit)
 				if err != nil {
 					a.log.Error(err.Error())

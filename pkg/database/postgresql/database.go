@@ -19,7 +19,6 @@ func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, 
 	}
 
 	c := GetConfig(cfg, log)
-	fmt.Println(c.Config)
 	conn, err := pgx.ConnectConfig(ctx, c)
 	if err != nil {
 		return nil, err
