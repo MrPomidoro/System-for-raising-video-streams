@@ -36,6 +36,13 @@ func NewError(level int, code, desc string) IError {
 	}
 }
 
+// SetError настривает новый текст поля err,
+// возвращает структуру типа Error
+func (e *Error) SetError(err error) *Error {
+	e.err = err
+	return e
+}
+
 func (e *Error) Error() string {
 	output := strings.Builder{}
 	output.WriteString("\n")
@@ -69,13 +76,6 @@ func (e *Error) defineLevel() string {
 //func (e *Error) getError() *Error {
 //	return e
 //}
-
-// SetError настривает новый текст поля err,
-// возвращает структуру типа Error
-func (e *Error) SetError(err error) *Error {
-	e.err = err
-	return e
-}
 
 //// SetLevel настривает новый текст поля level
 //func (e *Error) SetLevel(level int) {
