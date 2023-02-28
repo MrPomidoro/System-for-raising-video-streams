@@ -28,7 +28,6 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	if camsAdd != nil {
 		err := a.addCamerasToRTSP(ctx, camsAdd)
 		if err != nil {
-			a.err.NextError(err)
 			return a.err
 		}
 	}

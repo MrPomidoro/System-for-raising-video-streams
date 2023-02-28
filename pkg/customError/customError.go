@@ -14,14 +14,14 @@ const (
 type IError interface {
 	Error() string
 
-	SetLevel(level int)
-	SetCode(code string)
-	SetDesc(desc string)
+	//SetLevel(level int)
+	//SetCode(code string)
+	//SetDesc(desc string)
 	SetError(err error) *Error
 
-	NextError(err IError)
+	//NextError(err IError)
 
-	getError() *Error
+	//getError() *Error
 }
 
 // Error - ошибка, представленная в виде односвязного списка,
@@ -48,7 +48,7 @@ func NewError(level int, code, desc string) IError {
 	}
 }
 
-func (e Error) Error() string {
+func (e *Error) Error() string {
 	output := strings.Builder{}
 	output.WriteString("\n")
 
@@ -61,7 +61,7 @@ func (e Error) Error() string {
 				e.defineLevel(), e.code, e.desc, e.err))
 		}
 
-		e = *e.deep
+		e = e.deep
 	}
 
 	output.WriteString(fmt.Sprintf("\tlevel: %s, code: %s, description: %s, error: %v",
@@ -84,15 +84,15 @@ func (e *Error) defineLevel() string {
 	}
 }
 
-// NextError создаёт новую ошибку, наследуя переданную deep
-// level, code, desc, err задаются отдельно функциями SetXXX
-func (e *Error) NextError(deep IError) {
-	e.deep = deep.getError()
-}
-
-func (e *Error) getError() *Error {
-	return e
-}
+//// NextError создаёт новую ошибку, наследуя переданную deep
+//// level, code, desc, err задаются отдельно функциями SetXXX
+//func (e *Error) NextError(deep IError) {
+//	e.deep = deep.getError()
+//}
+//
+//func (e *Error) getError() *Error {
+//	return e
+//}
 
 // SetError настривает новый текст поля err,
 // возвращает структуру типа Error
@@ -101,20 +101,20 @@ func (e *Error) SetError(err error) *Error {
 	return e
 }
 
-// SetLevel настривает новый текст поля level
-func (e *Error) SetLevel(level int) {
-	e.level = level
-}
-
-// SetCode настривает новый текст поля code
-func (e *Error) SetCode(code string) {
-	e.code = code
-}
-
-// SetDesc настривает новый текст поля desc
-func (e *Error) SetDesc(desc string) {
-	e.desc = desc
-}
+//// SetLevel настривает новый текст поля level
+//func (e *Error) SetLevel(level int) {
+//	e.level = level
+//}
+//
+//// SetCode настривает новый текст поля code
+//func (e *Error) SetCode(code string) {
+//	e.code = code
+//}
+//
+//// SetDesc настривает новый текст поля desc
+//func (e *Error) SetDesc(desc string) {
+//	e.desc = desc
+//}
 
 func (e *Error) Marshal() {}
 

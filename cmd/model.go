@@ -45,7 +45,6 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 
 	db, e := database.CreateDBConnection(ctx, cfg)
 	if e != nil {
-		err.NextError(e)
 		return nil, err
 	}
 
