@@ -31,7 +31,7 @@ func (a *app) GracefulShutdown(cancel context.CancelFunc) {
 		a.log.Info("Found fatal error, exiting")
 	}
 
-	a.db.CloseDBConnection()
+	a.db.Close()
 
 	a.log.Debug("Waiting...")
 }

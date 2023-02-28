@@ -28,7 +28,7 @@ func (a *app) Run(ctx context.Context) {
 
 	errChan := make(chan error)
 	// Переподключение при необходимости
-	go a.db.DBPing(ctx, a.log, errChan)
+	go a.db.Ping(ctx, a.log, errChan)
 
 	var mu sync.Mutex
 
