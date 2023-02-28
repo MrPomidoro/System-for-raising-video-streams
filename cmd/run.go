@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/transcode"
 )
 
@@ -53,7 +54,8 @@ loop:
 				continue
 			}
 
-			camsRemove := transcode.CopyMap(dataRTSP)
+			camsRemove := make(map[string]rtspsimpleserver.SConf)
+			transcode.Transcode(dataRTSP, &camsRemove)
 			a.getCamsRemove(dataDB, camsRemove)
 
 			camsAdd := a.getCamsAdd(dataDB, dataRTSP)
