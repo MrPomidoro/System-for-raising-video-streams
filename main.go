@@ -18,7 +18,6 @@ func main() {
 	// Чтение конфигурационного файла
 	cfg, err := config.GetConfig()
 	if err != nil {
-		cerr.NextError(err)
 		fmt.Println(cerr.SetError(err).Error())
 		return
 	}
@@ -28,7 +27,6 @@ func main() {
 	// Инициализация прототипа приложения
 	app, err := service.NewApp(ctx, cfg)
 	if err != nil {
-		cerr.NextError(err)
 		log.Error(cerr.Error())
 		return
 	}
