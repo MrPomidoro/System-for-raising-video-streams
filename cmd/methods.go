@@ -157,7 +157,9 @@ func (a *app) getCamsAdd(dataDB []refreshstream.Stream,
 func (a *app) getCamsRemove(dataDB []refreshstream.Stream,
 	dataRTSP map[string]rtspsimpleserver.SConf) {
 
+	// fmt.Println("dataRTSP old", dataRTSP)
 	for _, camDB := range dataDB {
 		delete(dataRTSP, camDB.Stream.String)
 	}
+	fmt.Println("dataRTSP new", dataRTSP)
 }
