@@ -62,18 +62,18 @@ func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 // случай, когда количество камер равно, но сами камеры отличаются;
 // напр., камеры в бд: 1, 2, в ртсп: 1, 3 --- камеру 2 добавить, камеру 3 удалить.
 // Возвращает true, если камеры совпадают, false - если отличаются
-func isCamsSame(dataDB []refreshstream.Stream, dataRTSP map[string]rtspsimpleserver.SConf) bool {
-	counter := 0
-	for _, camDB := range dataDB {
-		for camRTSP := range dataRTSP {
-			if camDB.Stream.String == camRTSP {
-				counter++
-			}
-		}
-	}
-	fmt.Println(counter, len(dataDB))
-	return counter == len(dataDB)
-}
+// func isCamsSame(dataDB []refreshstream.Stream, dataRTSP map[string]rtspsimpleserver.SConf) bool {
+// 	counter := 0
+// 	for _, camDB := range dataDB {
+// 		for camRTSP := range dataRTSP {
+// 			if camDB.Stream.String == camRTSP {
+// 				counter++
+// 			}
+// 		}
+// 	}
+// 	fmt.Println(counter, len(dataDB))
+// 	return counter == len(dataDB)
+// }
 
 // dbToCompare приводит данные от бд к виду, который можно сравнить с ртсп
 func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtspsimpleserver.SConf {
@@ -114,8 +114,8 @@ func rtspToCompare(camRTSP rtspsimpleserver.SConf) rtspsimpleserver.Conf {
 
 // GetCamsEdit - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // возвращающая мапу камер, поля которых в бд и ртсп отличаются
-func (a *app) getCamsEdit(dataDB []refreshstream.Stream,
-	dataRTSP map[string]rtspsimpleserver.SConf) map[string]rtspsimpleserver.SConf {
+func (a *app) getCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtspsimpleserver.SConf,
+	camsAdd map[string]rtspsimpleserver.SConf, camsRemove map[string]rtspsimpleserver.SConf) map[string]rtspsimpleserver.SConf {
 
 	camsForEdit := make(map[string]rtspsimpleserver.SConf)
 
@@ -126,7 +126,14 @@ func (a *app) getCamsEdit(dataDB []refreshstream.Stream,
 		if reflect.DeepEqual(cam.Conf, rtspToCompare(dataRTSP[camDB.Stream.String])) {
 			continue
 		}
-		// Если не совпадают, камера добавляется в мапу
+		if _, ok := camsAdd[cam.Stream]; ok {
+			continue
+		}
+		if _, ok := camsRemove[cam.Stream]; ok {
+			continue
+		}
+		// Если камеры не совпадают и отсутствуют в списках на добавление и удаление,
+		// камера добавляется в мапу
 		camsForEdit[cam.Stream] = cam
 	}
 
@@ -161,5 +168,4 @@ func (a *app) getCamsRemove(dataDB []refreshstream.Stream,
 	for _, camDB := range dataDB {
 		delete(dataRTSP, camDB.Stream.String)
 	}
-	fmt.Println("dataRTSP new", dataRTSP)
 }

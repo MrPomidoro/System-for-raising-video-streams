@@ -10,19 +10,17 @@ import (
 
 // addAndRemoveData - метод, в которым выполняются функции, получающие списки
 // отличающихся данных, выполняется удаление лишних камер и добавление недостающих
-func (a *app) addAndRemoveData(ctx context.Context, camsRemove map[string]rtspsimpleserver.SConf,
-	dataDB []refreshstream.Stream) ce.IError {
+func (a *app) addAndRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
+	dataRTSP map[string]rtspsimpleserver.SConf, camsAdd map[string]rtspsimpleserver.SConf,
+	camsRemove map[string]rtspsimpleserver.SConf) ce.IError {
 
 	// Получение мапы камер на добавление
-	camsAdd := a.getCamsAdd(dataDB, camsRemove)
+	// camsAdd := a.getCamsAdd(dataDB, dataRTSP)
 	// Получение мапы камер на удаление; создаётся копия исходной мапы
 	// с помощью метода Transcode, чтобы исходная не изменялась
-
 	// camsRemove := make(map[string]rtspsimpleserver.SConf)
 	// transcode.CopyMap(dataRTSP)
 	// fmt.Println("camsRemove addAndRemoveData", camsRemove)
-
-	// a.getCamsRemove(dataDB, camsRemove)
 	// fmt.Println("camsAdd", camsAdd, "\ncamsRemove", camsRemove)
 
 	if len(camsAdd) != 0 || len(camsRemove) != 0 {
