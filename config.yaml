@@ -18,8 +18,8 @@ database:
   user: sysadmin
   password: w3X{77PpCR
   driver: postgres
-  databaseConnect: true # разрешение на коннект
-  dbConnectionTimeoutSecond: 10s
+  connect: true # разрешение на коннект
+  connectionTimeout: 10s
 rtsp:
   run: #usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --stream_path %s --camera_id %s
   refreshTime: 10s # периодичность запроса и сверки

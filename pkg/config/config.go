@@ -36,14 +36,14 @@ type Server struct {
 
 // Database содержит параметры базы данных
 type Database struct {
-	Port              uint16        `yaml:"port"`
+	Port              int           `yaml:"port"`
 	Host              string        `yaml:"host"`
 	DbName            string        `yaml:"dbName"`
 	User              string        `yaml:"user"`
 	Password          string        `yaml:"password"`
 	Driver            string        `yaml:"driver"`
-	Connect           bool          `yaml:"databaseConnect"`
-	ConnectionTimeout time.Duration `yaml:"dbConnectionTimeoutSecond"`
+	Connect           bool          `yaml:"connect"`
+	ConnectionTimeout time.Duration `yaml:"connectionTimeout"`
 }
 
 // Rtsp RtspSimpleServer содержит параметры rtsp_simple_server
@@ -51,12 +51,12 @@ type Rtsp struct {
 	Run         string        `yaml:"run"`
 	Url         string        `yaml:"url"`
 	RefreshTime time.Duration `yaml:"refreshTime"`
-	Api         api
+	Api         api           `yaml:"api"`
 }
 
 type api struct {
-	UrlGet    string
-	UrlAdd    string
-	UrlRemove string
-	UrlEdit   string
+	UrlGet    string `yaml:"urlGet"`
+	UrlAdd    string `yaml:"urlAdd"`
+	UrlRemove string `yaml:"urlRemove"`
+	UrlEdit   string `yaml:"urlEdit"`
 }

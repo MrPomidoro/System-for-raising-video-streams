@@ -40,9 +40,9 @@ loop:
 
 		// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 		case <-tick.C:
-			// if a.db.Ping() != nil {
-			// 	continue loop
-			// }
+			if a.db.Conn.Ping(ctx) != nil {
+				continue loop
+			}
 
 			// Получение данных от базы данных и от rtsp
 			dataDB, dataRTSP, err := a.getDBAndApi(ctx, &mu)

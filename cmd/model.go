@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"os"
+
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rsrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository"
@@ -14,7 +14,6 @@ import (
 	ssrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"go.uber.org/zap"
 )
@@ -40,11 +39,11 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	err := ce.ErrorStorage
 	log := logger.NewLogger(cfg)
 
-	if !cfg.DatabaseConnect {
-		return nil, err.SetError(fmt.Errorf("no permission to connect to database"))
-	}
+	// if !cfg.DatabaseConnect {
+	// 	return nil, err.SetError(fmt.Errorf("no permission to connect to database"))
+	// }
 
-	db, e := database.Connection(cfg)
+	db, e := postgresql.NewDB(ctx, &cfg.Database, log)
 	if e != nil {
 		return nil, err.SetError(e)
 	}
@@ -52,8 +51,8 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	sigChan := make(chan os.Signal, 1)
 	doneChan := make(chan struct{})
 
-	repoRS := rsrepository.NewRefreshStreamRepository(db.Db, log)
-	repoSS := ssrepository.NewStatusStreamRepository(db.Db, log)
+	repoRS := rsrepository.NewRefreshStreamRepository(db, log)
+	repoSS := ssrepository.NewStatusStreamRepository(db, log)
 	repoRTSP := rtsprepository.NewRTSPRepository(cfg, log)
 
 	return &app{
