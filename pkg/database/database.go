@@ -97,6 +97,7 @@ loop:
 
 			_, err = db.db()
 			if err != nil {
+				log.Error(db.err.SetError(err).Error())
 				continue
 			}
 		default:
