@@ -24,7 +24,6 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, cam rts
 		// insertStructStatusStream := statusstream.StatusStream{StreamId: cam.Id, StatusResponse: false}
 		// err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 		// if err != nil {
-		// 	a.err.NextError(err)
 		// 	return a.err.SetError(fmt.Errorf("cannot insert stream %s to table status_stream", cam.Stream))
 		// }
 		// a.log.Debug("Success insert to table status_stream")
@@ -41,7 +40,6 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, cam rts
 	// insertStructStatusStream := statusstream.StatusStream{StreamId: cam.Id, StatusResponse: true}
 	// err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 	// if err != nil {
-	// 	a.err.NextError(err)
 	// 	return a.err.SetError(fmt.Errorf("cannot insert to table status_stream"))
 	// }
 	// a.log.Debug("Success insert to table status_stream")
