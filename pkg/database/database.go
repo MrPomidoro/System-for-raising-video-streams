@@ -30,8 +30,12 @@ func CreateDBConnection(ctx context.Context, cfg *config.Config) (*DB, ce.IError
 	db.dBConnectionTimeoutSecond = cfg.DbConnectionTimeoutSecond
 	db.log = logger.NewLogger(cfg)
 
+	if ctx.Err() != nil {
+		return nil, db.err.SetError(ctx.Err())
+	}
+
 	var err error
-	db.Db, err = db.connectToDB(*cfg)
+	db.Db, err = db.connectToDB()
 	if err != nil {
 		return nil, db.err.SetError(err)
 	}
@@ -40,7 +44,7 @@ func CreateDBConnection(ctx context.Context, cfg *config.Config) (*DB, ce.IError
 }
 
 // connectToDB - функция, возвращающая открытое подключение к базе данных
-func (db *DB) connectToDB(cfg config.Config) (*sql.DB, error) {
+func (db *DB) connectToDB() (*sql.DB, error) {
 	var dbSQL *sql.DB
 
 	sqlInfo := fmt.Sprintf(DBInfoConst,
@@ -64,7 +68,7 @@ func (db *DB) connectToDB(cfg config.Config) (*sql.DB, error) {
 }
 
 // CloseDBConnection реализует отключение от базы данных
-func (db *DB) CloseDBConnection(cfg *config.Config) *ce.Error {
+func (db *DB) CloseDBConnection() *ce.Error {
 
 	if err := db.Db.Close(); err != nil {
 		return db.err.SetError(err)
@@ -76,7 +80,7 @@ func (db *DB) CloseDBConnection(cfg *config.Config) *ce.Error {
 
 // DBPing реализует переподключение к базе данных при необходимости
 // Происходит проверка контекста - если он закрыт, DBPing прекращаеи работу
-func (db *DB) DBPing(ctx context.Context, cfg *config.Config, log *zap.Logger, errChan chan error) {
+func (db *DB) DBPing(ctx context.Context, log *zap.Logger, errChan chan error) {
 
 	defer close(errChan)
 
@@ -95,7 +99,7 @@ loop:
 			log.Debug(fmt.Sprintf("cannot connect to database: %s", err))
 			log.Info("Try reconnect to database...")
 
-			db.connectToDB(*cfg)
+			db.connectToDB()
 		default:
 		}
 	}

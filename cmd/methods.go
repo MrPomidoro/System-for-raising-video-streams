@@ -31,7 +31,7 @@ func (a *app) GracefulShutdown(cancel context.CancelFunc) {
 		a.log.Info("Found fatal error, exiting")
 	}
 
-	a.db.CloseDBConnection(a.cfg)
+	a.db.CloseDBConnection()
 
 	a.log.Debug("Waiting...")
 }
@@ -45,15 +45,13 @@ func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 	// Отправка запроса к базе
 	resDB, err := a.refreshStreamRepo.Get(ctx, true)
 	if err != nil {
-		a.err.NextError(err)
-		return nil, nil, a.err
+		return nil, nil, err
 	}
 
 	// Отправка запроса к rtsp
 	resRTSP, err := a.rtspRepo.GetRtsp(ctx)
 	if err != nil {
-		a.err.NextError(err)
-		return nil, nil, a.err
+		return nil, nil, err
 	}
 
 	return resDB, resRTSP, nil

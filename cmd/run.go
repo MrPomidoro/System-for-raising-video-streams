@@ -28,7 +28,7 @@ func (a *app) Run(ctx context.Context) {
 
 	errChan := make(chan error)
 	// Переподключение при необходимости
-	go a.db.DBPing(ctx, a.cfg, a.log, errChan)
+	go a.db.DBPing(ctx, a.log, errChan)
 
 	var mu sync.Mutex
 
@@ -51,148 +51,36 @@ loop:
 				a.log.Error(err.Error())
 				continue
 			}
-			time.Sleep(5 * time.Second)
 
-			// ---------------------------------------------------------- //
-			//   Сравнение числа записей в базе данных и записей в rtsp   //
-			// ---------------------------------------------------------- //
+			if ctx.Err() != nil {
+				continue
+			}
 
-			switch {
-			/*
-				Если данных в базе столько же, сколько в rtsp:
-				проверка, одинаковые ли записи:
-				- если одинаковые, завершение и ожидание следующего запуска программы;
-				- если различаются:
-					- получение списка отличий,
-					- отправка API,
-					- запись в status_stream.
-			*/
-			case len(dataDB) == len(dataRTSP):
+			a.log.Info(fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", len(dataDB), len(dataRTSP)))
 
-				if ctx.Err() != nil {
-					continue
-				}
+			// Получение отличающихся камер поля
+			camsForEdit := a.getCamsEdit(dataDB, dataRTSP)
+			if len(camsForEdit) == 0 {
+				a.log.Info("Data is identity, waiting...")
+				continue
+			}
 
-				a.log.Info(fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", len(dataDB), len(dataRTSP)))
+			a.log.Info("Count of data is same, but the cameras are different")
+			// Если число камер совпадает, но стримы отличаются
+			err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
+			if err != nil {
+				a.log.Error(err.Error())
+				continue
+			}
 
-				// Получение отличающихся камер поля
-				camsForEdit := a.getCamsEdit(dataDB, dataRTSP)
-				if len(camsForEdit) == 0 {
-					a.log.Info("Data is identity, waiting...")
-					continue
-				}
-
-				a.log.Info("Count of data is same, but the cameras are different")
-				// Если число камер совпадает, но стримы отличаются
-				err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
+			// Если в бд и ртсп одни и те же камеры
+			if isCamsSame(dataDB, dataRTSP) {
+				// Если имеются отличия, отправляется запрос к ртсп на изменение
+				a.log.Info("Count of data is same, but the values are different")
+				err := a.editCamerasToRTSP(ctx, camsForEdit)
 				if err != nil {
 					a.log.Error(err.Error())
 					continue
-				}
-
-				// Если в бд и ртсп одни и те же камеры
-				if isCamsSame(dataDB, dataRTSP) {
-					// Если имеются отличия, отправляется запрос к ртсп на изменение
-					a.log.Info("Count of data is same, but the values are different")
-					err := a.editCamerasToRTSP(ctx, camsForEdit)
-					if err != nil {
-						a.log.Error(err.Error())
-						continue
-					}
-				}
-
-			/*
-				Если данных в базе больше, чем в rtsp:
-				- получение списка отличий;
-				- API на добавление в ртсп;
-				- запись в status_stream
-			*/
-			case len(dataDB) > len(dataRTSP):
-
-				if ctx.Err() != nil {
-					continue
-				}
-
-				a.log.Info(fmt.Sprintf("The count of data in the database = %d is greater than the count of data in rtsp-simple-server = %d", len(dataDB), len(dataRTSP)))
-				// time.Sleep(5 * time.Second)
-
-				err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
-				if err != nil {
-					a.log.Error(err.Error())
-					continue
-				}
-
-			/*
-				Если данных в базе меньше, чем в rtsp:
-				- получение списка отличий;
-				- API на добавление в ртсп;
-				- запись в status_stream
-			*/
-			case len(dataDB) < len(dataRTSP):
-
-				if ctx.Err() != nil {
-					continue
-				}
-
-				a.log.Info(fmt.Sprintf("The count of data in the database = %d is less than the count of data in rtsp-simple-server = %d; waiting...", len(dataDB), len(dataRTSP)))
-
-				// Ожидание 5 секунд и повторный запрос данных с базы и с rtsp
-				time.Sleep(time.Second * 5)
-
-				dataDB, dataRTSP, err := a.getDBAndApi(ctx, &mu)
-				if err != nil {
-					a.log.Error(err.Error())
-					continue
-				}
-
-				// Сравнение числа записей в базе данных и записей в rtsp после нового запроса
-				switch {
-				case len(dataDB) == len(dataRTSP):
-
-					if ctx.Err() != nil {
-						continue
-					}
-
-					a.log.Info(fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", len(dataDB), len(dataRTSP)))
-
-					// Если в бд и ртсп одни и те же камеры
-					if isCamsSame(dataDB, dataRTSP) {
-						// Получение отличающихся камер
-						camsForEdit := a.getCamsEdit(dataDB, dataRTSP)
-						if len(camsForEdit) == 0 {
-							a.log.Info("Data is identity, waiting...")
-							continue
-						}
-
-						// Если имеются отличия, отправляется запрос к ртсп на изменение
-						a.log.Info("Count of data is same, but the values are different")
-						err := a.editCamerasToRTSP(ctx, camsForEdit)
-						if err != nil {
-							a.log.Error(err.Error())
-							continue
-						}
-					}
-
-					a.log.Info("Count of data is same, but the cameras are different")
-					// Если число камер совпадает, но стримы отличаются
-					err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
-					if err != nil {
-						a.log.Error(err.Error())
-						continue
-					}
-
-				default:
-
-					if ctx.Err() != nil {
-						continue
-					}
-
-					err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
-					if err != nil {
-						a.log.Error(err.Error())
-						continue
-					}
-
 				}
 			}
 		}
