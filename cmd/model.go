@@ -28,7 +28,7 @@ type app struct {
 	doneChan chan struct{}
 
 	refreshStreamRepo refreshstream.RefreshStreamRepository
-	statusStreamRepo  statusstream.StatusStreamRepository
+	statusStreamRepo  statusstream.Repository
 	rtspRepo          rtspsimpleserver.RTSPRepository
 
 	err ce.IError

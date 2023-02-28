@@ -14,7 +14,7 @@ addAndRemoveData - метод, в которым выполняются функ
 отличающихся данных, выполняется удаление лишних камер и добавление недостающих
 */
 func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimpleserver.SConf,
-	dataDB []refreshstream.RefreshStream) ce.IError {
+	dataDB []refreshstream.Stream) ce.IError {
 
 	// Получение мапы камер на добавление
 	camsAdd := a.getCamsAdd(dataDB, dataRTSP)
