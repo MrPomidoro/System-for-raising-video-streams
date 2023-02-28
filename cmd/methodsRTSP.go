@@ -9,10 +9,8 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/transcode"
 )
 
-/*
-addAndRemoveData - метод, в которым выполняются функции, получающие списки
-отличающихся данных, выполняется удаление лишних камер и добавление недостающих
-*/
+// addAndRemoveData - метод, в которым выполняются функции, получающие списки
+// отличающихся данных, выполняется удаление лишних камер и добавление недостающих
 func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimpleserver.SConf,
 	dataDB []refreshstream.Stream) ce.IError {
 
@@ -20,35 +18,27 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	camsAdd := a.getCamsAdd(dataDB, dataRTSP)
 	// Получение мапы камер на удаление; создаётся копия исходной мапы
 	// с помощью метода Transcode, чтобы исходная не изменялась
-	dataRTSPCopy := make(map[string]rtspsimpleserver.SConf)
-	transcode.Transcode(dataRTSP, dataRTSPCopy)
-	a.getCamsRemove(dataDB, dataRTSPCopy)
+	camsRemove := make(map[string]rtspsimpleserver.SConf)
+	transcode.Transcode(dataRTSP, camsRemove)
+	a.getCamsRemove(dataDB, camsRemove)
 
-	var c int
-	// Добавление камер
-	if camsAdd != nil {
-		if ctx.Err() != nil {
-			return a.err.SetError(ctx.Err())
-		}
+	if len(camsAdd) != 0 || len(camsRemove) != 0 {
 		a.log.Info("Count of data is same, but the cameras are different")
-		c++
+	} else {
+		return nil
+	}
 
+	// Добавление камер
+	if len(camsAdd) != 0 {
 		err := a.addCamerasToRTSP(ctx, camsAdd)
 		if err != nil {
-			return a.err
+			return err
 		}
 	}
 
 	// Удаление камер
-	if len(dataRTSPCopy) != 0 {
-		if ctx.Err() != nil {
-			return a.err.SetError(ctx.Err())
-		}
-		if c == 0 {
-			a.log.Info("Count of data is same, but the cameras are different")
-		}
-
-		err := a.removeCamerasFromRTSP(ctx, dataRTSPCopy)
+	if len(camsRemove) != 0 {
+		err := a.removeCamerasFromRTSP(ctx, camsRemove)
 		if err != nil {
 			return err
 		}
@@ -57,11 +47,9 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	return nil
 }
 
-/*
-addCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо добавить
-в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
-добавляет в таблицу status_stream запись с результатом выполнения запроса
-*/
+// addCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо добавить
+// в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
+// добавляет в таблицу status_stream запись с результатом выполнения запроса
 func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd map[string]rtspsimpleserver.SConf) ce.IError {
 
 	// Перебор всех элементов списка камер на добавление

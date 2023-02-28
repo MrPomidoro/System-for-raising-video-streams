@@ -35,6 +35,11 @@ func (s repository) Get(ctx context.Context, status bool) ([]refreshstream.Strea
 	case false:
 		query = refreshstream.QueryStateFalse
 	}
+
+	if ctx.Err() != nil {
+		return nil, s.err.SetError(ctx.Err())
+	}
+
 	s.log.Debug("Query to database:\n\t" + query)
 
 	rows, err := s.db.QueryContext(ctx, query)

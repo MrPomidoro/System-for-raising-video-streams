@@ -45,7 +45,7 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 
 	db, e := database.Connection(cfg)
 	if e != nil {
-		return nil, err
+		return nil, err.SetError(e)
 	}
 
 	sigChan := make(chan os.Signal, 1)
