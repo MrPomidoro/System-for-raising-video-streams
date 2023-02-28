@@ -36,7 +36,8 @@ func (rtsp *rtspRepository) GetRtsp(ctx context.Context) (map[string]rtspsimples
 	res := make(map[string]rtspsimpleserver.SConf)
 
 	// Формирование URL для get запроса
-	URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Url)
+	URLGet := fmt.Sprintf(rtsp.cfg.Url + rtsp.cfg.Rtsp.Api.UrlGet)
+	// URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Url)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLGet)
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
@@ -99,7 +100,7 @@ func (rtsp *rtspRepository) PostAddRTSP(ctx context.Context, cam rtspsimpleserve
 	}`, cam.Conf.Source, cam.Conf.SourceProtocol, cam.Conf.RunOnReady))
 
 	// Парсинг URL
-	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "add", cam.Stream)
+	URLPostAdd := fmt.Sprintf(rtsp.cfg.Url + rtsp.cfg.Rtsp.Api.UrlAdd + cam.Stream)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostAdd)
 
 	if ctx.Err() != nil {
@@ -118,7 +119,7 @@ func (rtsp *rtspRepository) PostAddRTSP(ctx context.Context, cam rtspsimpleserve
 // PostRemoveRTSP отправляет POST запрос на удаление потока
 func (rtsp *rtspRepository) PostRemoveRTSP(ctx context.Context, camRTSP rtspsimpleserver.SConf) ce.IError {
 	// Парсинг URL
-	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "remove", camRTSP.Stream)
+	URLPostRemove := fmt.Sprintf(rtsp.cfg.Url + rtsp.cfg.Rtsp.Api.UrlRemove + camRTSP.Stream)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostRemove)
 
 	var buf []byte
@@ -148,7 +149,7 @@ func (rtsp *rtspRepository) PostEditRTSP(ctx context.Context, cam rtspsimpleserv
 	}`, cam.Conf.Source, cam.Conf.SourceProtocol, cam.Conf.RunOnReady))
 
 	// Парсинг URL
-	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "edit", cam.Stream)
+	URLPostEdit := fmt.Sprintf(rtsp.cfg.Url + rtsp.cfg.Rtsp.Api.UrlEdit + cam.Stream)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostEdit)
 
 	if ctx.Err() != nil {

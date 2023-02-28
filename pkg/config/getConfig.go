@@ -88,9 +88,14 @@ func readFlags(cfg *Config) {
 	flag.BoolVar(&cfg.DatabaseConnect, "databaseConnect", cfg.DatabaseConnect, "The permission to connect")
 	flag.DurationVar(&cfg.DbConnectionTimeoutSecond, "dbConnectionTimeoutSecond", cfg.DbConnectionTimeoutSecond, "The db_connection_timeout_second parameter")
 
-	flag.StringVar(&cfg.Run, "Run", cfg.Run, "The run parameter")
+	flag.StringVar(&cfg.Run, "run", cfg.Run, "The run parameter")
 	flag.StringVar(&cfg.Url, "url", cfg.Url, "The url parameter")
 	flag.DurationVar(&cfg.RefreshTime, "refreshTime", cfg.RefreshTime, "The refresh time parameter")
+
+	flag.StringVar(&cfg.Api.UrlGet, "urlGet", cfg.Api.UrlGet, "The url for get from rtsp")
+	flag.StringVar(&cfg.Api.UrlAdd, "urlAdd", cfg.Api.UrlAdd, "The url for add from rtsp")
+	flag.StringVar(&cfg.Api.UrlRemove, "urlRemove", cfg.Api.UrlRemove, "The url for remove into rtsp")
+	flag.StringVar(&cfg.Api.UrlEdit, "urlEdit", cfg.Api.UrlEdit, "The url for edit into rtsp")
 
 	flag.StringVar(&stub, "configPath", `./`, "The path to file of configuration")
 

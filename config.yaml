@@ -20,7 +20,12 @@ database:
   driver: postgres
   databaseConnect: true # разрешение на коннект
   dbConnectionTimeoutSecond: 10s
-rtsp_simple_server:
+rtsp:
   run: #usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --stream_path %s --camera_id %s
-  url: http://10.100.100.228:9997 # адрес для подключения к api rtsp-simple-server
   refreshTime: 10s # периодичность запроса и сверки
+  url: http://10.100.100.228:9997 # адрес для подключения к api rtsp-simple-server
+  api:  
+    urlGet: /v1/paths/list
+    urlAdd: /v1/config/paths/add/
+    urlRemove: /v1/config/paths/remove/
+    urlEdit: /v1/config/paths/edit/
