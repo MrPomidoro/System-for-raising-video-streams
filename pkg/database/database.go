@@ -76,7 +76,7 @@ func (db *DB) Close() *ce.Error {
 
 // Ping реализует переподключение к базе данных при необходимости
 // Происходит проверка контекста - если он закрыт, Ping прекращаеи работу
-func (db *DB) Ping(ctx context.Context, log *zap.Logger, errChan chan error) {
+func (db *DB) Ping(ctx context.Context, log *zap.Logger, errChan chan struct{}) {
 
 	defer close(errChan)
 
@@ -91,11 +91,11 @@ loop:
 		select {
 		case <-ctx.Done():
 			break loop
-		case err := <-errChan:
-			log.Debug(fmt.Sprintf("cannot connect to database: %s", err))
+		case <-errChan:
+			// log.Debug(fmt.Sprintf("cannot connect to database: %s", err))
 			log.Info("Try reconnect to database...")
 
-			_, err = db.db()
+			_, err := db.db()
 			if err != nil {
 				log.Error(db.err.SetError(err).Error())
 				continue
@@ -105,12 +105,12 @@ loop:
 	}
 }
 
-func (db *DB) ping(ctx context.Context, errChan chan error) {
+func (db *DB) ping(ctx context.Context, errChan chan struct{}) {
 	if ctx.Err() != nil {
 		return
 	}
 	err := db.Db.Ping()
 	if err != nil {
-		errChan <- err
+		errChan <- struct{}{}
 	}
 }

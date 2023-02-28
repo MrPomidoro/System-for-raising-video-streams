@@ -6,21 +6,24 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/transcode"
 )
 
 // addAndRemoveData - метод, в которым выполняются функции, получающие списки
 // отличающихся данных, выполняется удаление лишних камер и добавление недостающих
-func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimpleserver.SConf,
+func (a *app) addAndRemoveData(ctx context.Context, camsRemove map[string]rtspsimpleserver.SConf,
 	dataDB []refreshstream.Stream) ce.IError {
 
 	// Получение мапы камер на добавление
-	camsAdd := a.getCamsAdd(dataDB, dataRTSP)
+	camsAdd := a.getCamsAdd(dataDB, camsRemove)
 	// Получение мапы камер на удаление; создаётся копия исходной мапы
 	// с помощью метода Transcode, чтобы исходная не изменялась
-	camsRemove := make(map[string]rtspsimpleserver.SConf)
-	transcode.Transcode(dataRTSP, camsRemove)
-	a.getCamsRemove(dataDB, camsRemove)
+
+	// camsRemove := make(map[string]rtspsimpleserver.SConf)
+	// transcode.CopyMap(dataRTSP)
+	// fmt.Println("camsRemove addAndRemoveData", camsRemove)
+
+	// a.getCamsRemove(dataDB, camsRemove)
+	// fmt.Println("camsAdd", camsAdd, "\ncamsRemove", camsRemove)
 
 	if len(camsAdd) != 0 || len(camsRemove) != 0 {
 		a.log.Info("Count of data is same, but the cameras are different")
