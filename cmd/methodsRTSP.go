@@ -77,8 +77,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd map[string]rtspsimpl
 
 		// err = a.refreshStreamRepo.Update(ctx, camAdd.Stream)
 		// if err != nil {
-		// 	a.err.NextError(err)
-		// 	return a.err
+		// 	return err
 		// }
 		// a.log.Debug("Success send request to update stream_status")
 
