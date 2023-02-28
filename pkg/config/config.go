@@ -8,11 +8,11 @@ import (
 
 // Config - структура конфига
 type Config struct {
-	Logger             `yaml:"logger"`
-	Server             `yaml:"server"`
-	Database           `yaml:"database"`
-	Rtsp_simple_server `yaml:"rtsp_simple_server"`
-	err                ce.IError
+	Logger   `yaml:"logger"`
+	Server   `yaml:"server"`
+	Database `yaml:"database"`
+	Rtsp     `yaml:"rtsp"`
+	err      ce.IError
 }
 
 // Logger содержит параметры логгера
@@ -46,9 +46,17 @@ type Database struct {
 	DbConnectionTimeoutSecond time.Duration `yaml:"dbConnectionTimeoutSecond"`
 }
 
-// Rtsp_simple_server содержит параметры rtsp_simple_server
-type Rtsp_simple_server struct {
+// RtspSimpleServer содержит параметры rtsp_simple_server
+type Rtsp struct {
 	Run         string        `yaml:"run"`
 	Url         string        `yaml:"url"`
 	RefreshTime time.Duration `yaml:"refreshTime"`
+	Api         api
+}
+
+type api struct {
+	UrlGet    string
+	UrlAdd    string
+	UrlRemove string
+	UrlEdit   string
 }
