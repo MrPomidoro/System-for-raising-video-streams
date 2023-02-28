@@ -40,22 +40,19 @@ func Connection(cfg *config.Config) (*DB, ce.IError) {
 }
 
 // db - функция, возвращающая открытое подключение к базе данных
-func (db *DB) db() (*sql.DB, error) {
-	var dbSQL *sql.DB
+func (db *DB) db() (dbSQL *sql.DB, err error) {
 
-	sqlInfo := fmt.Sprintf(DBInfoConst,
-		db.host, db.port, db.user, db.password,
-		db.dbName)
+	sqlInfo := fmt.Sprintf(DBInfoConst, db.host, db.port, db.user, db.password, db.dbName)
 
 	// Подключение
-	dbSQL, err := sql.Open(db.driver, sqlInfo)
+	dbSQL, err = sql.Open(db.driver, sqlInfo)
 	if err != nil {
 		return nil, err
 	}
 
 	// Проверка подключения
 	time.Sleep(time.Millisecond * 3)
-	if err := dbSQL.Ping(); err == nil {
+	if err = dbSQL.Ping(); err == nil {
 		db.log.Info(fmt.Sprintf("Success connect to database %s", db.dbName))
 		return dbSQL, nil
 	} else {
