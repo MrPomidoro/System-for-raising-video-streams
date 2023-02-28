@@ -1,20 +1,30 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
+
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
-// Структура с параметрами для базы данных
-type Database struct {
-	Port     string
-	Host     string
-	Db_name  string
-	User     string
-	Password string
+// Database - структура с параметрами для базы данных
+type database struct {
+	port     string
+	host     string
+	dbName   string
+	user     string
+	password string
 
-	Driver                    string
-	DBConnectionTimeoutSecond time.Duration
-	Log                       *logrus.Logger
+	driver                    string
+	dBConnectionTimeoutSecond time.Duration
+	log                       *zap.Logger
+
+	err ce.IError
+}
+
+type DB struct {
+	database
+	Db *sql.DB
 }

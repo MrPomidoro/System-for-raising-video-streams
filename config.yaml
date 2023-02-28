@@ -1,21 +1,26 @@
 logger:
-  loglevel: DEBUG
+  logLevel: DEBUG
+  logFileEnable: true
+  logStdoutEnable: true
+  logFile: ./out.log
+  maxSize: 500
+  maxAge: 28
+  maxBackups: 7
+  rewriteLog: true
 server:
-  server_host: 10.100.100.228
-  server_port: :9997
-  readtimeout: 200ms
-  writetimeout: 200ms
-  idletimeout: 10s
+  readTimeout: 200ms
+  writeTimeout: 200ms
+  idleTimeout: 10s
 database:
   port: 5432
   host: 192.168.0.32
-  db_name: www
+  dbName: www
   user: sysadmin
   password: w3X{77PpCR
   driver: postgres
-  database_connect: true # разрешение на коннект
-  db_connection_timeout_second: 10s
+  databaseConnect: true # разрешение на коннект
+  dbConnectionTimeoutSecond: 10s
 rtsp_simple_server:
-  run: usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --stream_path %s --camera_id %s
+  run: #usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --stream_path %s --camera_id %s
   url: http://10.100.100.228:9997 # адрес для подключения к api rtsp-simple-server
-  refresh_time: 10s # периодичность запроса и сверки
+  refreshTime: 10s # периодичность запроса и сверки

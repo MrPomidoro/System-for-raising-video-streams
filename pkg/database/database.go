@@ -1,100 +1,112 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
+	"go.uber.org/zap"
+
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	_ "github.com/lib/pq"
 )
 
-// Заполняется структура из конфига, вызывается функция connectToDB(),
-// дающая подключение к базе данных
-func CreateDBConnection(cfg *config.Config) *sql.DB {
-	var dbcfg Database
+// CreateDBConnection заполняет структуру данными из конфига и вызывает функцию connectToDB(),
+// дающую подключение к базе данных
+func CreateDBConnection(ctx context.Context, cfg *config.Config) (*DB, ce.IError) {
+	var db DB
+	db.err = ce.ErrorDatabase
 
-	dbcfg.Port = cfg.Port
-	dbcfg.Host = cfg.Host
-	dbcfg.Db_name = cfg.Db_Name
-	dbcfg.User = cfg.User
-	dbcfg.Password = cfg.Password
+	db.port = cfg.Port
+	db.host = cfg.Host
+	db.dbName = cfg.DbName
+	db.user = cfg.User
+	db.password = cfg.Password
 
-	dbcfg.Driver = cfg.Driver
-	dbcfg.DBConnectionTimeoutSecond = cfg.Db_Connection_Timeout_Second
-	dbcfg.Log = logger.NewLog(cfg.LogLevel)
+	db.driver = cfg.Driver
+	db.dBConnectionTimeoutSecond = cfg.DbConnectionTimeoutSecond
+	db.log = logger.NewLogger(cfg)
 
-	return connectToDB(&dbcfg)
+	var err error
+	db.Db, err = db.connectToDB(*cfg)
+	if err != nil {
+		return nil, db.err.SetError(err)
+	}
+
+	return &db, nil
 }
 
-// Функция, возвращающая подключение к базе данных
-func connectToDB(dbcfg *Database) *sql.DB {
+// connectToDB - функция, возвращающая открытое подключение к базе данных
+func (db *DB) connectToDB(cfg config.Config) (*sql.DB, error) {
 	var dbSQL *sql.DB
 
 	sqlInfo := fmt.Sprintf(DBInfoConst,
-		dbcfg.Host, dbcfg.Port, dbcfg.User, dbcfg.Password,
-		dbcfg.Db_name)
+		db.host, db.port, db.user, db.password,
+		db.dbName)
 
 	// Подключение
-	dbSQL, err := sql.Open(dbcfg.Driver, sqlInfo)
+	dbSQL, err := sql.Open(db.driver, sqlInfo)
 	if err != nil {
-		logger.LogError(dbcfg.Log, fmt.Sprintf("cannot get connect to database: %v", err))
+		return nil, err
 	}
 
 	// Проверка подключения
 	time.Sleep(time.Millisecond * 3)
 	if err := dbSQL.Ping(); err == nil {
-		logger.LogInfo(dbcfg.Log, fmt.Sprintf("Success connect to database %s", dbcfg.Db_name))
-		return dbSQL
+		db.log.Info(fmt.Sprintf("Success connect to database %s", db.dbName))
+		return dbSQL, nil
 	} else {
-		logger.LogError(dbcfg.Log, fmt.Sprintf("cannot connect to database: %s", err))
+		return nil, err
 	}
-
-	connLatency := time.Duration(10 * time.Millisecond)
-	time.Sleep(connLatency * time.Millisecond)
-	connTimeout := dbcfg.DBConnectionTimeoutSecond
-	for t := connTimeout; t > 0; t-- {
-		if dbSQL != nil {
-			return dbSQL
-		}
-		time.Sleep(time.Second * 3)
-	}
-
-	logger.LogError(dbcfg.Log, fmt.Sprintf("Time waiting of DB connection exceeded limit: %v", connTimeout))
-	return dbSQL
 }
 
-// Отключение от базы данных
-func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
-	log := logger.NewLog(cfg.LogLevel)
-	if err := dbSQL.Close(); err != nil {
-		logger.LogError(log, fmt.Sprintf("cannot close DB connection. Error: %v", err))
+// CloseDBConnection реализует отключение от базы данных
+func (db *DB) CloseDBConnection(cfg *config.Config) *ce.Error {
+
+	if err := db.Db.Close(); err != nil {
+		return db.err.SetError(err)
+	}
+
+	db.log.Info("Established closing of connection to database")
+	return nil
+}
+
+// DBPing реализует переподключение к базе данных при необходимости
+// Происходит проверка контекста - если он закрыт, DBPing прекращаеи работу
+func (db *DB) DBPing(ctx context.Context, cfg *config.Config, log *zap.Logger, errChan chan error) {
+
+	defer close(errChan)
+
+loop:
+	for {
+		if ctx.Err() != nil {
+			break loop
+		}
+		go db.ping(ctx, errChan)
+
+		time.Sleep(3 * time.Second)
+		select {
+		case <-ctx.Done():
+			break loop
+		case err := <-errChan:
+			log.Debug(fmt.Sprintf("cannot connect to database: %s", err))
+			log.Info("Try reconnect to database...")
+
+			db.connectToDB(*cfg)
+		default:
+		}
+	}
+}
+
+func (db *DB) ping(ctx context.Context, errChan chan error) {
+	if ctx.Err() != nil {
 		return
 	}
-	logger.LogDebug(log, "Established closing of connection to DB")
-}
-
-func DBPing(cfg *config.Config, db *sql.DB) {
-
-	for {
-		log := logger.NewLog(cfg.LogLevel)
-		if err := db.Ping(); err != nil {
-			logger.LogWarn(log, fmt.Sprintf("cannot connect to database %s", err))
-			logger.LogInfo(log, "try connect to database...")
-
-			var dbcfg Database
-			dbcfg.Port = cfg.Port
-			dbcfg.Host = cfg.Host
-			dbcfg.Db_name = cfg.Db_Name
-			dbcfg.User = cfg.User
-			dbcfg.Password = cfg.Password
-			dbcfg.Driver = cfg.Driver
-			dbcfg.DBConnectionTimeoutSecond = cfg.Db_Connection_Timeout_Second
-			dbcfg.Log = log
-
-			connectToDB(&dbcfg)
-		}
-		time.Sleep(1 * time.Second)
+	err := db.Db.Ping()
+	if err != nil {
+		errChan <- err
 	}
 }

@@ -2,156 +2,164 @@ package repository
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
-	"github.com/sirupsen/logrus"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/methods"
+	"go.uber.org/zap"
 )
 
 type rtspRepository struct {
 	cfg *config.Config
-	log *logrus.Logger
+	log *zap.Logger
+	err ce.IError
 }
 
-func NewRTSPRepository(cfg *config.Config, log *logrus.Logger) *rtspRepository {
+func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
 	return &rtspRepository{
 		cfg: cfg,
 		log: log,
+		err: ce.ErrorRTSP,
 	}
 }
 
-func (rtsp *rtspRepository) GetRtsp() map[string]interface{} {
-	var item interface{}
-	var res map[string]interface{}
+// GetRtsp отправляет GET запрос на получение данных
+func (rtsp *rtspRepository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserver.SConf, ce.IError) {
+
+	// defer close(dataRTSPchan)
+	res := make(map[string]rtspsimpleserver.SConf)
 
 	// Формирование URL для get запроса
-	URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port)
+	URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Url)
+	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLGet)
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	if err != nil {
-		logger.LogError(rtsp.log, fmt.Sprintf("cannot received response from rtspRepository: %v", err))
-		return res
+		return res, rtsp.err.SetError(err)
 	}
-	logger.LogDebug(rtsp.log, "Received response from rtsp")
-	// Отложенное закрытие тела ответа
+	// Закрытие тела ответа
 	defer resp.Body.Close()
+	rtsp.log.Debug("Received response from rtsp-simple-server")
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.LogError(rtsp.log, err)
-		return res
+		return res, rtsp.err.SetError(err)
 	}
-	logger.LogDebug(rtsp.log, "Success read body")
+	rtsp.log.Debug("Success read body")
 
+	var item map[string]interface{}
 	err = json.Unmarshal(body, &item)
 	if err != nil {
-		logger.LogError(rtsp.log, fmt.Sprintf("cannot unmarshal response: %v", err))
-		return res
+		return res, rtsp.err.SetError(err)
 	}
-	logger.LogDebug(rtsp.log, "Success unmarshal body")
+	if len(item) == 0 {
+		return res, rtsp.err.SetError(fmt.Errorf("response from rtsp not received"))
+	}
 
-	res = item.(map[string]interface{})
-	return res
+	rtsp.log.Debug("Success unmarshal body")
+
+	for _, ress := range item {
+		item1 := ress.(map[string]interface{})
+
+		for stream, i := range item1 {
+			cam := rtspsimpleserver.SConf{}
+			cam.Stream = stream
+
+			fileds := i.(map[string]interface{})
+			methods.Transcode(fileds["conf"], &cam.Conf)
+			res[stream] = cam
+		}
+	}
+	return res, nil
 }
 
-func (rtsp *rtspRepository) PostAddRTSP(camDB refreshstream.RefreshStream) error {
-
-	// Парсинг поля RunOnReady
-	runOnReady := fmt.Sprintf(rtsp.cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
-
-	// Парсинг логина и пароля
-	// (не получается занести их в соответствующие поля, как и ip)
-	// var login, pass string
-	// logPass := strings.Split(camDB.Auth.String, ":")
-	// if len(logPass) == 2 {
-	// 	login, pass = logPass[0], logPass[1]
-	// }
-
-	// Поле протокола не должно быть пустым
-	// по умолчанию - tcp
-	var protocol string = camDB.Protocol.String
-	if protocol == "" {
-		protocol = "tcp"
-	}
+// PostAddRTSP отправляет POST запрос на добавление потока
+func (rtsp *rtspRepository) PostAddRTSP(ctx context.Context, cam rtspsimpleserver.SConf) ce.IError {
 
 	// Формирование джейсона для отправки
-	postJson := []byte(fmt.Sprintf(`{
-			"sourceProtocol": "%s",
-			"sourceOnDemandStartTimeout": "10s",
-			"sourceOnDemandCloseAfter": "10s",
-			"readUser": "",
-			"readPass": "",
-			"runOnDemandStartTimeout": "5s",
-			"runOnDemandCloseAfter": "5s",
-			"runOnReady": "%s",
-			"runOnReadyRestart": true,
-			"runOnReadRestart": false
-	}`, protocol, runOnReady))
+	postJson := []byte(fmt.Sprintf(`
+	{
+		"source": "%s",
+		"sourceProtocol": "%s",
+		"sourceOnDemandCloseAfter": "10s",
+		"sourceOnDemandStartTimeout": "10s",
+		"readPass": "",
+		"readUser": "",
+		"runOnDemandCloseAfter": "10s",
+		"runOnDemandStartTimeout": "10s",
+		"runOnReadyRestart": true,
+		"runOnReady": "%s",
+		"runOnReadRestart": false
+	}`, cam.Conf.Source, cam.Conf.SourceProtocol, cam.Conf.RunOnReady))
 
 	// Парсинг URL
-	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostAddConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camDB.Stream.String)
+	URLPostAdd := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "add", cam.Stream)
+	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostAdd)
 
-	// Запрос
-	response, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
-	if err != nil {
-		return fmt.Errorf("cannot complete post request for add config: %v", err)
+	if ctx.Err() != nil {
+		return rtsp.err.SetError(ctx.Err())
 	}
-	defer response.Body.Close()
+	// Запрос
+	resp, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
+	if err != nil {
+		return rtsp.err.SetError(err)
+	}
+	defer resp.Body.Close()
 
 	return nil
 }
 
-func (rtsp *rtspRepository) PostRemoveRTSP(camRTSP string) error {
+// PostRemoveRTSP отправляет POST запрос на удаление потока
+func (rtsp *rtspRepository) PostRemoveRTSP(ctx context.Context, camRTSP rtspsimpleserver.SConf) ce.IError {
 	// Парсинг URL
-	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostRemoveConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camRTSP)
+	URLPostRemove := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "remove", camRTSP.Stream)
+	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostRemove)
 
 	var buf []byte
-	// Запрос
-	response, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
-	if err != nil {
-		return fmt.Errorf("cannot complete post request for remove config: %v", err)
-	}
-	defer response.Body.Close()
 
+	if ctx.Err() != nil {
+		return rtsp.err.SetError(ctx.Err())
+	}
+	// Запрос
+	resp, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
+	if err != nil {
+		return rtsp.err.SetError(err)
+	}
+	defer resp.Body.Close()
 	return nil
 }
 
-func (rtsp *rtspRepository) PostEditRTSP(camDB refreshstream.RefreshStream, conf rtspsimpleserver.Conf) error {
-
-	// Парсинг поля RunOnReady
-
-	// Парсинг логина и пароля
-	// (не получается занести их в соответствующие поля, как и ip)
-	// var login, pass string
-	// logPass := strings.Split(camDB.Auth.String, ":")
-	// if len(logPass) == 2 {
-	// 	login, pass = logPass[0], logPass[1]
-	// }
-
-	protocol := camDB.Protocol.String
+// PostEditRTSP отправляет POST запрос на изменение потока
+func (rtsp *rtspRepository) PostEditRTSP(ctx context.Context, cam rtspsimpleserver.SConf) ce.IError {
 
 	// Формирование джейсона для отправки
-	postJson := []byte(fmt.Sprintf(`{
-			"sourceProtocol": "%s",
-			"runOnReadRestart": false,
-			"runOnReady": "%s"
-	}`, protocol, conf.RunOnReady))
+	postJson := []byte(fmt.Sprintf(`
+	{
+		"source": "%s",
+		"sourceProtocol": "%s",
+		"runOnReady": "%s",
+		"runOnReadRestart": false
+	}`, cam.Conf.Source, cam.Conf.SourceProtocol, cam.Conf.RunOnReady))
 
 	// Парсинг URL
-	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostEditConst, rtsp.cfg.Server_Host, rtsp.cfg.Server_Port, camDB.Stream.String)
+	URLPostEdit := fmt.Sprintf(rtspsimpleserver.URLPostConst, rtsp.cfg.Url, "edit", cam.Stream)
+	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostEdit)
 
-	// Запрос
-	response, err := http.Post(URLPostEdit, "application/json", bytes.NewBuffer(postJson))
-	if err != nil {
-		return fmt.Errorf("cannot complete post request for edit config: %v", err)
+	if ctx.Err() != nil {
+		return rtsp.err.SetError(ctx.Err())
 	}
-	defer response.Body.Close()
+	// Запрос
+	resp, err := http.Post(URLPostEdit, "application/json", bytes.NewBuffer(postJson))
+	if err != nil {
+		return rtsp.err.SetError(err)
+	}
+	defer resp.Body.Close()
 
 	return nil
 }

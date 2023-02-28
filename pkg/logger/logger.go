@@ -1,47 +1,65 @@
 package logger
 
 import (
-	"io"
 	"os"
 
-	"github.com/sirupsen/logrus"
-	easy "github.com/t-tomalak/logrus-easy-formatter"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// Функция для инициализации логгера с настраиваемым уровнем логирования
-// на основе данных из конфига
-func NewLog(level string) *logrus.Logger {
-	file, err := os.OpenFile("out.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		logrus.Errorf("can not open file for logging: %v", err)
-	}
-
-	return &logrus.Logger{
-		Out:   io.MultiWriter(file, os.Stdout),
-		Level: initLogLevel(level),
-		Formatter: &easy.Formatter{
-			TimestampFormat: ServTimestampFormatConst,
-			LogFormat:       ServLogFormatConst,
-		},
-	}
+var logLevelSeverity = map[zapcore.Level]string{
+	zapcore.DebugLevel:  "DEBUG",
+	zapcore.InfoLevel:   "INFO",
+	zapcore.WarnLevel:   "WARNING",
+	zapcore.ErrorLevel:  "ERROR",
+	zapcore.DPanicLevel: "CRITICAL",
+	zapcore.PanicLevel:  "PANIC",
+	zapcore.FatalLevel:  "FATAL",
 }
 
-// Выбор уровня логирования на основе переданной строковой переменной
-func initLogLevel(level string) logrus.Level {
-	switch level {
-	case "FATAL":
-		return logrus.FatalLevel
-	case "ERROR":
-		return logrus.ErrorLevel
-	case "WARN":
-		return logrus.WarnLevel
-	case "INFO":
-		return logrus.InfoLevel
-	case "DEBUG":
-		return logrus.DebugLevel
-	case "TRACE":
-		return logrus.TraceLevel
-	default:
-		return logrus.InfoLevel
+func NewLogger(cfg *config.Config) *zap.Logger {
+	l := logger{
+		LogLevel:      cfg.LogLevel,
+		LogFileEnable: cfg.LogFileEnable,
+		LogFile:       cfg.LogFile,
+		MaxSize:       cfg.MaxSize,
+		MaxAge:        cfg.MaxAge,
+		MaxBackups:    cfg.MaxBackups,
 	}
+	return l.initLogger(cfg)
+}
+
+func (l *logger) initLogger(cfg *config.Config) *zap.Logger {
+
+	li := Logger(l)
+	conf := li.newProductionEncoderConfig()
+	conf.EncodeTime = zapcore.ISO8601TimeEncoder
+	conf.EncodeLevel = li.customEncoderLevel
+	conf.MessageKey = "message"
+	conf.CallerKey = "caller"
+	conf.TimeKey = "time"
+
+	jsonEncoder := li.newJSONEncode(conf)
+	textEncoder := li.newConsoleEncoder(conf)
+
+	fileLogger := li.newCore(
+		jsonEncoder,
+		li.addSync(&lumberjack.Logger{
+			Filename:   l.LogFile,
+			MaxSize:    l.MaxSize,
+			MaxAge:     l.MaxAge,
+			MaxBackups: l.MaxBackups,
+		}),
+		li.logLevel(cfg),
+	)
+
+	consoleLogger := li.newCore(
+		textEncoder,
+		zapcore.AddSync(os.Stdout),
+		li.logLevel(cfg),
+	)
+
+	return li.new(li.newTee(li.loggers(cfg, consoleLogger, fileLogger)...), li.zapOpts()...)
 }
