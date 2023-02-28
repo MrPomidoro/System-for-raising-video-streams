@@ -16,8 +16,10 @@ addAndRemoveData - метод, в которым выполняются функ
 func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimpleserver.SConf,
 	dataDB []refreshstream.RefreshStream) ce.IError {
 
-	// Получение списков камер на добавление и удаление
+	// Получение мапы камер на добавление
 	camsAdd := a.getCamsAdd(dataDB, dataRTSP)
+	// Получение мапы камер на удаление; создаётся копия исходной мапы
+	// с помощью метода Transcode, чтобы исходная не изменялась
 	dataRTSPCopy := make(map[string]rtspsimpleserver.SConf)
 	methods.Transcode(dataRTSP, dataRTSPCopy)
 	getCamsRemove(dataDB, dataRTSPCopy)
@@ -75,11 +77,9 @@ func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd map[string]rtspsimpl
 	return nil
 }
 
-/*
-removeCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо удалить
-с rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на удаление камер,
-добавляет в таблицу status_stream запись с результатом выполнения запроса
-*/
+// removeCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо удалить
+// с rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на удаление камер,
+// добавляет в таблицу status_stream запись с результатом выполнения запроса
 func (a *app) removeCamerasToRTSP(ctx context.Context, dataRTSP map[string]rtspsimpleserver.SConf) ce.IError {
 
 	// Перебор всех камер, которые нужно удалить
@@ -107,18 +107,16 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, dataRTSP map[string]rtsps
 	return nil
 }
 
-/*
-editCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо изменить
-в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
-добавляет в таблицу status_stream запись с результатом выполнения запроса
-*/
+// editCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо изменить
+// в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
+// добавляет в таблицу status_stream запись с результатом выполнения запроса
 func (a *app) editCamerasToRTSP(ctx context.Context, camsForEdit map[string]rtspsimpleserver.SConf) ce.IError {
 
 	for _, cam := range camsForEdit {
 
-		if cam.Conf.SourceProtocol == "" && cam.Conf.Source == "" && (cam.Conf.RunOnReady == "" && a.cfg.Run != "") {
-			continue
-		}
+		// if cam.Conf.SourceProtocol == "" && cam.Conf.Source == "" && (cam.Conf.RunOnReady == "" && a.cfg.Run != "") {
+		// 	continue
+		// }
 
 		if ctx.Err() != nil {
 			return a.err.SetError(ctx.Err())

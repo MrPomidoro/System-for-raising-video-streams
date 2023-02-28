@@ -75,7 +75,7 @@ loop:
 				a.log.Info(fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", len(dataDB), len(dataRTSP)))
 
 				// Получение отличающихся камер
-				camsForEdit := a.getCamsEdit(a.cfg, dataDB, dataRTSP)
+				camsForEdit := a.getCamsEdit(dataDB, dataRTSP)
 				if len(camsForEdit) == 0 {
 					a.log.Info("Data is identity, waiting...")
 					continue
@@ -157,7 +157,7 @@ loop:
 					// Если в бд и ртсп одни и те же камеры
 					if isCamsSame(dataDB, dataRTSP) {
 						// Получение отличающихся камер
-						camsForEdit := a.getCamsEdit(a.cfg, dataDB, dataRTSP)
+						camsForEdit := a.getCamsEdit(dataDB, dataRTSP)
 						if len(camsForEdit) == 0 {
 							a.log.Info("Data is identity, waiting...")
 							continue
