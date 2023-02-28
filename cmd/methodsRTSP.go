@@ -26,6 +26,9 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 
 	// Добавление камер
 	if camsAdd != nil {
+		if ctx.Err() != nil {
+			return a.err.SetError(ctx.Err())
+		}
 		err := a.addCamerasToRTSP(ctx, camsAdd)
 		if err != nil {
 			a.err.NextError(err)
@@ -34,11 +37,17 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	}
 
 	// Удаление камер
-	err := a.removeCamerasToRTSP(ctx, dataRTSPCopy)
-	if err != nil {
-		a.err.NextError(err)
-		return a.err
+	if len(dataRTSPCopy) != 0 {
+		if ctx.Err() != nil {
+			return a.err.SetError(ctx.Err())
+		}
+		err := a.removeCamerasToRTSP(ctx, dataRTSPCopy)
+		if err != nil {
+			a.err.NextError(err)
+			return a.err
+		}
 	}
+
 	return nil
 }
 
@@ -77,10 +86,10 @@ func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd map[string]rtspsimpl
 	return nil
 }
 
-// removeCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо удалить
+// removeCamerasFromRTSP - функция, принимающая на вход список камер, которые необходимо удалить
 // с rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на удаление камер,
 // добавляет в таблицу status_stream запись с результатом выполнения запроса
-func (a *app) removeCamerasToRTSP(ctx context.Context, dataRTSP map[string]rtspsimpleserver.SConf) ce.IError {
+func (a *app) removeCamerasFromRTSP(ctx context.Context, dataRTSP map[string]rtspsimpleserver.SConf) ce.IError {
 
 	// Перебор всех камер, которые нужно удалить
 	for _, cam := range dataRTSP {
@@ -101,9 +110,8 @@ func (a *app) removeCamerasToRTSP(ctx context.Context, dataRTSP map[string]rtsps
 			a.err.NextError(err)
 			return a.err
 		}
-		// }
 	}
-	// }
+
 	return nil
 }
 
