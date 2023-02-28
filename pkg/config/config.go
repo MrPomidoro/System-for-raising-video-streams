@@ -46,7 +46,7 @@ type Database struct {
 	DbConnectionTimeoutSecond time.Duration `yaml:"dbConnectionTimeoutSecond"`
 }
 
-// RtspSimpleServer содержит параметры rtsp_simple_server
+// Rtsp RtspSimpleServer содержит параметры rtsp_simple_server
 type Rtsp struct {
 	Run         string        `yaml:"run"`
 	Url         string        `yaml:"url"`
