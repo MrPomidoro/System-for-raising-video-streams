@@ -20,6 +20,18 @@ var logLevelSeverity = map[zapcore.Level]string{
 }
 
 func NewLogger(cfg *config.Config) *zap.Logger {
+
+	// если файл для логов необходимо переписывать
+	// и если файл существует, то он удаляется  и создаётся заново;
+	// параметр RewriteLog приравнивается false
+	if cfg.RewriteLog {
+		if _, err := os.Stat(cfg.LogFile); err == nil {
+			os.Remove(cfg.LogFile)
+			os.Create(cfg.LogFile)
+			cfg.RewriteLog = false
+		}
+	}
+
 	l := logger{
 		LogLevel:      cfg.LogLevel,
 		LogFileEnable: cfg.LogFileEnable,
