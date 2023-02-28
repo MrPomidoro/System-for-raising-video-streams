@@ -24,8 +24,15 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	transcode.Transcode(dataRTSP, dataRTSPCopy)
 	a.getCamsRemove(dataDB, dataRTSPCopy)
 
+	var c int
 	// Добавление камер
 	if camsAdd != nil {
+		if ctx.Err() != nil {
+			return a.err.SetError(ctx.Err())
+		}
+		a.log.Info("Count of data is same, but the cameras are different")
+		c++
+
 		err := a.addCamerasToRTSP(ctx, camsAdd)
 		if err != nil {
 			return a.err
@@ -34,6 +41,13 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 
 	// Удаление камер
 	if len(dataRTSPCopy) != 0 {
+		if ctx.Err() != nil {
+			return a.err.SetError(ctx.Err())
+		}
+		if c == 0 {
+			a.log.Info("Count of data is same, but the cameras are different")
+		}
+
 		err := a.removeCamerasFromRTSP(ctx, dataRTSPCopy)
 		if err != nil {
 			return err
@@ -55,6 +69,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd map[string]rtspsimpl
 		if ctx.Err() != nil {
 			return a.err.SetError(ctx.Err())
 		}
+
 		err := a.rtspRepo.PostAddRTSP(ctx, camAdd)
 		if err != nil {
 			return err
