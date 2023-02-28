@@ -25,6 +25,7 @@ func (a *app) Run(ctx context.Context) {
 	if a.db == nil {
 		return
 	}
+
 	errChan := make(chan error)
 	// Переподключение при необходимости
 	go a.db.DBPing(ctx, a.cfg, a.log, errChan)

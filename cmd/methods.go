@@ -60,10 +60,6 @@ func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 	// return resDB, resRTSP, a.err.SetError(errors.New("ашипка"))
 }
 
-//
-//
-//
-
 // isCamsSame проверяет, что камеры в бд и в ртсп совпадают, т.е. учитывает
 // случай, когда количество камер равно, но сами камеры отличаются;
 // напр., камеры в бд: 1, 2, в ртсп: 1, 3 --- камеру 2 добавить, камеру 3 удалить.
