@@ -60,7 +60,7 @@ loop:
 
 			camsEdit := a.getCamsEdit(dataDB, dataRTSP, camsAdd, camsRemove)
 
-			if len(camsEdit) == 0 && (len(camsRemove) == 0 || len(camsAdd) == 0) {
+			if len(camsEdit) == 0 && len(camsRemove) == 0 && len(camsAdd) == 0 {
 				a.log.Info("Data is identity, waiting...")
 				continue
 			}
