@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"strings"
 
@@ -35,7 +34,6 @@ func GetConfig() (*Config, ce.IError) {
 
 	// Проверка наличия параметров в командной строке
 	readFlags(&cfg)
-	fmt.Println("cfg:", cfg)
 	return &cfg, nil
 }
 
