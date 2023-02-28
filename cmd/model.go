@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"os"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
@@ -22,7 +23,7 @@ import (
 type app struct {
 	cfg *config.Config
 	log *zap.Logger
-	db  *database.DB
+	db  *postgresql.DB
 
 	sigChan  chan os.Signal
 	doneChan chan struct{}

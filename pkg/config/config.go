@@ -36,14 +36,14 @@ type Server struct {
 
 // Database содержит параметры базы данных
 type Database struct {
-	Port                      string        `yaml:"port"`
-	Host                      string        `yaml:"host"`
-	DbName                    string        `yaml:"dbName"`
-	User                      string        `yaml:"user"`
-	Password                  string        `yaml:"password"`
-	Driver                    string        `yaml:"driver"`
-	DatabaseConnect           bool          `yaml:"databaseConnect"`
-	DbConnectionTimeoutSecond time.Duration `yaml:"dbConnectionTimeoutSecond"`
+	Port              uint16        `yaml:"port"`
+	Host              string        `yaml:"host"`
+	DbName            string        `yaml:"dbName"`
+	User              string        `yaml:"user"`
+	Password          string        `yaml:"password"`
+	Driver            string        `yaml:"driver"`
+	Connect           bool          `yaml:"databaseConnect"`
+	ConnectionTimeout time.Duration `yaml:"dbConnectionTimeoutSecond"`
 }
 
 // Rtsp RtspSimpleServer содержит параметры rtsp_simple_server
