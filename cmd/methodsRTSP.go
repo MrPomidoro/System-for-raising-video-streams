@@ -20,19 +20,18 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	camsAdd := a.getCamsAdd(dataDB, dataRTSP)
 	// Получение мапы камер на удаление; создаётся копия исходной мапы
 	// с помощью метода Transcode, чтобы исходная не изменялась
-	dataRTSPCopy := make(map[string]rtspsimpleserver.SConf)
-	transcode.Transcode(dataRTSP, dataRTSPCopy)
-	a.getCamsRemove(dataDB, dataRTSPCopy)
+	camsRemove := make(map[string]rtspsimpleserver.SConf)
+	transcode.Transcode(dataRTSP, camsRemove)
+	a.getCamsRemove(dataDB, camsRemove)
 
-	var c int
-	// Добавление камер
-	if camsAdd != nil {
-		if ctx.Err() != nil {
-			return a.err.SetError(ctx.Err())
-		}
+	if len(camsAdd) != 0 || len(camsRemove) != 0 {
 		a.log.Info("Count of data is same, but the cameras are different")
-		c++
+	} else {
+		return nil
+	}
 
+	// Добавление камер
+	if len(camsAdd) != 0 {
 		err := a.addCamerasToRTSP(ctx, camsAdd)
 		if err != nil {
 			return a.err
@@ -40,15 +39,8 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	}
 
 	// Удаление камер
-	if len(dataRTSPCopy) != 0 {
-		if ctx.Err() != nil {
-			return a.err.SetError(ctx.Err())
-		}
-		if c == 0 {
-			a.log.Info("Count of data is same, but the cameras are different")
-		}
-
-		err := a.removeCamerasFromRTSP(ctx, dataRTSPCopy)
+	if len(camsRemove) != 0 {
+		err := a.removeCamerasFromRTSP(ctx, camsRemove)
 		if err != nil {
 			return err
 		}
