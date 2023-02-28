@@ -14,9 +14,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// CreateDBConnection заполняет структуру данными из конфига и вызывает функцию connectToDB(),
+// Connection заполняет структуру данными из конфига и вызывает функцию db(),
 // дающую подключение к базе данных
-func CreateDBConnection(ctx context.Context, cfg *config.Config) (*DB, ce.IError) {
+func Connection(cfg *config.Config) (*DB, ce.IError) {
 	var db DB
 	db.err = ce.ErrorDatabase
 
@@ -30,12 +30,8 @@ func CreateDBConnection(ctx context.Context, cfg *config.Config) (*DB, ce.IError
 	db.dBConnectionTimeoutSecond = cfg.DbConnectionTimeoutSecond
 	db.log = logger.NewLogger(cfg)
 
-	if ctx.Err() != nil {
-		return nil, db.err.SetError(ctx.Err())
-	}
-
 	var err error
-	db.Db, err = db.connectToDB()
+	db.Db, err = db.db()
 	if err != nil {
 		return nil, db.err.SetError(err)
 	}
@@ -43,8 +39,8 @@ func CreateDBConnection(ctx context.Context, cfg *config.Config) (*DB, ce.IError
 	return &db, nil
 }
 
-// connectToDB - функция, возвращающая открытое подключение к базе данных
-func (db *DB) connectToDB() (*sql.DB, error) {
+// db - функция, возвращающая открытое подключение к базе данных
+func (db *DB) db() (*sql.DB, error) {
 	var dbSQL *sql.DB
 
 	sqlInfo := fmt.Sprintf(DBInfoConst,
@@ -67,8 +63,8 @@ func (db *DB) connectToDB() (*sql.DB, error) {
 	}
 }
 
-// CloseDBConnection реализует отключение от базы данных
-func (db *DB) CloseDBConnection() *ce.Error {
+// Close реализует отключение от базы данных
+func (db *DB) Close() *ce.Error {
 
 	if err := db.Db.Close(); err != nil {
 		return db.err.SetError(err)
@@ -78,9 +74,9 @@ func (db *DB) CloseDBConnection() *ce.Error {
 	return nil
 }
 
-// DBPing реализует переподключение к базе данных при необходимости
-// Происходит проверка контекста - если он закрыт, DBPing прекращаеи работу
-func (db *DB) DBPing(ctx context.Context, log *zap.Logger, errChan chan error) {
+// Ping реализует переподключение к базе данных при необходимости
+// Происходит проверка контекста - если он закрыт, Ping прекращаеи работу
+func (db *DB) Ping(ctx context.Context, log *zap.Logger, errChan chan error) {
 
 	defer close(errChan)
 
@@ -99,7 +95,10 @@ loop:
 			log.Debug(fmt.Sprintf("cannot connect to database: %s", err))
 			log.Info("Try reconnect to database...")
 
-			db.connectToDB()
+			_, err = db.db()
+			if err != nil {
+				continue
+			}
 		default:
 		}
 	}

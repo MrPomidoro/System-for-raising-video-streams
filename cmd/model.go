@@ -43,7 +43,7 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 		return nil, err.SetError(fmt.Errorf("no permission to connect to database"))
 	}
 
-	db, e := database.CreateDBConnection(ctx, cfg)
+	db, e := database.Connection(cfg)
 	if e != nil {
 		return nil, err
 	}
