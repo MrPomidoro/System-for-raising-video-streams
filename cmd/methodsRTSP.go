@@ -9,10 +9,8 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/transcode"
 )
 
-/*
-addAndRemoveData - метод, в которым выполняются функции, получающие списки
-отличающихся данных, выполняется удаление лишних камер и добавление недостающих
-*/
+// addAndRemoveData - метод, в которым выполняются функции, получающие списки
+// отличающихся данных, выполняется удаление лишних камер и добавление недостающих
 func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimpleserver.SConf,
 	dataDB []refreshstream.Stream) ce.IError {
 
@@ -49,11 +47,9 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	return nil
 }
 
-/*
-addCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо добавить
-в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
-добавляет в таблицу status_stream запись с результатом выполнения запроса
-*/
+// addCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо добавить
+// в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
+// добавляет в таблицу status_stream запись с результатом выполнения запроса
 func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd map[string]rtspsimpleserver.SConf) ce.IError {
 
 	// Перебор всех элементов списка камер на добавление
