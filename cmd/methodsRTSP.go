@@ -22,7 +22,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 	// с помощью метода Transcode, чтобы исходная не изменялась
 	dataRTSPCopy := make(map[string]rtspsimpleserver.SConf)
 	methods.Transcode(dataRTSP, dataRTSPCopy)
-	getCamsRemove(dataDB, dataRTSPCopy)
+	a.getCamsRemove(dataDB, dataRTSPCopy)
 
 	// Добавление камер
 	if camsAdd != nil {

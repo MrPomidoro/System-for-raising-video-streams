@@ -156,7 +156,7 @@ func (a *app) getCamsAdd(dataDB []refreshstream.RefreshStream,
 
 // GetCamsRemove - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // удаляющая из мапы с результатом из rtsp камеры, которые не нужно
-func getCamsRemove(dataDB []refreshstream.RefreshStream,
+func (a *app) getCamsRemove(dataDB []refreshstream.RefreshStream,
 	dataRTSP map[string]rtspsimpleserver.SConf) {
 
 	for _, camDB := range dataDB {
