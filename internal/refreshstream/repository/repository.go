@@ -2,20 +2,21 @@ package repository
 
 import (
 	"context"
-	"database/sql"
+	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"go.uber.org/zap"
 )
 
 type repository struct {
-	db  *sql.DB
+	db  *postgresql.DB
 	log *zap.Logger
 	err ce.IError
 }
 
-func NewRefreshStreamRepository(db *sql.DB, log *zap.Logger) *repository {
+func NewRefreshStreamRepository(db *postgresql.DB, log *zap.Logger) *repository {
 	return &repository{
 		db:  db,
 		log: log,
@@ -41,8 +42,8 @@ func (s repository) Get(ctx context.Context, status bool) ([]refreshstream.Strea
 	}
 
 	s.log.Debug("Query to database:\n\t" + query)
-
-	rows, err := s.db.QueryContext(ctx, query)
+	// s.db.Conn.Q
+	rows, err := s.db.Conn.Query(ctx, query)
 	if err != nil {
 		return nil, s.err.SetError(err)
 	}
@@ -60,6 +61,7 @@ func (s repository) Get(ctx context.Context, status bool) ([]refreshstream.Strea
 		}
 		res = append(res, rs)
 	}
+	fmt.Println(res)
 	return res, nil
 }
 

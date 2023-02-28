@@ -4,27 +4,28 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/jackc/pgx/v4"
 	"go.uber.org/zap"
-	"time"
 )
 
 // NewDB Эта функция создает новый экземпляр DB.
 func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, err error) {
 
-	if cfg.Driver != "postgresql" {
+	if cfg.Driver != "postgres" {
 		return nil, errors.New("this driver not has use in connection postgresql database")
 	}
 
-	c := GetConfig(cfg)
-
+	c := GetConfig(cfg, log)
+	fmt.Println(c.Config)
 	conn, err := pgx.ConnectConfig(ctx, c)
 	if err != nil {
 		return nil, err
 	}
 
-	db = &DB{c, conn, log}
+	db = &DB{c, conn}
 
 	go db.keepAlive()
 
@@ -35,7 +36,7 @@ func (db *DB) keepAlive() {
 	for {
 		time.Sleep(5 * time.Second)
 
-		if _, err := db.Conn.Exec(context.Background(), "SELECT 1"); err != nil {
+		if err := db.Conn.Ping(context.Background()); err != nil {
 			fmt.Printf("lost database connection: %v\n", err)
 
 			if err = db.reconnect(); err != nil {
@@ -50,7 +51,7 @@ func (db *DB) reconnect() error {
 	var err error
 
 	for {
-		conn, err = pgx.Connect(context.Background(), db.Conn.Config().ConnString())
+		conn, err = pgx.ConnectConfig(context.Background(), db.Conn.Config())
 		if err != nil {
 			fmt.Printf("failed to reconnect to database: %v\n", err)
 			time.Sleep(5 * time.Second)
@@ -59,9 +60,9 @@ func (db *DB) reconnect() error {
 		break
 	}
 
-	if err = db.Conn.Close(context.Background()); err != nil {
-		return err
-	}
+	// if err = db.Conn.Close(context.Background()); err != nil {
+	// 	return err
+	// }
 	db.Conn = conn
 
 	fmt.Println("successfully reconnected to database")
@@ -69,10 +70,12 @@ func (db *DB) reconnect() error {
 	return nil
 }
 
-func GetConfig(cfg *config.Database) *pgx.ConnConfig {
-	c := &pgx.ConnConfig{}
+func GetConfig(cfg *config.Database, log *zap.Logger) *pgx.ConnConfig {
+	// c := &pgx.ConnConfig{}
+	c, _ := pgx.ParseConfig("")
 	c.Host = cfg.Host
-	c.Port = cfg.Port
+	c.Port = uint16(cfg.Port)
+	c.Database = cfg.DbName
 	c.User = cfg.User
 	c.Password = cfg.Password
 	c.ConnectTimeout = cfg.ConnectionTimeout
