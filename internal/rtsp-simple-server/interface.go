@@ -6,7 +6,7 @@ import (
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
-type RTSPCommon interface {
+type Common interface {
 	// GetRtsp отправляет GET запрос на получение данных
 	GetRtsp(ctx context.Context) (map[string]SConf, ce.IError)
 	// PostAddRTSP отправляет POST запрос на добавление потока
@@ -18,9 +18,9 @@ type RTSPCommon interface {
 }
 
 type RTSPUseCase interface {
-	RTSPCommon
+	Common
 }
 
 type RTSPRepository interface {
-	RTSPCommon
+	Common
 }
