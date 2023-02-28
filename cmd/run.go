@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 )
@@ -56,8 +55,6 @@ loop:
 				continue
 			}
 
-			a.log.Info(fmt.Sprintf("The count of data in the database = %d is equal to the count of data in rtsp-simple-server = %d", len(dataDB), len(dataRTSP)))
-
 			// Получение отличающихся камер поля
 			camsEdit := a.getCamsEdit(dataDB, dataRTSP)
 			if len(camsEdit) == 0 {
@@ -65,7 +62,6 @@ loop:
 				continue
 			}
 
-			a.log.Info("Count of data is same, but the cameras are different")
 			// Если число камер совпадает, но стримы отличаются
 			err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
 			if err != nil {
