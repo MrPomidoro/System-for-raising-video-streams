@@ -98,13 +98,11 @@ loop:
 			db.connectToDB(*cfg)
 		default:
 		}
-		time.Sleep(100 * time.Millisecond)
 	}
 }
 
 func (db *DB) ping(ctx context.Context, errChan chan error) {
 	if ctx.Err() != nil {
-		close(errChan)
 		return
 	}
 	err := db.Db.Ping()

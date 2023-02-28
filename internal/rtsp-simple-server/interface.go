@@ -10,11 +10,11 @@ type RTSPCommon interface {
 	// GetRtsp отправляет GET запрос на получение данных
 	GetRtsp(ctx context.Context) (map[string]SConf, ce.IError)
 	// PostAddRTSP отправляет POST запрос на добавление потока
-	PostAddRTSP(camDB SConf) ce.IError
+	PostAddRTSP(ctx context.Context, camDB SConf) ce.IError
 	// PostRemoveRTSP отправляет POST запрос на удаление потока
-	PostRemoveRTSP(camRTSP SConf) ce.IError
+	PostRemoveRTSP(ctx context.Context, camRTSP SConf) ce.IError
 	// PostEditRTSP отправляет POST запрос на изменение потока
-	PostEditRTSP(cam SConf) ce.IError
+	PostEditRTSP(ctx context.Context, cam SConf) ce.IError
 }
 
 type RTSPUseCase interface {
