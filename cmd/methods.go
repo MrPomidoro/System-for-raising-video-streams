@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
-	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
+	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
@@ -38,7 +38,7 @@ func (a *app) GracefulShutdown(cancel context.CancelFunc) {
 
 // getDBAndApi реализует получение камер с базы данных и с rtsp
 func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream,
-	map[string]rtspsimpleserver.SConf, ce.IError) {
+	map[string]rtsp.SConf, ce.IError) {
 
 	var err ce.IError
 
@@ -58,7 +58,7 @@ func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 }
 
 // dbToCompare приводит данные от бд к виду, который можно сравнить с ртсп
-func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtspsimpleserver.SConf {
+func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtsp.SConf {
 	// Парсинг поля RunOnReady
 	var runOnReady string
 	if cfg.Run != "" {
@@ -74,9 +74,9 @@ func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtspsimpleserve
 		protocol = "tcp"
 	}
 
-	return rtspsimpleserver.SConf{
+	return rtsp.SConf{
 		Stream: camDB.Stream.String,
-		Conf: rtspsimpleserver.Conf{
+		Conf: rtsp.Conf{
 			SourceProtocol: protocol,
 			RunOnReady:     runOnReady,
 			Source:         fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String),
@@ -86,8 +86,8 @@ func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtspsimpleserve
 }
 
 // rtspToCompare приводит данные от ртсп к виду, который можно сравнить с бд
-func rtspToCompare(camRTSP rtspsimpleserver.SConf) rtspsimpleserver.Conf {
-	return rtspsimpleserver.Conf{
+func rtspToCompare(camRTSP rtsp.SConf) rtsp.Conf {
+	return rtsp.Conf{
 		SourceProtocol: camRTSP.Conf.SourceProtocol,
 		RunOnReady:     camRTSP.Conf.RunOnReady,
 		Source:         camRTSP.Conf.Source,
@@ -96,10 +96,10 @@ func rtspToCompare(camRTSP rtspsimpleserver.SConf) rtspsimpleserver.Conf {
 
 // getCamsEdit - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // возвращающая мапу камер, поля которых в бд и ртсп отличаются
-func (a *app) getCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtspsimpleserver.SConf,
-	camsAdd map[string]rtspsimpleserver.SConf, camsRemove map[string]rtspsimpleserver.SConf) map[string]rtspsimpleserver.SConf {
+func (a *app) getCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtsp.SConf,
+	camsAdd map[string]rtsp.SConf, camsRemove map[string]rtsp.SConf) map[string]rtsp.SConf {
 
-	camsForEdit := make(map[string]rtspsimpleserver.SConf)
+	camsForEdit := make(map[string]rtsp.SConf)
 
 	for _, camDB := range dataDB {
 
@@ -125,9 +125,9 @@ func (a *app) getCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rts
 // getCamsAdd - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // возвращающая мапу камер, отсутствующих в rtsp, но имеющихся в базе
 func (a *app) getCamsAdd(dataDB []refreshstream.Stream,
-	dataRTSP map[string]rtspsimpleserver.SConf) map[string]rtspsimpleserver.SConf {
+	dataRTSP map[string]rtsp.SConf) map[string]rtsp.SConf {
 
-	camsForAdd := make(map[string]rtspsimpleserver.SConf)
+	camsForAdd := make(map[string]rtsp.SConf)
 
 	for _, camDB := range dataDB {
 		// Если камера есть в бд, но отсутствует в ртсп, добавляется в список
@@ -144,7 +144,7 @@ func (a *app) getCamsAdd(dataDB []refreshstream.Stream,
 // getCamsRemove - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // удаляющая из мапы с результатом из rtsp камеры, которые не нужно
 func (a *app) getCamsRemove(dataDB []refreshstream.Stream,
-	dataRTSP map[string]rtspsimpleserver.SConf) {
+	dataRTSP map[string]rtsp.SConf) {
 
 	// fmt.Println("dataRTSP old", dataRTSP)
 	for _, camDB := range dataDB {

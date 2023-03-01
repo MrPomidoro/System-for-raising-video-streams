@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
+	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/transcode"
 )
 
@@ -62,7 +62,7 @@ loop:
 				continue loop
 			}
 
-			camsRemove := make(map[string]rtspsimpleserver.SConf)
+			camsRemove := make(map[string]rtsp.SConf)
 			transcode.Transcode(dataRTSP, &camsRemove)
 			a.getCamsRemove(dataDB, camsRemove)
 
@@ -75,13 +75,13 @@ loop:
 				continue loop
 			}
 
-			err = a.addAndRemoveData(ctx, dataDB, dataRTSP, camsAdd, camsRemove)
+			err = a.addRemoveData(ctx, dataDB, dataRTSP, camsAdd, camsRemove)
 			if err != nil {
 				a.log.Error(err.Error())
 				continue loop
 			}
 
-			err = a.editCamerasToRTSP(ctx, camsEdit)
+			err = a.editData(ctx, camsEdit)
 			if err != nil {
 				a.log.Error(err.Error())
 				continue loop

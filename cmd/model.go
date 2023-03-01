@@ -7,11 +7,11 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
-	rsrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository"
-	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
-	rtsprepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server/repository"
+	rsrepo "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository"
+	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
+	rtsprepo "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server/repository"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
-	ssrepository "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository"
+	ssrepo "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
@@ -34,7 +34,7 @@ type app struct {
 
 	refreshStreamRepo refreshstream.Repository
 	statusStreamRepo  statusstream.Repository
-	rtspRepo          rtspsimpleserver.Repository
+	rtspRepo          rtsp.Repository
 
 	err ce.IError
 }
@@ -52,10 +52,6 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	sigChan := make(chan os.Signal, 1)
 	doneChan := make(chan struct{})
 
-	repoRS := rsrepository.NewRepository(db, log)
-	repoSS := ssrepository.NewRepository(db, log)
-	repoRTSP := rtsprepository.NewRepository(cfg, log)
-
 	return &app{
 		cfg: cfg,
 		db:  db,
@@ -64,9 +60,9 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 		sigChan:  sigChan,
 		doneChan: doneChan,
 
-		refreshStreamRepo: repoRS,
-		statusStreamRepo:  repoSS,
-		rtspRepo:          repoRTSP,
+		refreshStreamRepo: rsrepo.NewRepository(db, log),
+		statusStreamRepo:  ssrepo.NewRepository(db, log),
+		rtspRepo:          rtsprepo.NewRepository(cfg, log),
 
 		err: err,
 	}, nil
