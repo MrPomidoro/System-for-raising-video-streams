@@ -87,15 +87,10 @@ loop:
 				continue
 			}
 
-			// Если в бд и ртсп одни и те же камеры
-			if len(camsEdit) != 0 {
-				// Если имеются отличия, отправляется запрос к ртсп на изменение
-				a.log.Info("Cameras is same, but its values are different")
-				err := a.editCamerasToRTSP(ctx, camsEdit)
-				if err != nil {
-					a.log.Error(err.Error())
-					continue
-				}
+			err = a.editCamerasToRTSP(ctx, camsEdit)
+			if err != nil {
+				a.log.Error(err.Error())
+				continue
 			}
 		}
 	}
