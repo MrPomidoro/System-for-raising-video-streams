@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 // DB Эта структура будет хранить экземпляр подключения к базе данных.
@@ -12,6 +13,7 @@ type DB struct {
 }
 
 type IDB interface {
-	KeepAlive(ctx context.Context, errCh chan<- error)
-	// DBPing(ctx context.Context, cfg *config.Config)
+	KeepAlive(ctx context.Context, log *zap.Logger, errCh chan error)
+	IsConn(ctx context.Context) bool
+	Close()
 }
