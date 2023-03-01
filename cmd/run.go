@@ -48,12 +48,9 @@ loop:
 		// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 		case <-tick.C:
 
-			// fmt.Println("1")
-			// if _, err := a.db.Conn.Exec(context.Background(), "SELECT 1"); err != nil {
-			// 	fmt.Println("3")
-			// 	continue loop
-			// }
-			// fmt.Println("2")
+			if !a.db.IsOpen(ctx) {
+				continue loop
+			}
 
 			// Получение данных от базы данных и от rtsp
 			dataDB, dataRTSP, err := a.getDBAndApi(ctx, &mu)

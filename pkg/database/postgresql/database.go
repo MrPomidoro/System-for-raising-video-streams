@@ -77,6 +77,27 @@ func (db *DB) ping(ctx context.Context, errCh chan error) {
 	}
 }
 
+func (db *DB) IsOpen(ctx context.Context) bool {
+
+	if ctx.Err() != nil {
+		return false
+	}
+
+	conn, err := db.Conn.Acquire(context.Background())
+	if err != nil {
+		return false
+	}
+
+	tx, _ := conn.Begin(ctx)
+	defer conn.Release()
+
+	if _, err = tx.Exec(context.Background(), "SELECT 1"); err != nil {
+		return false
+	}
+
+	return true
+}
+
 func getConfig(cfg *config.Database, log *zap.Logger) *pgxpool.Config {
 	// Настраиваем конфигурацию пула подключений к базе данных
 	config, _ := pgxpool.ParseConfig("")
