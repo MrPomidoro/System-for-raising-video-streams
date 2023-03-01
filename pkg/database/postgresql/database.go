@@ -26,17 +26,19 @@ func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, 
 }
 
 func (db *DB) KeepAlive(ctx context.Context, log *zap.Logger, errCh chan error) {
-	defer close(errCh)
 
 	for {
 		if ctx.Err() != nil {
+			close(errCh)
 			return
 		}
+
 		go db.ping(ctx, errCh)
 
 		time.Sleep(3 * time.Second)
 		select {
 		case <-ctx.Done():
+			close(errCh)
 			return
 		case err := <-errCh:
 			log.Debug(fmt.Sprintf("cannot connect to database: %s", err))
@@ -44,67 +46,57 @@ func (db *DB) KeepAlive(ctx context.Context, log *zap.Logger, errCh chan error) 
 
 		default:
 		}
-
-		// conn, err := db.Conn.Acquire(context.Background())
-		// if err != nil {
-		// errCh <- fmt.Errorf("failed to acquire connection: %w", err)
-		// continue
-		// }
-		// fmt.Println("2")
-		// defer conn.Release()
-		// if _, err = conn.Exec(context.Background(), "SELECT 1"); err != nil {
-		// 	fmt.Println("3")
-		// 	errCh <- fmt.Errorf("failed to execute test query: %w", err)
-		// 	continue
-		// }
-		// fmt.Println("4")
 	}
 }
 
 func (db *DB) ping(ctx context.Context, errCh chan error) {
-	conn, err := db.Conn.Acquire(context.Background())
-	if err != nil {
-		errCh <- fmt.Errorf("failed to acquire connection: %w", err)
+	if ctx.Err() != nil {
 		return
 	}
+
+	conn, err := db.Conn.Acquire(context.Background())
+	if err != nil {
+		select {
+		case <-ctx.Done():
+			return
+		case errCh <- fmt.Errorf("failed to acquire connection: %w", err):
+		}
+		return
+	}
+
+	tx, _ := conn.Begin(ctx)
 	defer conn.Release()
-	if _, err = conn.Exec(context.Background(), "SELECT 1"); err != nil {
-		errCh <- fmt.Errorf("failed to execute test query: %w", err)
+
+	if _, err = tx.Exec(context.Background(), "SELECT 1"); err != nil {
+		select {
+		case <-ctx.Done():
+			return
+		case errCh <- fmt.Errorf("failed to execute test query: %w", err):
+		}
 		return
 	}
 }
 
-// func (db *DB) ping(ctx context.Context, errChan chan error) {
-// if ctx.Err() != nil {
-// return
-// }
-// fmt.Println("try ping")
-// err := db.Conn.Ping(ctx)
-// fmt.Println("err of ping:", err)
-// if err != nil {
-// errChan <- err
-// }
-// }
+func (db *DB) IsOpen(ctx context.Context) bool {
 
-// func (db *DB) reconnect() error {
-// 	var conn *pgx.Conn
-// 	var err error
-// 	for {
-// 		conn, err = pgx.ConnectConfig(context.Background(), db.Conn.Config())
-// 		if err != nil {
-// 			fmt.Printf("failed to reconnect to database: %v\n", err)
-// 			time.Sleep(5 * time.Second)
-// 			continue
-// 		}
-// 		break
-// 	}
-// 	// if err = db.Conn.Close(context.Background()); err != nil {
-// 	// 	return err
-// 	// }
-// 	db.Conn = conn
-// 	fmt.Println("successfully reconnected to database")
-// 	return nil
-// }
+	if ctx.Err() != nil {
+		return false
+	}
+
+	conn, err := db.Conn.Acquire(context.Background())
+	if err != nil {
+		return false
+	}
+
+	tx, _ := conn.Begin(ctx)
+	defer conn.Release()
+
+	if _, err = tx.Exec(context.Background(), "SELECT 1"); err != nil {
+		return false
+	}
+
+	return true
+}
 
 func getConfig(cfg *config.Database, log *zap.Logger) *pgxpool.Config {
 	// Настраиваем конфигурацию пула подключений к базе данных

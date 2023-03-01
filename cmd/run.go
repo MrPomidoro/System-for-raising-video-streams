@@ -30,15 +30,16 @@ func (a *app) Run(ctx context.Context) {
 	}
 
 	// Создаем канал для получения оповещений о сбое подключения
-	// errCh := make(chan error)
+	errCh := make(chan error)
 	// Запускаем асинхронную проверку поддержания соединения
-	// go a.db.KeepAlive(ctx, a.log, errCh)
+	go a.db.KeepAlive(ctx, a.log, errCh)
 
 	var mu sync.Mutex
 
 loop:
 	for {
 		fmt.Println("")
+
 		select {
 
 		case <-ctx.Done():
@@ -47,12 +48,9 @@ loop:
 		// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 		case <-tick.C:
 
-			fmt.Println("1")
-			if _, err := a.db.Conn.Exec(context.Background(), "SELECT 1"); err != nil {
-				fmt.Println("3")
+			if !a.db.IsOpen(ctx) {
 				continue loop
 			}
-			fmt.Println("2")
 
 			// Получение данных от базы данных и от rtsp
 			dataDB, dataRTSP, err := a.getDBAndApi(ctx, &mu)
