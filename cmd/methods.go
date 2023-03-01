@@ -32,6 +32,7 @@ func (a *app) GracefulShutdown(cancel context.CancelFunc) {
 	}
 
 	a.db.Conn.Close()
+	a.log.Info("Close database connection")
 
 	a.log.Debug("Waiting...")
 }
@@ -39,8 +40,6 @@ func (a *app) GracefulShutdown(cancel context.CancelFunc) {
 // getDBAndApi реализует получение камер с базы данных и с rtsp
 func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream,
 	map[string]rtsp.SConf, ce.IError) {
-
-	var err ce.IError
 
 	// Отправка запроса к базе
 	resDB, err := a.refreshStreamRepo.Get(ctx, true)

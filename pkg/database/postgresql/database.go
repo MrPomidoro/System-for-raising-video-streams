@@ -28,41 +28,23 @@ func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, 
 func (db *DB) KeepAlive(ctx context.Context, log *zap.Logger, errCh chan error) {
 	defer close(errCh)
 
-loop:
 	for {
 		if ctx.Err() != nil {
-			break loop
+			return
 		}
 		go db.ping(ctx, errCh)
 
 		time.Sleep(3 * time.Second)
 		select {
 		case <-ctx.Done():
-			break loop
+			return
 		case err := <-errCh:
 			log.Debug(fmt.Sprintf("cannot connect to database: %s", err))
 			log.Info("Try reconnect to database...")
 
 		default:
 		}
-		// for {
-		// 	if ctx.Err() != nil {
-		// 		return
-		// 	}
-		// 	go db.ping(ctx, errCh)
-		// 	time.Sleep(3 * time.Second)
-		// 	fmt.Println("Time after 3 second")
-		// 	// Выполняем тестовый запрос, чтобы убедиться, что соединение работает
-		// 	fmt.Println("1")
-		// 	err := db.Conn.Ping(ctx)
-		// 	fmt.Println("2")
-		// 	if err != nil {
-		// 		errCh <- fmt.Errorf("failed to acquire connection: %w", err)
-		// 		continue
-		// 	}
-		//
-		//
-		//
+
 		// conn, err := db.Conn.Acquire(context.Background())
 		// if err != nil {
 		// errCh <- fmt.Errorf("failed to acquire connection: %w", err)
@@ -79,17 +61,30 @@ loop:
 	}
 }
 
-func (db *DB) ping(ctx context.Context, errChan chan error) {
-	if ctx.Err() != nil {
+func (db *DB) ping(ctx context.Context, errCh chan error) {
+	conn, err := db.Conn.Acquire(context.Background())
+	if err != nil {
+		errCh <- fmt.Errorf("failed to acquire connection: %w", err)
 		return
 	}
-	fmt.Println("try ping")
-	err := db.Conn.Ping(ctx)
-	fmt.Println("err of ping:", err)
-	if err != nil {
-		errChan <- err
+	defer conn.Release()
+	if _, err = conn.Exec(context.Background(), "SELECT 1"); err != nil {
+		errCh <- fmt.Errorf("failed to execute test query: %w", err)
+		return
 	}
 }
+
+// func (db *DB) ping(ctx context.Context, errChan chan error) {
+// if ctx.Err() != nil {
+// return
+// }
+// fmt.Println("try ping")
+// err := db.Conn.Ping(ctx)
+// fmt.Println("err of ping:", err)
+// if err != nil {
+// errChan <- err
+// }
+// }
 
 // func (db *DB) reconnect() error {
 // 	var conn *pgx.Conn
