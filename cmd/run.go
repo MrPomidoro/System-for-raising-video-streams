@@ -32,13 +32,7 @@ func (a *app) Run(ctx context.Context) {
 	// Создаем канал для получения оповещений о сбое подключения
 	errCh := make(chan error)
 	// Запускаем асинхронную проверку поддержания соединения
-	go a.db.KeepAlive(ctx, errCh)
-	// go func() {
-	// 	defer close(errCh)
-	// 	for err := range errCh {
-	// 		fmt.Printf("Connection error: %v\n", err)
-	// 	}
-	// }()
+	go a.db.KeepAlive(ctx, a.log, errCh)
 
 	var mu sync.Mutex
 
@@ -49,9 +43,6 @@ loop:
 
 		case <-ctx.Done():
 			break loop
-
-		case err := <-errCh:
-			fmt.Printf("Connection error: %v\n", err)
 
 		// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 		case <-tick.C:
