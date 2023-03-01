@@ -14,7 +14,7 @@ import (
 // NewDB Эта функция создает новый экземпляр DB.
 func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, err error) {
 
-	config := GetConfig(cfg, log)
+	config := getConfig(cfg, log)
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
@@ -25,11 +25,12 @@ func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, 
 	return &DB{pool}, nil
 }
 
-func (db *DB) KeepAlive(errCh chan<- error) {
+func (db *DB) KeepAlive(ctx context.Context, errCh chan<- error) {
 	for {
+		if ctx.Err() != nil {
+			return
+		}
 		time.Sleep(3 * time.Second)
-		// select {
-		// case <-time.After(3 * time.Second):
 		fmt.Println("Time after 3 second")
 		// Выполняем тестовый запрос, чтобы убедиться, что соединение работает
 		conn, err := db.Conn.Acquire(context.Background())
@@ -43,7 +44,6 @@ func (db *DB) KeepAlive(errCh chan<- error) {
 			errCh <- fmt.Errorf("failed to execute test query: %w", err)
 			continue
 		}
-		// }
 	}
 }
 
@@ -67,7 +67,7 @@ func (db *DB) KeepAlive(errCh chan<- error) {
 // 	return nil
 // }
 
-func GetConfig(cfg *config.Database, log *zap.Logger) *pgxpool.Config {
+func getConfig(cfg *config.Database, log *zap.Logger) *pgxpool.Config {
 	// Настраиваем конфигурацию пула подключений к базе данных
 	config, _ := pgxpool.ParseConfig("")
 	config.ConnConfig.User = cfg.User
