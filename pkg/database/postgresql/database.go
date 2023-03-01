@@ -116,6 +116,10 @@ func getConfig(cfg *config.Database, log *zap.Logger) *pgxpool.Config {
 	return config
 }
 
+func (db *DB) Close() {
+	db.Conn.Close()
+}
+
 //// Connection заполняет структуру данными из конфига и вызывает функцию db(),
 //// дающую подключение к базе данных
 //func Connection(cfg *config.Database, log *zap.Logger) (*DB, ce.IError) {

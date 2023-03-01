@@ -60,7 +60,7 @@ loop:
 			}
 
 			if ctx.Err() != nil {
-				continue loop
+				break loop
 			}
 
 			camsRemove := make(map[string]rtsp.SConf)

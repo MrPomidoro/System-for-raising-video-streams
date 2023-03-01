@@ -27,7 +27,7 @@ type App interface {
 type app struct {
 	cfg *config.Config
 	log *zap.Logger
-	db  *postgresql.DB
+	db  postgresql.IDB
 
 	sigChan  chan os.Signal
 	doneChan chan struct{}
@@ -48,13 +48,14 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	if e != nil {
 		return nil, err.SetError(e)
 	}
+	idb := postgresql.IDB(db)
 
 	sigChan := make(chan os.Signal, 1)
 	doneChan := make(chan struct{})
 
 	return &app{
 		cfg: cfg,
-		db:  db,
+		db:  idb,
 		log: log,
 
 		sigChan:  sigChan,
