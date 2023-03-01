@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -27,6 +28,17 @@ func (a *app) Run(ctx context.Context) {
 	if a.db == nil {
 		return
 	}
+
+	// Создаем канал для получения оповещений о сбое подключения
+	errCh := make(chan error)
+	// Запускаем асинхронную проверку поддержания соединения
+	go a.db.KeepAlive(ctx, errCh)
+	go func() {
+		defer close(errCh)
+		for err := range errCh {
+			fmt.Printf("Connection error: %v\n", err)
+		}
+	}()
 
 	var mu sync.Mutex
 
