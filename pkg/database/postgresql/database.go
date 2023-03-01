@@ -116,7 +116,7 @@ func getConfig(cfg *config.Database, log *zap.Logger) *pgxpool.Config {
 	config.ConnConfig.Database = cfg.DbName
 
 	// Устанавливаем максимальное количество соединений в пуле
-	config.MaxConns = 1
+	config.MaxConns = 2
 
 	return config
 }

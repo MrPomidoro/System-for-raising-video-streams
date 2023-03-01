@@ -74,11 +74,11 @@ func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtsp.SConf {
 	}
 
 	return rtsp.SConf{
-		Stream: camDB.Stream.String,
+		Stream: camDB.Stream,
 		Conf: rtsp.Conf{
 			SourceProtocol: protocol,
 			RunOnReady:     runOnReady,
-			Source:         fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream.String),
+			Source:         fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream),
 		},
 		Id: camDB.Id,
 	}
@@ -104,7 +104,7 @@ func (a *app) getCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rts
 
 		cam := dbToCompare(a.cfg, camDB)
 		// Проверяется, совпадают ли данные
-		if reflect.DeepEqual(cam.Conf, rtspToCompare(dataRTSP[camDB.Stream.String])) {
+		if reflect.DeepEqual(cam.Conf, rtspToCompare(dataRTSP[camDB.Stream])) {
 			continue
 		}
 		if _, ok := camsAdd[cam.Stream]; ok {
@@ -130,7 +130,7 @@ func (a *app) getCamsAdd(dataDB []refreshstream.Stream,
 
 	for _, camDB := range dataDB {
 		// Если камера есть в бд, но отсутствует в ртсп, добавляется в список
-		if _, ok := dataRTSP[camDB.Stream.String]; ok {
+		if _, ok := dataRTSP[camDB.Stream]; ok {
 			continue
 		}
 		cam := dbToCompare(a.cfg, camDB)
@@ -147,6 +147,6 @@ func (a *app) getCamsRemove(dataDB []refreshstream.Stream,
 
 	// fmt.Println("dataRTSP old", dataRTSP)
 	for _, camDB := range dataDB {
-		delete(dataRTSP, camDB.Stream.String)
+		delete(dataRTSP, camDB.Stream)
 	}
 }
