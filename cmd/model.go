@@ -46,7 +46,7 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 
 	db, e := postgresql.NewDB(ctx, &cfg.Database, log)
 	if e != nil {
-		return nil, e
+		return nil, err.SetError(e)
 	}
 
 	sigChan := make(chan os.Signal, 1)
