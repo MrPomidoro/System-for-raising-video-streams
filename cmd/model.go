@@ -18,6 +18,11 @@ import (
 	"go.uber.org/zap"
 )
 
+type App interface {
+	Run(context.Context)
+	GracefulShutdown(cancel context.CancelFunc)
+}
+
 // app - прототип приложения
 type app struct {
 	cfg *config.Config
