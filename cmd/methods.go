@@ -55,7 +55,6 @@ func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 	}
 
 	return resDB, resRTSP, nil
-	// return resDB, resRTSP, a.err.SetError(errors.New("ашипка"))
 }
 
 // dbToCompare приводит данные от бд к виду, который можно сравнить с ртсп

@@ -32,9 +32,9 @@ type app struct {
 	sigChan  chan os.Signal
 	doneChan chan struct{}
 
-	refreshStreamRepo refreshstream.RefreshStreamRepository
+	refreshStreamRepo refreshstream.Repository
 	statusStreamRepo  statusstream.Repository
-	rtspRepo          rtspsimpleserver.RTSPRepository
+	rtspRepo          rtspsimpleserver.Repository
 
 	err ce.IError
 }
@@ -52,9 +52,9 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	sigChan := make(chan os.Signal, 1)
 	doneChan := make(chan struct{})
 
-	repoRS := rsrepository.NewRefreshStreamRepository(db, log)
-	repoSS := ssrepository.NewStatusStreamRepository(db, log)
-	repoRTSP := rtsprepository.NewRTSPRepository(cfg, log)
+	repoRS := rsrepository.NewRepository(db, log)
+	repoSS := ssrepository.NewRepository(db, log)
+	repoRTSP := rtsprepository.NewRepository(cfg, log)
 
 	return &app{
 		cfg: cfg,

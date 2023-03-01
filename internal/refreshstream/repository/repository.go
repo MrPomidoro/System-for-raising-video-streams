@@ -15,7 +15,7 @@ type repository struct {
 	err ce.IError
 }
 
-func NewRefreshStreamRepository(db *postgresql.DB, log *zap.Logger) *repository {
+func NewRepository(db *postgresql.DB, log *zap.Logger) *repository {
 	return &repository{
 		db:  db,
 		log: log,
