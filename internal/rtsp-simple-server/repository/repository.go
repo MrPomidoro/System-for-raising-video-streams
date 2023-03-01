@@ -15,14 +15,14 @@ import (
 	"go.uber.org/zap"
 )
 
-type rtspRepository struct {
+type repository struct {
 	cfg *config.Config
 	log *zap.Logger
 	err ce.IError
 }
 
-func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
-	return &rtspRepository{
+func NewRepository(cfg *config.Config, log *zap.Logger) *repository {
+	return &repository{
 		cfg: cfg,
 		log: log,
 		err: ce.ErrorRTSP,
@@ -30,7 +30,7 @@ func NewRTSPRepository(cfg *config.Config, log *zap.Logger) *rtspRepository {
 }
 
 // GetRtsp отправляет GET запрос на получение данных
-func (rtsp *rtspRepository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserver.SConf, ce.IError) {
+func (rtsp *repository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserver.SConf, ce.IError) {
 
 	// defer close(dataRTSPchan)
 	res := make(map[string]rtspsimpleserver.SConf)
@@ -81,7 +81,7 @@ func (rtsp *rtspRepository) GetRtsp(ctx context.Context) (map[string]rtspsimples
 }
 
 // PostAddRTSP отправляет POST запрос на добавление потока
-func (rtsp *rtspRepository) PostAddRTSP(ctx context.Context, cam rtspsimpleserver.SConf) ce.IError {
+func (rtsp *repository) PostAddRTSP(ctx context.Context, cam rtspsimpleserver.SConf) ce.IError {
 
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`
@@ -117,7 +117,7 @@ func (rtsp *rtspRepository) PostAddRTSP(ctx context.Context, cam rtspsimpleserve
 }
 
 // PostRemoveRTSP отправляет POST запрос на удаление потока
-func (rtsp *rtspRepository) PostRemoveRTSP(ctx context.Context, camRTSP rtspsimpleserver.SConf) ce.IError {
+func (rtsp *repository) PostRemoveRTSP(ctx context.Context, camRTSP rtspsimpleserver.SConf) ce.IError {
 	// Парсинг URL
 	URLPostRemove := fmt.Sprintf(rtsp.cfg.Url + rtsp.cfg.Rtsp.Api.UrlRemove + camRTSP.Stream)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostRemove)
@@ -137,7 +137,7 @@ func (rtsp *rtspRepository) PostRemoveRTSP(ctx context.Context, camRTSP rtspsimp
 }
 
 // PostEditRTSP отправляет POST запрос на изменение потока
-func (rtsp *rtspRepository) PostEditRTSP(ctx context.Context, cam rtspsimpleserver.SConf) ce.IError {
+func (rtsp *repository) PostEditRTSP(ctx context.Context, cam rtspsimpleserver.SConf) ce.IError {
 
 	// Формирование джейсона для отправки
 	postJson := []byte(fmt.Sprintf(`

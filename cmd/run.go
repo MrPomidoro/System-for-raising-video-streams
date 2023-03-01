@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
+	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/transcode"
 )
 
@@ -30,9 +30,9 @@ func (a *app) Run(ctx context.Context) {
 	}
 
 	// Создаем канал для получения оповещений о сбое подключения
-	errCh := make(chan error)
+	// errCh := make(chan error)
 	// Запускаем асинхронную проверку поддержания соединения
-	go a.db.KeepAlive(ctx, a.log, errCh)
+	// go a.db.KeepAlive(ctx, a.log, errCh)
 
 	var mu sync.Mutex
 
@@ -47,9 +47,12 @@ loop:
 		// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 		case <-tick.C:
 
-			if a.db.Conn.Ping(ctx) != nil {
+			fmt.Println("1")
+			if _, err := a.db.Conn.Exec(context.Background(), "SELECT 1"); err != nil {
+				fmt.Println("3")
 				continue loop
 			}
+			fmt.Println("2")
 
 			// Получение данных от базы данных и от rtsp
 			dataDB, dataRTSP, err := a.getDBAndApi(ctx, &mu)
@@ -62,7 +65,7 @@ loop:
 				continue loop
 			}
 
-			camsRemove := make(map[string]rtspsimpleserver.SConf)
+			camsRemove := make(map[string]rtsp.SConf)
 			transcode.Transcode(dataRTSP, &camsRemove)
 			a.getCamsRemove(dataDB, camsRemove)
 
@@ -75,13 +78,13 @@ loop:
 				continue loop
 			}
 
-			err = a.addAndRemoveData(ctx, dataDB, dataRTSP, camsAdd, camsRemove)
+			err = a.addRemoveData(ctx, dataDB, dataRTSP, camsAdd, camsRemove)
 			if err != nil {
 				a.log.Error(err.Error())
 				continue loop
 			}
 
-			err = a.editCamerasToRTSP(ctx, camsEdit)
+			err = a.editData(ctx, camsEdit)
 			if err != nil {
 				a.log.Error(err.Error())
 				continue loop

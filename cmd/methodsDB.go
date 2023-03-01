@@ -4,16 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
+	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
-/*
-Используется в API
-insertIntoStatusStream принимает результат выполнения запроса через API (ошибка) и список камер с бд
-и выполняет вставку в таблицу status_stream
-*/
-func (a *app) insertIntoStatusStream(method string, ctx context.Context, cam rtspsimpleserver.SConf, err ce.IError) ce.IError {
+// insertIntoStatusStream принимает результат выполнения запроса через API (ошибка) и список камер с бд
+// и выполняет вставку в таблицу status_stream
+func (a *app) insertIntoStatusStream(method string, ctx context.Context, cam rtsp.SConf, err ce.IError) ce.IError {
 	if err != nil {
 		a.log.Error(err.Error())
 
