@@ -12,15 +12,15 @@ import (
 )
 
 // NewDB Эта функция создает новый экземпляр DB.
-func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (*DB, ce.IError) {
+func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, err error) {
 
-	err := ce.ErrorDatabase
+	e := ce.ErrorDatabase
 
 	config := getConfig(cfg, log)
 
-	pool, e := pgxpool.NewWithConfig(ctx, config)
+	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, err.SetError(e)
+		return nil, e.SetError(err)
 	}
 
 	return &DB{pool}, nil
@@ -67,6 +67,7 @@ func (db *DB) ping(ctx context.Context, errCh chan error) {
 
 	tx, _ := conn.Begin(ctx)
 	defer conn.Release()
+	// defer tx.Rollback(ctx)
 
 	if _, err = tx.Exec(context.Background(), "SELECT 1"); err != nil {
 		select {
@@ -78,7 +79,7 @@ func (db *DB) ping(ctx context.Context, errCh chan error) {
 	}
 }
 
-func (db *DB) IsOpen(ctx context.Context) bool {
+func (db *DB) IsConn(ctx context.Context) bool {
 
 	if ctx.Err() != nil {
 		return false
@@ -91,6 +92,7 @@ func (db *DB) IsOpen(ctx context.Context) bool {
 
 	tx, _ := conn.Begin(ctx)
 	defer conn.Release()
+	// defer tx.Rollback(ctx)
 
 	if _, err = tx.Exec(context.Background(), "SELECT 1"); err != nil {
 		return false

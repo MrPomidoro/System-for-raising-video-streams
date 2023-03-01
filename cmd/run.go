@@ -48,7 +48,7 @@ loop:
 		// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 		case <-tick.C:
 
-			if !a.db.IsOpen(ctx) {
+			if !a.db.IsConn(ctx) {
 				continue loop
 			}
 
