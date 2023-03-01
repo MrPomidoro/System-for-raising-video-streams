@@ -33,24 +33,29 @@ func (a *app) Run(ctx context.Context) {
 	errCh := make(chan error)
 	// Запускаем асинхронную проверку поддержания соединения
 	go a.db.KeepAlive(ctx, errCh)
-	go func() {
-		defer close(errCh)
-		for err := range errCh {
-			fmt.Printf("Connection error: %v\n", err)
-		}
-	}()
+	// go func() {
+	// 	defer close(errCh)
+	// 	for err := range errCh {
+	// 		fmt.Printf("Connection error: %v\n", err)
+	// 	}
+	// }()
 
 	var mu sync.Mutex
 
 loop:
 	for {
+		fmt.Println("")
 		select {
 
 		case <-ctx.Done():
 			break loop
 
+		case err := <-errCh:
+			fmt.Printf("Connection error: %v\n", err)
+
 		// Выполняется периодически через установленный в конфигурационном файле промежуток времени
 		case <-tick.C:
+
 			if a.db.Conn.Ping(ctx) != nil {
 				continue loop
 			}
@@ -59,11 +64,11 @@ loop:
 			dataDB, dataRTSP, err := a.getDBAndApi(ctx, &mu)
 			if err != nil {
 				a.log.Error(err.Error())
-				continue
+				continue loop
 			}
 
 			if ctx.Err() != nil {
-				continue
+				continue loop
 			}
 
 			camsRemove := make(map[string]rtspsimpleserver.SConf)
@@ -76,21 +81,19 @@ loop:
 
 			if len(camsEdit) == 0 && len(camsRemove) == 0 && len(camsAdd) == 0 {
 				a.log.Info("Data is identity, waiting...")
-				continue
+				continue loop
 			}
 
-			// Если число камер совпадает, но стримы отличаются
-			// err = a.addAndRemoveData(ctx, dataRTSP, dataDB)
 			err = a.addAndRemoveData(ctx, dataDB, dataRTSP, camsAdd, camsRemove)
 			if err != nil {
 				a.log.Error(err.Error())
-				continue
+				continue loop
 			}
 
 			err = a.editCamerasToRTSP(ctx, camsEdit)
 			if err != nil {
 				a.log.Error(err.Error())
-				continue
+				continue loop
 			}
 		}
 	}
