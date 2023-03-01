@@ -14,15 +14,6 @@ func (a *app) addAndRemoveData(ctx context.Context, dataDB []refreshstream.Strea
 	dataRTSP map[string]rtspsimpleserver.SConf, camsAdd map[string]rtspsimpleserver.SConf,
 	camsRemove map[string]rtspsimpleserver.SConf) ce.IError {
 
-	// Получение мапы камер на добавление
-	// camsAdd := a.getCamsAdd(dataDB, dataRTSP)
-	// Получение мапы камер на удаление; создаётся копия исходной мапы
-	// с помощью метода Transcode, чтобы исходная не изменялась
-	// camsRemove := make(map[string]rtspsimpleserver.SConf)
-	// transcode.CopyMap(dataRTSP)
-	// fmt.Println("camsRemove addAndRemoveData", camsRemove)
-	// fmt.Println("camsAdd", camsAdd, "\ncamsRemove", camsRemove)
-
 	if len(camsAdd) != 0 || len(camsRemove) != 0 {
 		a.log.Info("Count of data is same, but the cameras are different")
 	} else {
@@ -109,13 +100,17 @@ func (a *app) removeCamerasFromRTSP(ctx context.Context, dataRTSP map[string]rts
 // editCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо изменить
 // в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
 // добавляет в таблицу status_stream запись с результатом выполнения запроса
-func (a *app) editCamerasToRTSP(ctx context.Context, camsForEdit map[string]rtspsimpleserver.SConf) ce.IError {
+func (a *app) editCamerasToRTSP(ctx context.Context, camsEdit map[string]rtspsimpleserver.SConf) ce.IError {
 
-	for _, cam := range camsForEdit {
+	// Если в бд и ртсп одни и те же камеры
+	if len(camsEdit) == 0 {
+		return nil
+	}
 
-		// if cam.Conf.SourceProtocol == "" && cam.Conf.Source == "" && (cam.Conf.RunOnReady == "" && a.cfg.Run != "") {
-		// 	continue
-		// }
+	// Если имеются отличия, отправляется запрос к ртсп на изменение
+	a.log.Info("Cameras is same, but its values are different")
+
+	for _, cam := range camsEdit {
 
 		if ctx.Err() != nil {
 			return a.err.SetError(ctx.Err())
