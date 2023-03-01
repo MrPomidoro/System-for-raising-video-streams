@@ -3,23 +3,24 @@ package postgresql
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
 // NewDB Эта функция создает новый экземпляр DB.
-func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, err error) {
+func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (*DB, ce.IError) {
+
+	err := ce.ErrorDatabase
 
 	config := getConfig(cfg, log)
 
-	pool, err := pgxpool.NewWithConfig(ctx, config)
+	pool, e := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
-		os.Exit(1)
+		return nil, err.SetError(e)
 	}
 
 	return &DB{pool}, nil
