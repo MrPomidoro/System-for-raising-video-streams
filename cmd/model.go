@@ -41,12 +41,12 @@ type app struct {
 
 // NewApp инициализирует прототип приложения
 func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
-	err := ce.ErrorApp
+	// err := ce.ErrorApp
 	log := logger.NewLogger(cfg)
 
 	db, e := postgresql.NewDB(ctx, &cfg.Database, log)
 	if e != nil {
-		return nil, err.SetError(e)
+		return nil, e
 	}
 
 	sigChan := make(chan os.Signal, 1)
@@ -63,7 +63,5 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 		refreshStreamRepo: rsrepo.NewRepository(db, log),
 		statusStreamRepo:  ssrepo.NewRepository(db, log),
 		rtspRepo:          rtsprepo.NewRepository(cfg, log),
-
-		err: err,
 	}, nil
 }
