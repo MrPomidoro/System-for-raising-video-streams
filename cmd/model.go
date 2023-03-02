@@ -51,14 +51,13 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	if e != nil {
 		return nil, err.SetError(e)
 	}
-	idb := postgresql.IDB(db)
 
 	sigChan := make(chan os.Signal, 1)
 	doneChan := make(chan struct{})
 
 	return &app{
 		cfg: cfg,
-		db:  idb,
+		db:  db,
 		log: log,
 
 		sigChan:  sigChan,
