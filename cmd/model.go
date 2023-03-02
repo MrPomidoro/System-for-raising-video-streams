@@ -1,8 +1,11 @@
 package service
 
+//go:generate mockgen -destination=../mocks/mock_app.go -package=mocks github.com/Kseniya-cha/System-for-raising-video-streams/cmd App
+
 import (
 	"context"
 	"os"
+	"sync"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 
@@ -67,4 +70,14 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 
 		err: err,
 	}, nil
+}
+
+type appIn interface {
+	// addData(ctx context.Context, camsAdd map[string]rtsp.SConf) ce.IError
+	// removeData(ctx context.Context, dataRTSP map[string]rtsp.SConf) ce.IError
+	// editData(ctx context.Context, camsEdit map[string]rtsp.SConf) ce.IError
+
+	//
+	getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream, ce.IError)
+	getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IError)
 }
