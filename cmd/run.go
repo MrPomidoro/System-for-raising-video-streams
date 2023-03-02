@@ -53,7 +53,7 @@ loop:
 			}
 
 			// Получение данных от базы данных и от rtsp
-			dataDB, dataRTSP, err := a.getDBAndApi(ctx, &mu)
+			dataDB, dataRTSP, err := getDBAndApi(ctx, a, &mu)
 			if err != nil {
 				a.log.Error(err.Error())
 				continue loop
