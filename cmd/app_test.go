@@ -36,31 +36,32 @@ func (c *mockClient) getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IEr
 
 func TestGetDBAndApi(t *testing.T) {
 
-	mapRTSP := map[string]rtsp.SConf{
+	wantRTSP := map[string]rtsp.SConf{
 		"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
 			Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}}}
-	sliceDB := []refreshstream.Stream{
+
+	wantDB := []refreshstream.Stream{
 		{Id: 1, Stream: "1", Auth: sql.NullString{"login:pass", true},
 			Portsrv: "38652", Protocol: sql.NullString{"udp", true},
-			Ip: sql.NullString{"1", true}},
-	}
+			Ip: sql.NullString{"1", true}}}
+
 	ctx := context.Background()
 	mu := sync.Mutex{}
 
 	c := newMockClient()
-	c.On("getDB", ctx, &mu).Return(sliceDB, nil)
-	c.On("getRTSP", ctx).Return(mapRTSP, nil)
+	c.On("getDB", ctx, &mu).Return(wantDB, nil)
+	c.On("getRTSP", ctx).Return(wantRTSP, nil)
 
 	resDB, resRTSP, err := getDBAndApi(ctx, c, &mu)
 
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
-	if !reflect.DeepEqual(resRTSP, mapRTSP) {
-		t.Errorf("expect %v, got %v", mapRTSP, resRTSP)
+	if !reflect.DeepEqual(resRTSP, wantRTSP) {
+		t.Errorf("expect %v, got %v", wantRTSP, resRTSP)
 	}
-	if !reflect.DeepEqual(resDB, sliceDB) {
-		t.Errorf("expect %v, got %v", sliceDB, resDB)
+	if !reflect.DeepEqual(resDB, wantDB) {
+		t.Errorf("expect %v, got %v", wantDB, resDB)
 	}
 }
 
