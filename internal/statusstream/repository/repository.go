@@ -27,10 +27,10 @@ func NewRepository(db *postgresql.DB, log *zap.Logger) *repository {
 // Insert отправляет запрос на добавление лога
 func (s repository) Insert(ctx context.Context,
 	ss *statusstream.StatusStream) ce.IError {
+
 	query := fmt.Sprintf(statusstream.InsertToStatusStream, ss.StreamId, ss.StatusResponse)
 	s.log.Debug("Query to database:\n\t" + query)
 
-	// s.db.()
 	_, err := s.db.Conn.Exec(ctx, query)
 	if err != nil {
 		return s.err.SetError(err)
