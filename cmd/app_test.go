@@ -22,11 +22,11 @@ func newMockClient() *mockClient { return &mockClient{} }
 func (c *mockClient) getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream, ce.IError) {
 	args := c.Called(ctx, mu)
 	if args.Get(0) == nil {
-		e, ok := args.Error(1).(ce.Error)
+		e, ok := args.Error(1).(*ce.Error)
 		if !ok {
 			fmt.Println("blyat")
 		} else {
-			return nil, &e
+			return nil, e
 		}
 	}
 	return args.Get(0).([]refreshstream.Stream), nil
@@ -35,11 +35,11 @@ func (c *mockClient) getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream
 func (c *mockClient) getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IError) {
 	args := c.Called(ctx)
 	if args.Get(0) == nil {
-		e, ok := args.Error(1).(ce.Error)
+		e, ok := args.Error(1).(*ce.Error)
 		if !ok {
 			fmt.Println("blyat")
 		} else {
-			return nil, &e
+			return nil, e
 		}
 	}
 	return args.Get(0).(map[string]rtsp.SConf), nil
