@@ -21,13 +21,13 @@ func newMockClient() *mockClient { return &mockClient{} }
 
 func (c *mockClient) getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream, ce.IError) {
 	args := c.Called(ctx, mu)
+
+	fmt.Println(args.Get(0).([]refreshstream.Stream))
+	fmt.Println(args.Get(0).([]refreshstream.Stream) == nil)
+
 	if args.Get(0) == nil {
-		e, ok := args.Error(1).(*ce.Error)
-		if !ok {
-			fmt.Println("blyat")
-		} else {
-			return nil, e
-		}
+		e, _ := args.Error(1).(*ce.Error)
+		return nil, e
 	}
 	return args.Get(0).([]refreshstream.Stream), nil
 }
@@ -35,12 +35,8 @@ func (c *mockClient) getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream
 func (c *mockClient) getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IError) {
 	args := c.Called(ctx)
 	if args.Get(0) == nil {
-		e, ok := args.Error(1).(*ce.Error)
-		if !ok {
-			fmt.Println("blyat")
-		} else {
-			return nil, e
-		}
+		e, _ := args.Error(1).(*ce.Error)
+		return nil, e
 	}
 	return args.Get(0).(map[string]rtsp.SConf), nil
 }
@@ -58,9 +54,14 @@ func TestGetDBAndApi(t *testing.T) {
 				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
 					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}}},
 			wantDB: []refreshstream.Stream{
-				{Id: 1, Stream: "1", Auth: sql.NullString{"login:pass", true},
-					Portsrv: "38652", Protocol: sql.NullString{"udp", true},
-					Ip: sql.NullString{"1", true}}},
+				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+					Ip: sql.NullString{String: "1", Valid: true}}},
+		},
+		{
+			name:     "Test for case NOT correct work",
+			wantRTSP: nil,
+			wantDB:   nil,
 		},
 	}
 
@@ -72,10 +73,12 @@ func TestGetDBAndApi(t *testing.T) {
 
 			c := newMockClient()
 
-			c.On("getDB", ctx, &mu).Return(tt.wantDB, nil)
+			c.On("getDB", ctx, &mu).Return(tt.wantDB, ce.NewError(0, "", ""))
 			c.On("getRTSP", ctx).Return(tt.wantRTSP, nil)
 
-			resDB, resRTSP, _ := getDBAndApi(ctx, c, &mu)
+			resDB, resRTSP, err := getDBAndApi(ctx, c, &mu)
+
+			fmt.Println(err)
 
 			if !reflect.DeepEqual(resRTSP, tt.wantRTSP) {
 				t.Errorf("expect %v, got %v", tt.wantRTSP, resRTSP)
@@ -101,12 +104,12 @@ func TestGetCamsAdd(t *testing.T) {
 		{
 			name: "Test for get streams to add",
 			dataDB: []refreshstream.Stream{
-				{Id: 1, Stream: "1", Auth: sql.NullString{"login:pass", true},
-					Portsrv: "38652", Protocol: sql.NullString{"udp", true},
-					Ip: sql.NullString{"1", true}},
-				{Id: 2, Stream: "2", Auth: sql.NullString{"login:pass", true},
-					Portsrv: "38652", Protocol: sql.NullString{"udp", true},
-					Ip: sql.NullString{"1", true}},
+				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+					Ip: sql.NullString{String: "1", Valid: true}},
+				{Id: 2, Stream: "2", Auth: sql.NullString{String: "login:pass", Valid: true},
+					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+					Ip: sql.NullString{String: "1", Valid: true}},
 			},
 			dataRTSP: map[string]rtsp.SConf{
 				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
@@ -144,9 +147,9 @@ func TestGetCamsRemove(t *testing.T) {
 		{
 			name: "Test for get streams to remove",
 			dataDB: []refreshstream.Stream{
-				{Id: 1, Stream: "1", Auth: sql.NullString{"login:pass", true},
-					Portsrv: "38652", Protocol: sql.NullString{"udp", true},
-					Ip: sql.NullString{"1", true}},
+				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+					Ip: sql.NullString{String: "1", Valid: true}},
 			},
 			dataRTSP: map[string]rtsp.SConf{
 				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
@@ -189,9 +192,9 @@ func TestGetCamsEdit(t *testing.T) {
 		{
 			name: "Test for get streams to edit",
 			dataDB: []refreshstream.Stream{
-				{Id: 1, Stream: "1", Auth: sql.NullString{"login:pass2", true},
-					Portsrv: "38652", Protocol: sql.NullString{"udp", true},
-					Ip: sql.NullString{"1", true}},
+				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass2", Valid: true},
+					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+					Ip: sql.NullString{String: "1", Valid: true}},
 			},
 			dataRTSP: map[string]rtsp.SConf{
 				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
@@ -234,9 +237,9 @@ func TestDbToCompare(t *testing.T) {
 		{
 			name: "Test have Run",
 			cfg:  config.Config{Rtsp: config.Rtsp{Run: "usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --stream_path %s --camera_id %s"}},
-			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{"login:pass", true},
-				Portsrv: "1", Protocol: sql.NullString{"udp", true}, CamId: sql.NullString{"1", true},
-				Ip: sql.NullString{"1", true}, Sp: sql.NullString{"1", true}},
+			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				Portsrv: "1", Protocol: sql.NullString{String: "udp", Valid: true}, CamId: sql.NullString{String: "1", Valid: true},
+				Ip: sql.NullString{String: "1", Valid: true}, Sp: sql.NullString{String: "1", Valid: true}},
 			expect: rtsp.SConf{
 				Stream: "1",
 				Id:     1,
@@ -250,9 +253,9 @@ func TestDbToCompare(t *testing.T) {
 		{
 			name: "Test have not Run",
 			cfg:  config.Config{Rtsp: config.Rtsp{Run: ""}},
-			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{"login:pass", true},
-				Portsrv: "1", Protocol: sql.NullString{"udp", true}, CamId: sql.NullString{"1", true},
-				Ip: sql.NullString{"1", true}, Sp: sql.NullString{"1", true}},
+			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				Portsrv: "1", Protocol: sql.NullString{String: "udp", Valid: true}, CamId: sql.NullString{String: "1", Valid: true},
+				Ip: sql.NullString{String: "1", Valid: true}, Sp: sql.NullString{String: "1", Valid: true}},
 			expect: rtsp.SConf{
 				Stream: "1",
 				Id:     1,
@@ -266,9 +269,9 @@ func TestDbToCompare(t *testing.T) {
 		{
 			name: "Test have not protocol",
 			cfg:  config.Config{Rtsp: config.Rtsp{Run: ""}},
-			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{"login:pass", true},
-				Portsrv: "1", Protocol: sql.NullString{"", false}, CamId: sql.NullString{"1", true},
-				Ip: sql.NullString{"1", true}, Sp: sql.NullString{"1", true}},
+			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				Portsrv: "1", Protocol: sql.NullString{String: "", Valid: false}, CamId: sql.NullString{String: "1", Valid: true},
+				Ip: sql.NullString{String: "1", Valid: true}, Sp: sql.NullString{String: "1", Valid: true}},
 			expect: rtsp.SConf{
 				Stream: "1",
 				Id:     1,
