@@ -37,18 +37,28 @@ func (a *app) GracefulShutdown(cancel context.CancelFunc) {
 	a.log.Debug("Waiting...")
 }
 
+func (a *app) getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream, ce.IError) {
+	return a.refreshStreamRepo.Get(ctx, true)
+}
+
+func (a *app) getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IError) {
+	return a.rtspRepo.GetRtsp(ctx)
+}
+
 // getDBAndApi реализует получение камер с базы данных и с rtsp
-func (a *app) getDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream,
+func getDBAndApi(ctx context.Context, aIn appIn, mu *sync.Mutex) ([]refreshstream.Stream,
 	map[string]rtsp.SConf, ce.IError) {
 
 	// Отправка запроса к базе
-	resDB, err := a.refreshStreamRepo.Get(ctx, true)
+	resDB, err := aIn.getDB(ctx, mu)
+	// resDB, err := a.refreshStreamRepo.Get(ctx, true)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Отправка запроса к rtsp
-	resRTSP, err := a.rtspRepo.GetRtsp(ctx)
+	// resRTSP, err := a.rtspRepo.GetRtsp(ctx)
+	resRTSP, err := aIn.getRTSP(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
