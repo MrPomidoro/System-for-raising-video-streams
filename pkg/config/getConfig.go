@@ -16,10 +16,6 @@ func GetConfig() (*Config, ce.IError) {
 
 	// Чтение пути до конфигурационного файла
 	configPath := readConfigPath()
-	// Если путь не был указан, выставляется по умолчанию ./
-	if configPath == "" {
-		configPath = "./"
-	}
 
 	var v = viper.New()
 
@@ -57,6 +53,10 @@ func readConfigPath() string {
 		if strings.Split(arg, "=")[0][1:] == "configPath" {
 			configPath = strings.Split(arg, "=")[1]
 		}
+	}
+	// Если путь не был указан, выставляется по умолчанию ./
+	if configPath == "" {
+		configPath = "./"
 	}
 	return configPath
 }
