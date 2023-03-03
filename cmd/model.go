@@ -48,12 +48,12 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	err := ce.ErrorApp
+	// err := ce.ErrorApp
 	log := logger.NewLogger(cfg)
 
-	db, e := postgresql.NewDB(ctx, &cfg.Database, log)
-	if e != nil {
-		return nil, err.SetError(e)
+	db, err := postgresql.NewDB(ctx, &cfg.Database, log)
+	if err != nil {
+		return nil, err
 	}
 
 	sigChan := make(chan os.Signal, 1)
