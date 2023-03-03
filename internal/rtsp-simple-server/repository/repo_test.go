@@ -19,56 +19,15 @@ func TestGetRtsp(t *testing.T) {
 		}
 
 		json := []byte(`"items": {
-			"12781133360144383945": {
-				"confName": "12781133360144383945",
+			"cam1": {
+				"confName": "cam1",
 				"conf": {
-					"source": "rtsp://zgekv8ol9dUJ9NiNm9DuhHZskuLrbcKZe8CaASBaeLN5doQpz:LXSwzJsopcslxzjV9vWJDapjcHgREurhJrB6UKXZjkSerBq1m@10.100.100.30:38652/12781133360144383945",
+					"source": "rtsp://login:pass@1:123/cam1",
 					"sourceProtocol": "automatic",
 					"sourceAnyPortEnable": false,
-					"sourceFingerprint": "",
 					"sourceOnDemand": false,
 					"sourceOnDemandStartTimeout": "10s",
 					"sourceOnDemandCloseAfter": "10s",
-					"sourceRedirect": "",
-					"disablePublisherOverride": false,
-					"fallback": "",
-					"rpiCameraCamID": 0,
-					"rpiCameraWidth": 0,
-					"rpiCameraHeight": 0,
-					"rpiCameraHFlip": false,
-					"rpiCameraVFlip": false,
-					"rpiCameraBrightness": 0,
-					"rpiCameraContrast": 0,
-					"rpiCameraSaturation": 0,
-					"rpiCameraSharpness": 0,
-					"rpiCameraExposure": "",
-					"rpiCameraAWB": "",
-					"rpiCameraDenoise": "",
-					"rpiCameraShutter": 0,
-					"rpiCameraMetering": "",
-					"rpiCameraGain": 0,
-					"rpiCameraEV": 0,
-					"rpiCameraROI": "",
-					"rpiCameraTuningFile": "",
-					"rpiCameraMode": "",
-					"rpiCameraFPS": 0,
-					"rpiCameraIDRPeriod": 0,
-					"rpiCameraBitrate": 0,
-					"rpiCameraProfile": "",
-					"rpiCameraLevel": "",
-					"rpiCameraAfMode": "",
-					"rpiCameraAfRange": "",
-					"rpiCameraAfSpeed": "",
-					"rpiCameraLensPosition": 0,
-					"rpiCameraAfWindow": "",
-					"publishUser": "",
-					"publishPass": "",
-					"publishIPs": [],
-					"readUser": "",
-					"readPass": "",
-					"readIPs": [],
-					"runOnInit": "",
-					"runOnInitRestart": false,
 					"runOnDemand": "",
 					"runOnDemandRestart": false,
 					"runOnDemandStartTimeout": "10s",
@@ -78,15 +37,6 @@ func TestGetRtsp(t *testing.T) {
 					"runOnRead": "",
 					"runOnReadRestart": false
 				},
-				"source": {
-					"type": "rtspSource"
-				},
-				"sourceReady": true,
-				"tracks": [
-					"H264"
-				],
-				"bytesReceived": 299151,
-				"readers": []
 			},"
 		}`)
 
