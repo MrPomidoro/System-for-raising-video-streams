@@ -12,15 +12,15 @@ import (
 )
 
 // NewDB Эта функция создает новый экземпляр DB.
-func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, err error) {
+func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, err ce.IError) {
 
-	e := ce.ErrorDatabase
+	err = ce.ErrorDatabase
 
 	config := getConfig(cfg)
 
-	pool, err := pgxpool.NewWithConfig(ctx, config)
+	pool, e := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, e.SetError(err)
+		return nil, err.SetError(e)
 	}
 
 	return &DB{pool}, nil

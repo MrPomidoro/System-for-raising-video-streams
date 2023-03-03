@@ -15,12 +15,12 @@ var (
 		err:   nil,
 	}
 
-	ErrorApp = &Error{
-		level: FatalLevel,
-		code:  "50.3.1",
-		desc:  "error at app operation level",
-		err:   nil,
-	}
+	// ErrorApp = &Error{
+	// 	level: FatalLevel,
+	// 	code:  "50.3.1",
+	// 	desc:  "error at app operation level",
+	// 	err:   nil,
+	// }
 
 	ErrorRefreshStream = &Error{
 		level: ErrorLevel,
@@ -39,7 +39,7 @@ var (
 	ErrorRTSP = &Error{
 		level: ErrorLevel,
 		code:  "50.2.1",
-		desc:  "rtsp-simple-server entity error at database operation level",
+		desc:  "error at rtsp-simple-server entity operation level",
 		err:   nil,
 	}
 )
