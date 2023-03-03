@@ -44,6 +44,10 @@ type app struct {
 
 // NewApp инициализирует прототип приложения
 func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	err := ce.ErrorApp
 	log := logger.NewLogger(cfg)
 
