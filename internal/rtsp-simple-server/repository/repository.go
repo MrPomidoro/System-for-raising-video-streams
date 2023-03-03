@@ -11,7 +11,6 @@ import (
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/transcode"
 	"go.uber.org/zap"
 )
 
@@ -54,7 +53,7 @@ func (rtsp *repository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserve
 	}
 	rtsp.log.Debug("Success read body")
 
-	var item map[string]interface{}
+	var item map[string]map[string]rtspsimpleserver.SConf
 	err = json.Unmarshal(body, &item)
 	if err != nil {
 		return res, rtsp.err.SetError(err)
@@ -66,17 +65,15 @@ func (rtsp *repository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserve
 	rtsp.log.Debug("Success unmarshal body")
 
 	for _, ress := range item {
-		item1 := ress.(map[string]interface{})
-
-		for stream, i := range item1 {
+		for stream, i := range ress {
 			cam := rtspsimpleserver.SConf{}
 			cam.Stream = stream
+			cam.Conf = i.Conf
 
-			fileds := i.(map[string]interface{})
-			transcode.Transcode(fileds["conf"], &cam.Conf)
 			res[stream] = cam
 		}
 	}
+
 	return res, nil
 }
 
