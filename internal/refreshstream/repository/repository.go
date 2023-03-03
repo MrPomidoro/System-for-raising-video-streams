@@ -63,17 +63,3 @@ func (s repository) Get(ctx context.Context, status bool) ([]refreshstream.Strea
 
 	return res, nil
 }
-
-// Update отправляет запрос на изменение поля stream_status
-// func (s repository) Update(ctx context.Context, stream string) ce.IError {
-
-// 	query := fmt.Sprintf(refreshstream.QueryEditStatus, stream)
-// 	s.log.Debug("Query to database:\n\t" + query)
-
-// 	_, err := s.db.ExecContext(ctx, query)
-// 	if err != nil {
-// 		return s.err.SetError(err)
-// 	}
-
-// 	return nil
-// }

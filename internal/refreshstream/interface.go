@@ -6,13 +6,12 @@ import (
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
+// Common ...
 type Common interface {
-	// Get отправляет запрос на получение данных из таблицы
 	Get(ctx context.Context, status bool) ([]Stream, ce.IError)
-	// Update отправляет запрос на изменение поля stream_status
-	// Update(ctx context.Context, stream string) ce.IError
 }
 
+// Repository - интерфейс работы с запросами к базе данных
 type Repository interface {
 	Common
 }

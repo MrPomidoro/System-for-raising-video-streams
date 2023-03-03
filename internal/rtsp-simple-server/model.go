@@ -1,11 +1,13 @@
 package rtspsimpleserver
 
+// SConf ...
 type SConf struct {
 	Stream string `json:"stream"`
 	Conf   Conf
 	Id     int
 }
 
+// Conf ...
 type Conf struct {
 	SourceProtocol             string `json:"sourceProtocol"`
 	SourceOnDemandStartTimeout string `json:"sourceOnDemandStartTimeout"`

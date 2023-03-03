@@ -7,17 +7,10 @@ import (
 )
 
 type Common interface {
-	// Get(ctx context.Context) ([]StatusStream, error)
-	// GetId(ctx context.Context, id interface{}) (StatusStream, error)
 	Insert(ctx context.Context, rs *StatusStream) ce.IError
-	// Update(ctx context.Context, rs *StatusStream) error
-	// Delete(ctx context.Context, id interface{}) error
 }
 
-type UseCase interface {
-	Common
-}
-
+// Repository - интерфейс работы с запросами к базе данных
 type Repository interface {
 	Common
 }

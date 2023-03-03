@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -31,6 +30,7 @@ func (a *app) Run(ctx context.Context) {
 
 	// Создаем канал для получения оповещений о сбое подключения
 	errCh := make(chan error)
+
 	// Запускаем асинхронную проверку поддержания соединения
 	go a.db.KeepAlive(ctx, a.log, errCh)
 
@@ -38,7 +38,6 @@ func (a *app) Run(ctx context.Context) {
 
 loop:
 	for {
-		fmt.Println("")
 
 		select {
 
