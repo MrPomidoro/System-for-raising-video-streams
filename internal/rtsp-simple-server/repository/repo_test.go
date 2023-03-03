@@ -14,7 +14,6 @@ import (
 func TestGetRtsp(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if req.URL.Path != "/v1/paths/list" {
-			rw.Write([]byte{})
 			t.Errorf("unexpected request URL: %s", req.URL.Path)
 		}
 
