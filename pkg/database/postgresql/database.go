@@ -2,82 +2,122 @@ package postgresql
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	"github.com/jackc/pgx/v4"
-	"go.uber.org/zap"
 	"time"
+
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
+	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 // NewDB Эта функция создает новый экземпляр DB.
 func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, err error) {
 
-	if cfg.Driver != "postgresql" {
-		return nil, errors.New("this driver not has use in connection postgresql database")
-	}
+	e := ce.ErrorDatabase
 
-	c := GetConfig(cfg)
+	config := getConfig(cfg)
 
-	conn, err := pgx.ConnectConfig(ctx, c)
+	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, err
+		return nil, e.SetError(err)
 	}
 
-	db = &DB{c, conn, log}
-
-	go db.keepAlive()
-
-	return db, nil
+	return &DB{pool}, nil
 }
 
-func (db *DB) keepAlive() {
+func (db *DB) KeepAlive(ctx context.Context, log *zap.Logger, errCh chan error) {
+
 	for {
-		time.Sleep(5 * time.Second)
+		if ctx.Err() != nil {
+			close(errCh)
+			return
+		}
 
-		if _, err := db.Conn.Exec(context.Background(), "SELECT 1"); err != nil {
-			fmt.Printf("lost database connection: %v\n", err)
+		go db.ping(ctx, errCh)
 
-			if err = db.reconnect(); err != nil {
-				fmt.Printf("failed to reconnect to database: %v\n", err)
-			}
+		time.Sleep(3 * time.Second)
+		select {
+		case <-ctx.Done():
+			close(errCh)
+			return
+		case err := <-errCh:
+			log.Debug(fmt.Sprintf("cannot connect to database: %s", err))
+			log.Info("Try reconnect to database...")
+
+		default:
 		}
 	}
 }
 
-func (db *DB) reconnect() error {
-	var conn *pgx.Conn
-	var err error
+func (db *DB) ping(ctx context.Context, errCh chan error) {
+	if ctx.Err() != nil {
+		return
+	}
 
-	for {
-		conn, err = pgx.Connect(context.Background(), db.Conn.Config().ConnString())
-		if err != nil {
-			fmt.Printf("failed to reconnect to database: %v\n", err)
-			time.Sleep(5 * time.Second)
-			continue
+	conn, err := db.Conn.Acquire(context.Background())
+	if err != nil {
+		select {
+		case <-ctx.Done():
+			return
+		case errCh <- fmt.Errorf("failed to acquire connection: %w", err):
 		}
-		break
+		return
 	}
 
-	if err = db.Conn.Close(context.Background()); err != nil {
-		return err
+	tx, _ := conn.Begin(ctx)
+	defer conn.Release()
+	// defer tx.Rollback(ctx)
+
+	if _, err = tx.Exec(context.Background(), "SELECT 1"); err != nil {
+		select {
+		case <-ctx.Done():
+			return
+		case errCh <- fmt.Errorf("failed to execute test query: %w", err):
+		}
+		return
 	}
-	db.Conn = conn
-
-	fmt.Println("successfully reconnected to database")
-
-	return nil
 }
 
-func GetConfig(cfg *config.Database) *pgx.ConnConfig {
-	c := &pgx.ConnConfig{}
-	c.Host = cfg.Host
-	c.Port = cfg.Port
-	c.User = cfg.User
-	c.Password = cfg.Password
-	c.ConnectTimeout = cfg.ConnectionTimeout
+func (db *DB) IsConn(ctx context.Context) bool {
 
-	return c
+	if ctx.Err() != nil {
+		return false
+	}
+
+	conn, err := db.Conn.Acquire(context.Background())
+	if err != nil {
+		return false
+	}
+
+	tx, _ := conn.Begin(ctx)
+	defer conn.Release()
+	// defer tx.Rollback(ctx)
+
+	if _, err = tx.Exec(context.Background(), "SELECT 1"); err != nil {
+		return false
+	}
+
+	return true
+}
+
+func getConfig(cfg *config.Database) *pgxpool.Config {
+	// Настраиваем конфигурацию пула подключений к базе данных
+	config, _ := pgxpool.ParseConfig("")
+	config.ConnConfig.User = cfg.User
+	config.ConnConfig.Password = cfg.Password
+	config.ConnConfig.Host = cfg.Host
+	config.ConnConfig.Port = uint16(cfg.Port)
+	config.ConnConfig.Database = cfg.DbName
+
+	// Устанавливаем максимальное количество соединений в пуле
+	config.MaxConns = 2
+
+	return config
+}
+
+func (db *DB) Close() {
+	db.Conn.Close()
 }
 
 //// Connection заполняет структуру данными из конфига и вызывает функцию db(),

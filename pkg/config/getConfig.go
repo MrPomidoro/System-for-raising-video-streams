@@ -79,14 +79,14 @@ func readFlags(cfg *Config) {
 	flag.DurationVar(&cfg.WriteTimeout, "wriTetimeout", cfg.WriteTimeout, "The writetimeout parameter")
 	flag.DurationVar(&cfg.IdleTimeout, "idleTimeout", cfg.IdleTimeout, "The idletimeout parameter")
 
-	flag.StringVar(&cfg.Port, "port", cfg.Port, "The port parameter")
+	flag.IntVar(&cfg.Port, "port", cfg.Port, "The host parameter")
 	flag.StringVar(&cfg.Host, "host", cfg.Host, "The host parameter")
 	flag.StringVar(&cfg.DbName, "dbName", cfg.DbName, "The db_name parameter")
 	flag.StringVar(&cfg.User, "user", cfg.User, "The user parameter")
 	flag.StringVar(&cfg.Password, "password", cfg.Password, "The password parameter")
 	flag.StringVar(&cfg.Driver, "driver", cfg.Driver, "The driver parameter")
-	flag.BoolVar(&cfg.DatabaseConnect, "databaseConnect", cfg.DatabaseConnect, "The permission to connect")
-	flag.DurationVar(&cfg.DbConnectionTimeoutSecond, "dbConnectionTimeoutSecond", cfg.DbConnectionTimeoutSecond, "The db_connection_timeout_second parameter")
+	flag.BoolVar(&cfg.Connect, "connect", cfg.Connect, "The permission to connect")
+	flag.DurationVar(&cfg.ConnectionTimeout, "connectionTimeout", cfg.ConnectionTimeout, "The db_connection_timeout_second parameter")
 
 	flag.StringVar(&cfg.Run, "run", cfg.Run, "The run parameter")
 	flag.StringVar(&cfg.Url, "url", cfg.Url, "The url parameter")

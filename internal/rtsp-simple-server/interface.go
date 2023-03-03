@@ -17,10 +17,10 @@ type Common interface {
 	PostEditRTSP(ctx context.Context, cam SConf) ce.IError
 }
 
-type RTSPUseCase interface {
+type UseCase interface {
 	Common
 }
 
-type RTSPRepository interface {
+type Repository interface {
 	Common
 }

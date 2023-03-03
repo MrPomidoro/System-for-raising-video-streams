@@ -4,23 +4,15 @@ import (
 	"context"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
-	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
+	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/transcode"
 )
 
 // addAndRemoveData - метод, в которым выполняются функции, получающие списки
 // отличающихся данных, выполняется удаление лишних камер и добавление недостающих
-func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimpleserver.SConf,
-	dataDB []refreshstream.Stream) ce.IError {
-
-	// Получение мапы камер на добавление
-	camsAdd := a.getCamsAdd(dataDB, dataRTSP)
-	// Получение мапы камер на удаление; создаётся копия исходной мапы
-	// с помощью метода Transcode, чтобы исходная не изменялась
-	camsRemove := make(map[string]rtspsimpleserver.SConf)
-	transcode.Transcode(dataRTSP, camsRemove)
-	a.getCamsRemove(dataDB, camsRemove)
+func (a *app) addRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
+	dataRTSP map[string]rtsp.SConf, camsAdd map[string]rtsp.SConf,
+	camsRemove map[string]rtsp.SConf) ce.IError {
 
 	if len(camsAdd) != 0 || len(camsRemove) != 0 {
 		a.log.Info("Count of data is same, but the cameras are different")
@@ -30,7 +22,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 
 	// Добавление камер
 	if len(camsAdd) != 0 {
-		err := a.addCamerasToRTSP(ctx, camsAdd)
+		err := a.addData(ctx, camsAdd)
 		if err != nil {
 			return err
 		}
@@ -38,7 +30,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 
 	// Удаление камер
 	if len(camsRemove) != 0 {
-		err := a.removeCamerasFromRTSP(ctx, camsRemove)
+		err := a.removeData(ctx, camsRemove)
 		if err != nil {
 			return err
 		}
@@ -50,7 +42,7 @@ func (a *app) addAndRemoveData(ctx context.Context, dataRTSP map[string]rtspsimp
 // addCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо добавить
 // в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
 // добавляет в таблицу status_stream запись с результатом выполнения запроса
-func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd map[string]rtspsimpleserver.SConf) ce.IError {
+func (a *app) addData(ctx context.Context, camsAdd map[string]rtsp.SConf) ce.IError {
 
 	// Перебор всех элементов списка камер на добавление
 	for _, camAdd := range camsAdd {
@@ -81,7 +73,7 @@ func (a *app) addCamerasToRTSP(ctx context.Context, camsAdd map[string]rtspsimpl
 // removeCamerasFromRTSP - функция, принимающая на вход список камер, которые необходимо удалить
 // с rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на удаление камер,
 // добавляет в таблицу status_stream запись с результатом выполнения запроса
-func (a *app) removeCamerasFromRTSP(ctx context.Context, dataRTSP map[string]rtspsimpleserver.SConf) ce.IError {
+func (a *app) removeData(ctx context.Context, dataRTSP map[string]rtsp.SConf) ce.IError {
 
 	// Перебор всех камер, которые нужно удалить
 	for _, cam := range dataRTSP {
@@ -105,16 +97,20 @@ func (a *app) removeCamerasFromRTSP(ctx context.Context, dataRTSP map[string]rts
 	return nil
 }
 
-// editCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо изменить
+// editData - функция, принимающая на вход список камер, которые необходимо изменить
 // в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
 // добавляет в таблицу status_stream запись с результатом выполнения запроса
-func (a *app) editCamerasToRTSP(ctx context.Context, camsForEdit map[string]rtspsimpleserver.SConf) ce.IError {
+func (a *app) editData(ctx context.Context, camsEdit map[string]rtsp.SConf) ce.IError {
 
-	for _, cam := range camsForEdit {
+	// Если в бд и ртсп одни и те же камеры
+	if len(camsEdit) == 0 {
+		return nil
+	}
 
-		// if cam.Conf.SourceProtocol == "" && cam.Conf.Source == "" && (cam.Conf.RunOnReady == "" && a.cfg.Run != "") {
-		// 	continue
-		// }
+	// Если имеются отличия, отправляется запрос к ртсп на изменение
+	a.log.Info("Cameras is same, but its values are different")
+
+	for _, cam := range camsEdit {
 
 		if ctx.Err() != nil {
 			return a.err.SetError(ctx.Err())

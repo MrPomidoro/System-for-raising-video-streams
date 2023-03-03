@@ -28,11 +28,12 @@ func main() {
 		log.Error(err.Error())
 		return
 	}
+	appI := service.App(app)
 
 	// Запуск алгоритма в отдельной горутине
-	go app.Run(ctx)
+	go appI.Run(ctx)
 
 	// Ожидание прерывающего сигнала
 	// app.GracefulShutdown(app.SigChan)
-	app.GracefulShutdown(cancel)
+	appI.GracefulShutdown(cancel)
 }

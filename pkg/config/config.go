@@ -8,55 +8,56 @@ import (
 
 // Config - структура конфига
 type Config struct {
-	Logger   `yaml:"logger"`
-	Server   `yaml:"server"`
-	Database `yaml:"database"`
-	Rtsp     `yaml:"rtsp"`
-	err      ce.IError
+	Logger   `mapstructure:"logger"`
+	Server   `mapstructure:"server"`
+	Database `mapstructure:"database"`
+	Rtsp     `mapstructure:"rtsp"`
+
+	err ce.IError
 }
 
 // Logger содержит параметры логгера
 type Logger struct {
-	LogLevel        string `yaml:"logLevel"`
-	LogFileEnable   bool   `yaml:"logFileEnable"`
-	LogStdoutEnable bool   `yaml:"logStdoutEnable"`
-	LogFile         string `yaml:"logpath"`
-	MaxSize         int    `yaml:"maxSize"`
-	MaxAge          int    `yaml:"maxAge"`
-	MaxBackups      int    `yaml:"maxBackups"`
-	RewriteLog      bool   `yaml:"rewriteLog"`
+	LogLevel        string `mapstructure:"logLevel"`
+	LogFileEnable   bool   `mapstructure:"logFileEnable"`
+	LogStdoutEnable bool   `mapstructure:"logStdoutEnable"`
+	LogFile         string `mapstructure:"logpath"`
+	MaxSize         int    `mapstructure:"maxSize"`
+	MaxAge          int    `mapstructure:"maxAge"`
+	MaxBackups      int    `mapstructure:"maxBackups"`
+	RewriteLog      bool   `mapstructure:"rewriteLog"`
 }
 
 // Server содержит параметры сервера
 type Server struct {
-	ReadTimeout  time.Duration `yaml:"readTimeout"`
-	WriteTimeout time.Duration `yaml:"writeTimeout"`
-	IdleTimeout  time.Duration `yaml:"idleTimeout"`
+	ReadTimeout  time.Duration `mapstructure:"readTimeout"`
+	WriteTimeout time.Duration `mapstructure:"writeTimeout"`
+	IdleTimeout  time.Duration `mapstructure:"idleTimeout"`
 }
 
 // Database содержит параметры базы данных
 type Database struct {
-	Port              uint16        `yaml:"port"`
-	Host              string        `yaml:"host"`
-	DbName            string        `yaml:"dbName"`
-	User              string        `yaml:"user"`
-	Password          string        `yaml:"password"`
-	Driver            string        `yaml:"driver"`
-	Connect           bool          `yaml:"databaseConnect"`
-	ConnectionTimeout time.Duration `yaml:"dbConnectionTimeoutSecond"`
+	Port              int           `mapstructure:"port"`
+	Host              string        `mapstructure:"host"`
+	DbName            string        `mapstructure:"dbName"`
+	User              string        `mapstructure:"user"`
+	Password          string        `mapstructure:"password"`
+	Driver            string        `mapstructure:"driver"`
+	Connect           bool          `mapstructure:"connect"`
+	ConnectionTimeout time.Duration `mapstructure:"connectionTimeout"`
 }
 
 // Rtsp RtspSimpleServer содержит параметры rtsp_simple_server
 type Rtsp struct {
-	Run         string        `yaml:"run"`
-	Url         string        `yaml:"url"`
-	RefreshTime time.Duration `yaml:"refreshTime"`
-	Api         api
+	Run         string        `mapstructure:"run"`
+	Url         string        `mapstructure:"url"`
+	RefreshTime time.Duration `mapstructure:"refreshTime"`
+	Api         api           `mapstructure:"api"`
 }
 
 type api struct {
-	UrlGet    string
-	UrlAdd    string
-	UrlRemove string
-	UrlEdit   string
+	UrlGet    string `mapstructure:"urlGet"`
+	UrlAdd    string `mapstructure:"urlAdd"`
+	UrlRemove string `mapstructure:"urlRemove"`
+	UrlEdit   string `mapstructure:"urlEdit"`
 }

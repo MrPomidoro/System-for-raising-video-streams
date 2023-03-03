@@ -8,7 +8,7 @@ type Stream struct {
 	Id           int            `json:"id" db:"id"`
 	Auth         sql.NullString `json:"auth" db:"auth"`
 	Ip           sql.NullString `json:"ip" db:"ip"`
-	Stream       sql.NullString `json:"stream" db:"stream"`
+	Stream       string         `json:"stream" db:"stream"`
 	Portsrv      string         `json:"portsrv" db:"portsrv"`
 	Sp           sql.NullString `json:"sp" db:"sp"`
 	CamId        sql.NullString `json:"camid" db:"camid"`
