@@ -46,11 +46,11 @@ func (a *app) getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IError) {
 }
 
 // getDBAndApi реализует получение камер с базы данных и с rtsp
-func getDBAndApi(ctx context.Context, aIn appIn, mu *sync.Mutex) ([]refreshstream.Stream,
+func getDBAndApi(ctx context.Context, a appIn, mu *sync.Mutex) ([]refreshstream.Stream,
 	map[string]rtsp.SConf, ce.IError) {
 
 	// Отправка запроса к базе
-	resDB, err := aIn.getDB(ctx, mu)
+	resDB, err := a.getDB(ctx, mu)
 	// resDB, err := a.refreshStreamRepo.Get(ctx, true)
 	if err != nil {
 		return nil, nil, err
@@ -58,7 +58,7 @@ func getDBAndApi(ctx context.Context, aIn appIn, mu *sync.Mutex) ([]refreshstrea
 
 	// Отправка запроса к rtsp
 	// resRTSP, err := a.rtspRepo.GetRtsp(ctx)
-	resRTSP, err := aIn.getRTSP(ctx)
+	resRTSP, err := a.getRTSP(ctx)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -16,7 +16,7 @@ func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, 
 
 	e := ce.ErrorDatabase
 
-	config := getConfig(cfg, log)
+	config := getConfig(cfg)
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
@@ -101,7 +101,7 @@ func (db *DB) IsConn(ctx context.Context) bool {
 	return true
 }
 
-func getConfig(cfg *config.Database, log *zap.Logger) *pgxpool.Config {
+func getConfig(cfg *config.Database) *pgxpool.Config {
 	// Настраиваем конфигурацию пула подключений к базе данных
 	config, _ := pgxpool.ParseConfig("")
 	config.ConnConfig.User = cfg.User

@@ -41,7 +41,7 @@ func (s repository) Get(ctx context.Context, status bool) ([]refreshstream.Strea
 	}
 
 	s.log.Debug("Query to database:\n\t" + query)
-	// s.db.Conn.Q
+
 	rows, err := s.db.Conn.Query(ctx, query)
 	if err != nil {
 		return nil, s.err.SetError(err)
