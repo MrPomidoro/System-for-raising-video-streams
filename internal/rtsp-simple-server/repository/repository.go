@@ -45,6 +45,11 @@ func (rtsp *repository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserve
 	}
 	// Закрытие тела ответа
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return res, rtsp.err.SetError(fmt.Errorf("unexpected status code: %d", resp.StatusCode))
+	}
+
 	rtsp.log.Debug("Received response from rtsp-simple-server")
 
 	body, err := io.ReadAll(resp.Body)
@@ -110,6 +115,10 @@ func (rtsp *repository) PostAddRTSP(ctx context.Context, cam rtspsimpleserver.SC
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return rtsp.err.SetError(fmt.Errorf("unexpected status code: %d", resp.StatusCode))
+	}
+
 	return nil
 }
 
@@ -130,6 +139,11 @@ func (rtsp *repository) PostRemoveRTSP(ctx context.Context, camRTSP rtspsimplese
 		return rtsp.err.SetError(err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return rtsp.err.SetError(fmt.Errorf("unexpected status code: %d", resp.StatusCode))
+	}
+
 	return nil
 }
 
@@ -158,6 +172,10 @@ func (rtsp *repository) PostEditRTSP(ctx context.Context, cam rtspsimpleserver.S
 		return rtsp.err.SetError(err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return rtsp.err.SetError(fmt.Errorf("unexpected status code: %d", resp.StatusCode))
+	}
 
 	return nil
 }
