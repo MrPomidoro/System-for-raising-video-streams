@@ -1,4 +1,4 @@
-package repository
+package controller
 
 import (
 	"bytes"
@@ -38,6 +38,10 @@ func (rtsp *repository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserve
 	URLGet := fmt.Sprintf(rtsp.cfg.Url + rtsp.cfg.Rtsp.Api.UrlGet)
 	// URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Url)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLGet)
+
+	if ctx.Err() != nil {
+		return res, rtsp.err.SetError(ctx.Err())
+	}
 	// Get запрос и обработка ошибки
 	resp, err := http.Get(URLGet)
 	if err != nil {
@@ -77,6 +81,10 @@ func (rtsp *repository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserve
 
 			res[stream] = cam
 		}
+	}
+
+	if ctx.Err() != nil {
+		return res, rtsp.err.SetError(ctx.Err())
 	}
 
 	return res, nil
