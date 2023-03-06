@@ -12,7 +12,7 @@ import (
 )
 
 // NewDB Эта функция создает новый экземпляр DB.
-func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, err ce.IError) {
+func NewDB(ctx context.Context, cfg config.Database, log *zap.Logger) (db *DB, err ce.IError) {
 
 	err = ce.ErrorDatabase
 
@@ -101,7 +101,7 @@ func (db *DB) IsConn(ctx context.Context) bool {
 	return true
 }
 
-func getConfig(cfg *config.Database) *pgxpool.Config {
+func getConfig(cfg config.Database) *pgxpool.Config {
 	// Настраиваем конфигурацию пула подключений к базе данных
 	config, _ := pgxpool.ParseConfig("")
 	config.ConnConfig.User = cfg.User
