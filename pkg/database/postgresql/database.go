@@ -19,7 +19,7 @@ func NewDB(ctx context.Context, cfg *config.Database, log *zap.Logger) (db *DB, 
 	config := getConfig(cfg)
 
 	pool, e := pgxpool.NewWithConfig(ctx, config)
-	if err != nil {
+	if e != nil {
 		return nil, err.SetError(e)
 	}
 
