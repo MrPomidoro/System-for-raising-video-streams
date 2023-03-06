@@ -51,7 +51,7 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	// err := ce.ErrorApp
 	log := logger.NewLogger(cfg)
 
-	db, err := postgresql.NewDB(ctx, &cfg.Database, log)
+	db, err := postgresql.NewDB(ctx, cfg.Database, log)
 	if err != nil {
 		return nil, err
 	}
