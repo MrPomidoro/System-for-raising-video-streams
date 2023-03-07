@@ -14,6 +14,8 @@ const (
 type IError interface {
 	Error() string
 	SetError(err error) *Error
+
+	defineLevel() string
 }
 
 type Error struct {
