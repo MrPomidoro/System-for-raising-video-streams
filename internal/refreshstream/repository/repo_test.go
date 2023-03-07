@@ -4,6 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository/mocks"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
+	"github.com/golang/mock/gomock"
+	"go.uber.org/zap"
+
 	"github.com/pashagolub/pgxmock/v2"
 )
 
@@ -75,12 +81,36 @@ func TestGet(t *testing.T) {
 
 }
 
-func Run(t *testing.T) pgxmock.PgxConnIface {
-	t.Helper()
-	mock, err := pgxmock.NewConn()
+// func Run(t *testing.T) pgxmock.PgxConnIface {
+// 	t.Helper()
+// 	mock, err := pgxmock.NewConn()
+// 	if err != nil {
+// 		t.Error("unexpected error:", err)
+// 	}
+// 	defer mock.Close(context.Background())
+// 	return mock
+// }
+
+func TestRepository_Get(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	ctx := context.TODO()
+	mockDB := postgresql.NewMockPgxIface(ctrl) // сделать мок на интерфейс бд
+	mockLog := zap.NewNop()
+
+	repo := NewRepository(postgresql.NewDB(ctx, mockDB, mockLog), mockLog)
+
+	mockCommon := mocks.NewMockCommon(ctrl)
+	repo.Common = mockCommon
+
+	// Set up expectations
+	mockCommon.EXPECT().Get(ctx, true).Return([]refreshstream.Stream{}, nil)
+
+	// Call the method being tested
+	_, err := repo.Get(ctx, true)
+
+	// Check that the expectations were met
 	if err != nil {
-		t.Error("unexpected error:", err)
+		t.Fatalf("Unexpected error: %v", err)
 	}
-	defer mock.Close(context.Background())
-	return mock
 }
