@@ -119,3 +119,7 @@ func getConfig(cfg config.Database) *pgxpool.Config {
 func (db *DB) Close() {
 	db.Conn.Close()
 }
+
+func (db *DB) GetConn() *pgxpool.Pool {
+	return db.Conn
+}

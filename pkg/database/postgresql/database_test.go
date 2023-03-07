@@ -33,5 +33,4 @@ func TestDatabaseConnection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error executing query: %s", err)
 	}
-
 }

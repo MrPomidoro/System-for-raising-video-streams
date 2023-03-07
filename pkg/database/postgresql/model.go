@@ -16,4 +16,5 @@ type IDB interface {
 	KeepAlive(ctx context.Context, log *zap.Logger, errCh chan error)
 	IsConn(ctx context.Context) bool
 	Close()
+	GetConn() *pgxpool.Pool
 }
