@@ -12,11 +12,27 @@ import (
 )
 
 func TestLogLevel(t *testing.T) {
-	cfg := config.Config{Logger: config.Logger{LogLevel: "INFO"}}
+	tests := []struct {
+		name string
+		cfg  config.Config
+	}{
+		{
+			name: "TestInfoLevel",
+			cfg:  config.Config{Logger: config.Logger{LogLevel: "INFO"}},
+		},
+		{
+			name: "TestInvalidLevel",
+			cfg:  config.Config{Logger: config.Logger{LogLevel: "invalid"}},
+		},
+	}
 	log := logger{}
 
-	if log.logLevel(&cfg) != zapcore.InfoLevel {
-		t.Errorf("expect %v, got %v", log.logLevel(&cfg), zapcore.InfoLevel)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if log.logLevel(&tt.cfg) != zapcore.InfoLevel {
+				t.Errorf("expect %v, got %v", log.logLevel(&tt.cfg), zapcore.InfoLevel)
+			}
+		})
 	}
 }
 
@@ -100,6 +116,29 @@ func TestNewLogger(t *testing.T) {
 				LogFileEnable: false, LogStdoutEnable: false, MaxSize: 100,
 				MaxAge: 28, MaxBackups: 7,
 			}},
+		},
+		{
+			name: "TestRewrite",
+			cfg: config.Config{Logger: config.Logger{
+				LogLevel: "INFO", RewriteLog: true, LogFile: "./pkg/logger/out.log",
+				LogFileEnable: true, LogStdoutEnable: true, MaxSize: 100,
+				MaxAge: 28, MaxBackups: 7,
+			}},
+			logFile: li.newCore(
+				jsonEncoder,
+				li.addSync(&lumberjack.Logger{
+					Filename:   "./pkg/logger/out.log",
+					MaxSize:    100,
+					MaxAge:     28,
+					MaxBackups: 7,
+				}),
+				zapcore.InfoLevel,
+			),
+			logStdout: li.newCore(
+				textEncoder,
+				zapcore.AddSync(os.Stdout),
+				zapcore.InfoLevel,
+			),
 		},
 	}
 
