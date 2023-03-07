@@ -39,6 +39,7 @@ func TestLogLevel(t *testing.T) {
 func TestNewLogger(t *testing.T) {
 	l := &logger{}
 	li := Logger(l)
+	path := "/home/ksenia/go/src/github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger/logTest.out"
 
 	conf := li.newProductionEncoderConfig()
 	conf.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -50,22 +51,23 @@ func TestNewLogger(t *testing.T) {
 	textEncoder := li.newConsoleEncoder(conf)
 
 	tests := []struct {
-		name      string
-		cfg       config.Config
-		logFile   zapcore.Core
-		logStdout zapcore.Core
+		name             string
+		cfg              config.Config
+		logFile          zapcore.Core
+		logStdout        zapcore.Core
+		isNeedCreateFile bool
 	}{
 		{
 			name: "TestFileStdout",
 			cfg: config.Config{Logger: config.Logger{
-				LogLevel: "INFO", RewriteLog: false, LogFile: "./pkg/logger/out.log",
+				LogLevel: "INFO", RewriteLog: false, LogFile: path,
 				LogFileEnable: true, LogStdoutEnable: true, MaxSize: 100,
 				MaxAge: 28, MaxBackups: 7,
 			}},
 			logFile: li.newCore(
 				jsonEncoder,
 				li.addSync(&lumberjack.Logger{
-					Filename:   "./pkg/logger/out.log",
+					Filename:   path,
 					MaxSize:    100,
 					MaxAge:     28,
 					MaxBackups: 7,
@@ -77,29 +79,31 @@ func TestNewLogger(t *testing.T) {
 				zapcore.AddSync(os.Stdout),
 				zapcore.InfoLevel,
 			),
+			isNeedCreateFile: false,
 		},
 		{
 			name: "TestFile",
 			cfg: config.Config{Logger: config.Logger{
-				LogLevel: "INFO", RewriteLog: false, LogFile: "./pkg/logger/out.log",
+				LogLevel: "INFO", RewriteLog: false, LogFile: path,
 				LogFileEnable: true, LogStdoutEnable: false, MaxSize: 100,
 				MaxAge: 28, MaxBackups: 7,
 			}},
 			logFile: li.newCore(
 				jsonEncoder,
 				li.addSync(&lumberjack.Logger{
-					Filename:   "./pkg/logger/out.log",
+					Filename:   path,
 					MaxSize:    100,
 					MaxAge:     28,
 					MaxBackups: 7,
 				}),
 				zapcore.InfoLevel,
 			),
+			isNeedCreateFile: false,
 		},
 		{
 			name: "TestStdout",
 			cfg: config.Config{Logger: config.Logger{
-				LogLevel: "INFO", RewriteLog: false, LogFile: "./pkg/logger/out.log",
+				LogLevel: "INFO", RewriteLog: false, LogFile: path,
 				LogFileEnable: false, LogStdoutEnable: true, MaxSize: 100,
 				MaxAge: 28, MaxBackups: 7,
 			}},
@@ -108,37 +112,54 @@ func TestNewLogger(t *testing.T) {
 				zapcore.AddSync(os.Stdout),
 				zapcore.InfoLevel,
 			),
+			isNeedCreateFile: false,
 		},
 		{
 			name: "TestBothFalse",
 			cfg: config.Config{Logger: config.Logger{
-				LogLevel: "INFO", RewriteLog: false, LogFile: "./pkg/logger/out.log",
+				LogLevel: "INFO", RewriteLog: false, LogFile: path,
 				LogFileEnable: false, LogStdoutEnable: false, MaxSize: 100,
 				MaxAge: 28, MaxBackups: 7,
 			}},
+			isNeedCreateFile: false,
 		},
 		{
-			name: "TestRewrite",
+			name: "TestRewrite/FileNotExists",
 			cfg: config.Config{Logger: config.Logger{
-				LogLevel: "INFO", RewriteLog: true, LogFile: "./pkg/logger/out.log",
-				LogFileEnable: true, LogStdoutEnable: true, MaxSize: 100,
+				LogLevel: "INFO", RewriteLog: true, LogFile: path,
+				LogFileEnable: true, LogStdoutEnable: false, MaxSize: 100,
 				MaxAge: 28, MaxBackups: 7,
 			}},
 			logFile: li.newCore(
 				jsonEncoder,
 				li.addSync(&lumberjack.Logger{
-					Filename:   "./pkg/logger/out.log",
+					Filename:   path,
 					MaxSize:    100,
 					MaxAge:     28,
 					MaxBackups: 7,
 				}),
 				zapcore.InfoLevel,
 			),
-			logStdout: li.newCore(
-				textEncoder,
-				zapcore.AddSync(os.Stdout),
+			isNeedCreateFile: false,
+		},
+		{
+			name: "TestRewrite/FileExists",
+			cfg: config.Config{Logger: config.Logger{
+				LogLevel: "INFO", RewriteLog: true, LogFile: path,
+				LogFileEnable: true, LogStdoutEnable: false, MaxSize: 100,
+				MaxAge: 28, MaxBackups: 7,
+			}},
+			logFile: li.newCore(
+				jsonEncoder,
+				li.addSync(&lumberjack.Logger{
+					Filename:   path,
+					MaxSize:    100,
+					MaxAge:     28,
+					MaxBackups: 7,
+				}),
 				zapcore.InfoLevel,
 			),
+			isNeedCreateFile: true,
 		},
 	}
 
@@ -147,6 +168,11 @@ func TestNewLogger(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.isNeedCreateFile {
+				os.Create(path)
+			}
+			defer os.Remove(path)
 
 			got := strings.Split(fmt.Sprint(NewLogger(&tt.cfg)), " ")
 
