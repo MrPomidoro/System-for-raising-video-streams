@@ -15,7 +15,7 @@ func (a *app) addRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
 	camsRemove map[string]rtsp.SConf) ce.IError {
 
 	if len(camsAdd) != 0 || len(camsRemove) != 0 {
-		a.log.Info("Count of data is same, but the cameras are different")
+		a.log.Info("The cameras are different")
 	} else {
 		return nil
 	}
