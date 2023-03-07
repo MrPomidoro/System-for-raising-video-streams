@@ -6,8 +6,33 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx"
 	"go.uber.org/zap"
 )
+
+type PgxIface interface {
+	Begin(context.Context) (pgx.Tx, error)
+	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+	QueryRow(context.Context, string, ...interface{}) pgx.Row
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	Ping(context.Context) error
+	Close()
+}
+
+// Database is wrapper for PgxIface
+type Database struct {
+	DB PgxIface
+}
+
+// NewSelector is an initializer for Selector
+func NewDatabase(ds PgxIface) Database {
+	return Database{DB: ds}
+}
+
+//
+//
+//
 
 type repository struct {
 	db  *postgresql.DB
