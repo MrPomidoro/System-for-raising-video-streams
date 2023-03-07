@@ -27,6 +27,7 @@ func (l *logger) loggers(cfg *config.Config, consoleLogger, fileLogger zapcore.C
 	if cfg.LogFileEnable {
 		cores = append(cores, fileLogger)
 	}
+
 	return cores
 }
 

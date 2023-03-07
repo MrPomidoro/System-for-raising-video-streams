@@ -33,12 +33,13 @@ func NewLogger(cfg *config.Config) *zap.Logger {
 	}
 
 	l := logger{
-		LogLevel:      cfg.LogLevel,
-		LogFileEnable: cfg.LogFileEnable,
-		LogFile:       cfg.LogFile,
-		MaxSize:       cfg.MaxSize,
-		MaxAge:        cfg.MaxAge,
-		MaxBackups:    cfg.MaxBackups,
+		LogLevel:        cfg.LogLevel,
+		LogFileEnable:   cfg.LogFileEnable,
+		LogStdoutEnable: cfg.LogStdoutEnable,
+		LogFile:         cfg.LogFile,
+		MaxSize:         cfg.MaxSize,
+		MaxAge:          cfg.MaxAge,
+		MaxBackups:      cfg.MaxBackups,
 	}
 	return l.initLogger(cfg)
 }
@@ -56,22 +57,37 @@ func (l *logger) initLogger(cfg *config.Config) *zap.Logger {
 	jsonEncoder := li.newJSONEncode(conf)
 	textEncoder := li.newConsoleEncoder(conf)
 
-	fileLogger := li.newCore(
-		jsonEncoder,
-		li.addSync(&lumberjack.Logger{
-			Filename:   l.LogFile,
-			MaxSize:    l.MaxSize,
-			MaxAge:     l.MaxAge,
-			MaxBackups: l.MaxBackups,
-		}),
-		li.logLevel(cfg),
-	)
+	if !cfg.LogFileEnable && !cfg.LogStdoutEnable {
+		return nil
+	}
 
-	consoleLogger := li.newCore(
-		textEncoder,
-		zapcore.AddSync(os.Stdout),
-		li.logLevel(cfg),
-	)
+	var fileLogger zapcore.Core
+	if cfg.LogFileEnable {
+		fileLogger = li.newCore(
+			jsonEncoder,
+			li.addSync(&lumberjack.Logger{
+				Filename:   l.LogFile,
+				MaxSize:    l.MaxSize,
+				MaxAge:     l.MaxAge,
+				MaxBackups: l.MaxBackups,
+			}),
+			li.logLevel(cfg),
+		)
+	}
 
+	var consoleLogger zapcore.Core
+	if cfg.LogStdoutEnable {
+		consoleLogger = li.newCore(
+			textEncoder,
+			zapcore.AddSync(os.Stdout),
+			li.logLevel(cfg),
+		)
+	}
+
+	if !cfg.LogFileEnable && cfg.LogStdoutEnable {
+		return li.new(li.newTee(consoleLogger))
+	} else if cfg.LogFileEnable && !cfg.LogStdoutEnable {
+		return li.new(li.newTee(fileLogger))
+	}
 	return li.new(li.newTee(li.loggers(cfg, consoleLogger, fileLogger)...), li.zapOpts()...)
 }
