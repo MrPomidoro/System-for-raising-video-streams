@@ -2,12 +2,15 @@ package repository
 
 import (
 	"context"
+	"testing"
+
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository/mocks"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"github.com/golang/mock/gomock"
 	"go.uber.org/zap"
-	"testing"
+
+	"github.com/pashagolub/pgxmock/v2"
 )
 
 func TestGet(t *testing.T) {
@@ -59,17 +62,21 @@ func TestGet(t *testing.T) {
 
 	// четвёртая хуйня
 	//
-	// cols := []string{"id", "auth", "ip", "stream", "port_srv", "sp",
-	// 	"cam_id", "record_status", "stream_status", "record_state", "stream_state", "protocol"}
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Error("unexpected error:", err)
+	}
+
+	cols := []string{"id", "auth", "ip", "stream", "port_srv", "sp",
+		"cam_id", "record_status", "stream_status", "record_state", "stream_state", "protocol"}
 
 	// mock := Run(t)
-	// query := `SELECT *
-	// 	 		FROM public."refresh_stream"
-	// 	 		WHERE "stream" IS NOT null AND "stream_state" = true`
+	query := `SELECT *
+		 		FROM public."refresh_stream"
+		 		WHERE "stream" IS NOT null AND "stream_state" = true`
 
 	// t.Run("а вдруг?..", func(t *testing.T) {
-	// 	mock.ExpectQuery(query).WillReturnRows(mock.NewRows(cols))
-
+	mock.ExpectQuery(query).WillReturnRows(mock.NewRows(cols))
 	// })
 
 }
