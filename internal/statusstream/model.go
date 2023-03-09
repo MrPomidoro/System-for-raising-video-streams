@@ -1,6 +1,6 @@
 package statusstream
 
-// Структура таблицы refresh_stream
+// Структура таблицы status_stream
 type StatusStream struct {
 	StreamId int `json:"stream_id" db:"stream_id"`
 	// DateCreate     time.Time `json:"date_create" db:"date_create"`

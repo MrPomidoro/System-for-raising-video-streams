@@ -6,8 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository/mocks"
+	mocks "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository/mock"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"github.com/golang/mock/gomock"
@@ -46,11 +45,11 @@ func TestRepository_Get(t *testing.T) {
 	repo.Common = mockCommon
 
 	// Set up expectations
-	mockCommon.EXPECT().Get(ctx, true).Return([]refreshstream.Stream{}, nil)
-	mockCommon.EXPECT().Get(ctx, false).Return([]refreshstream.Stream{}, nil)
+	// mockCommon.EXPECT().Get(ctx, true).Return([]refreshstream.Stream{}, nil)
+	// mockCommon.EXPECT().Get(ctx, false).Return([]refreshstream.Stream{}, nil)
 
 	// Call the method being tested
-	_, err := repo.Common.Get(ctx, true)
+	_, err := repo.Get(ctx, true)
 	// Check that the expectations were met
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
@@ -58,9 +57,9 @@ func TestRepository_Get(t *testing.T) {
 
 	cancel()
 
-	_, err = repo.Common.Get(ctx, false)
+	_, err = repo.Get(ctx, false)
 	// Check that the expectations were met
-	if err != nil {
+	if err != ce.ErrorRefreshStream.SetError(ctx.Err()) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 }
