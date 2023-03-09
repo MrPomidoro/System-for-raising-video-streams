@@ -15,12 +15,12 @@ var (
 		err:   nil,
 	}
 
-	// ErrorApp = &Error{
-	// 	level: FatalLevel,
-	// 	code:  "50.3.1",
-	// 	desc:  "error at app operation level",
-	// 	err:   nil,
-	// }
+	ErrorApp = &Error{
+		level: FatalLevel,
+		code:  "50.3.1",
+		desc:  "error at app operation level",
+		err:   nil,
+	}
 
 	ErrorRefreshStream = &Error{
 		level: ErrorLevel,

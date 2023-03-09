@@ -33,7 +33,7 @@ func GetConfig() (*Config, ce.IError) {
 	return &cfg, nil
 }
 
-func readParametersFromConfig(v *viper.Viper, cfg *Config) *ce.Error {
+func readParametersFromConfig(v *viper.Viper, cfg *Config) ce.IError {
 	// Попытка чтения конфига
 	if err := v.ReadInConfig(); err != nil {
 		return cfg.err.SetError(err)
@@ -52,6 +52,7 @@ func readConfigPath() string {
 	for _, arg := range args {
 		if strings.Split(arg, "=")[0][1:] == "configPath" {
 			configPath = strings.Split(arg, "=")[1]
+			break
 		}
 	}
 	// Если путь не был указан, выставляется по умолчанию ./

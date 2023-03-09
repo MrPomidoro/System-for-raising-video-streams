@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
@@ -37,9 +38,13 @@ func (a *app) insertIntoStatusStream(method string, ctx context.Context, cam rts
 
 	insertStructStatusStream := statusstream.StatusStream{StreamId: cam.Id, StatusResponse: true}
 	err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
-	if err != nil {
-		return a.err.SetError(fmt.Errorf("cannot insert to table status_stream"))
+	if err == ce.ErrorStatusStream.SetError(errors.New("ERROR: insert or update on table \"status_stream\" violates foreign key constraint \"stream_id\" (SQLSTATE 23503)")) {
+		return a.err.SetError(fmt.Errorf("cannot insert into status_stream: stream not in database"))
 	}
+	if err != nil {
+		return err
+	}
+
 	a.log.Debug("Success insert to table status_stream")
 
 	return nil
