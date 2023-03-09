@@ -25,7 +25,7 @@ func GetConfig() (*Config, ce.IError) {
 
 	err := readParametersFromConfig(v, &cfg)
 	if err != nil {
-		return &cfg, cfg.err.SetError(err)
+		return &cfg, err
 	}
 
 	// Проверка наличия параметров в командной строке
