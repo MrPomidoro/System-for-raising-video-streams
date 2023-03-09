@@ -10,9 +10,10 @@ import (
 )
 
 type Repository struct {
-	db  postgresql.IDB
-	log *zap.Logger
-	err ce.IError
+	Common refreshstream.Common
+	db     postgresql.IDB
+	log    *zap.Logger
+	err    ce.IError
 }
 
 func NewRepository(db *postgresql.DB, log *zap.Logger) *Repository {
