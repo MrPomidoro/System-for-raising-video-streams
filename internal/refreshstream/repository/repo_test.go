@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -46,21 +48,56 @@ func TestRepository_Get(t *testing.T) {
 	mockCommon.EXPECT().Get(ctx, false).Return([]refreshstream.Stream{}, nil)
 	mockCommon.EXPECT().Get(ctx, false).Return([]refreshstream.Stream{}, nil)
 
+	expectT := []refreshstream.Stream{{
+		Id:           1,
+		Auth:         sql.NullString{String: "login:pass", Valid: true},
+		Ip:           sql.NullString{String: "ip", Valid: true},
+		Stream:       "1",
+		Portsrv:      "123",
+		Sp:           sql.NullString{String: "sp", Valid: true},
+		CamId:        sql.NullString{String: "cam1", Valid: true},
+		Protocol:     sql.NullString{String: "tcp", Valid: true},
+		RecordStatus: sql.NullBool{Bool: true, Valid: true},
+		StreamStatus: sql.NullBool{Bool: true, Valid: true},
+		RecordState:  sql.NullBool{Bool: true, Valid: true},
+		StreamState:  sql.NullBool{Bool: true, Valid: true},
+	}}
+	expectF := []refreshstream.Stream{{
+		Id:           1,
+		Auth:         sql.NullString{String: "login:pass", Valid: true},
+		Ip:           sql.NullString{String: "ip", Valid: true},
+		Stream:       "1",
+		Portsrv:      "123",
+		Sp:           sql.NullString{String: "sp", Valid: true},
+		CamId:        sql.NullString{String: "cam1", Valid: true},
+		Protocol:     sql.NullString{String: "tcp", Valid: true},
+		RecordStatus: sql.NullBool{Bool: true, Valid: true},
+		StreamStatus: sql.NullBool{Bool: true, Valid: true},
+		RecordState:  sql.NullBool{Bool: false, Valid: true},
+		StreamState:  sql.NullBool{Bool: true, Valid: true},
+	}}
+
 	t.Run("TestGetTrue", func(t *testing.T) {
 		// Call the method being tested
-		_, err := repo.Common.Get(ctx, true)
+		res, err := repo.Common.Get(ctx, true)
 		// Check that the expectations were met
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)
+		}
+		if !reflect.DeepEqual(res, expectT) {
+			t.Errorf("unexpected result from query Get: %v", res)
 		}
 	})
 
 	t.Run("TestGetFalse", func(t *testing.T) {
 		// Call the method being tested
-		_, err := repo.Common.Get(ctx, false)
+		res, err := repo.Common.Get(ctx, false)
 		// Check that the expectations were met
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)
+		}
+		if !reflect.DeepEqual(res, expectF) {
+			t.Errorf("unexpected result from query Get: %v", res)
 		}
 	})
 

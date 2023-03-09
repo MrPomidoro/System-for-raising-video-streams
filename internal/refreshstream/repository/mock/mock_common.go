@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
@@ -34,7 +35,40 @@ func (m *MockCommon) EXPECT() *MockCommonMockRecorder {
 // Get mocks base method
 func (m *MockCommon) Get(ctx context.Context, status bool) ([]refreshstream.Stream, ce.IError) {
 	ret := m.ctrl.Call(m, "Get", ctx, status)
-	ret0, _ := ret[0].([]refreshstream.Stream)
+
+	var ret0 []refreshstream.Stream
+	// ret0, _ := ret[0].([]refreshstream.Stream)
+	if status {
+		ret0 = []refreshstream.Stream{{
+			Id:           1,
+			Auth:         sql.NullString{String: "login:pass", Valid: true},
+			Ip:           sql.NullString{String: "ip", Valid: true},
+			Stream:       "1",
+			Portsrv:      "123",
+			Sp:           sql.NullString{String: "sp", Valid: true},
+			CamId:        sql.NullString{String: "cam1", Valid: true},
+			Protocol:     sql.NullString{String: "tcp", Valid: true},
+			RecordStatus: sql.NullBool{Bool: true, Valid: true},
+			StreamStatus: sql.NullBool{Bool: true, Valid: true},
+			RecordState:  sql.NullBool{Bool: true, Valid: true},
+			StreamState:  sql.NullBool{Bool: true, Valid: true},
+		}}
+	} else {
+		ret0 = []refreshstream.Stream{{
+			Id:           1,
+			Auth:         sql.NullString{String: "login:pass", Valid: true},
+			Ip:           sql.NullString{String: "ip", Valid: true},
+			Stream:       "1",
+			Portsrv:      "123",
+			Sp:           sql.NullString{String: "sp", Valid: true},
+			CamId:        sql.NullString{String: "cam1", Valid: true},
+			Protocol:     sql.NullString{String: "tcp", Valid: true},
+			RecordStatus: sql.NullBool{Bool: true, Valid: true},
+			StreamStatus: sql.NullBool{Bool: true, Valid: true},
+			RecordState:  sql.NullBool{Bool: false, Valid: true},
+			StreamState:  sql.NullBool{Bool: true, Valid: true},
+		}}
+	}
 	ret1, _ := ret[1].(ce.IError)
 	return ret0, ret1
 }
