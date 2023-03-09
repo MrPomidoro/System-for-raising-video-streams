@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	mocks "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository/mock"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"github.com/golang/mock/gomock"
@@ -41,8 +40,8 @@ func TestRepository_Get(t *testing.T) {
 	// }
 	repo := NewRepository(mockDB, mockLog)
 
-	mockCommon := mocks.NewMockCommon(ctrl)
-	repo.Common = mockCommon
+	// mockCommon := mocks.NewMockCommon(ctrl)
+	// repo.Common = mockCommon
 
 	// Set up expectations
 	// mockCommon.EXPECT().Get(ctx, true).Return([]refreshstream.Stream{}, nil)

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
-	mocks "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository/mock"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"github.com/golang/mock/gomock"
@@ -39,8 +38,8 @@ func TestInsert(t *testing.T) {
 	mockLog := zap.NewNop()
 	repo := NewRepository(mockDB, mockLog)
 
-	mockCommon := mocks.NewMockCommon(ctrl)
-	repo.Common = mockCommon
+	// mockCommon := mocks.NewMockCommon(ctrl)
+	// repo.Common = mockCommon
 
 	streamT := &statusstream.StatusStream{StreamId: 1, StatusResponse: true}
 	streamF := &statusstream.StatusStream{StreamId: 1, StatusResponse: false}
