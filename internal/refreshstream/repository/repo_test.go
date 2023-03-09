@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
+	mocks "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository/mock"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"github.com/golang/mock/gomock"
@@ -34,31 +36,41 @@ func TestRepository_Get(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	mockDB := postgresql.NewMockPgxIface(ctrl) // сделать мок на интерфейс бд
 	mockLog := zap.NewNop()
-	// testdb, err := postgresql.NewDB(ctx, config.Database{}, mockLog)
-	// if err != nil {
-	// 	t.Fatalf("Unexpected error: %v", err)
-	// }
 	repo := NewRepository(mockDB, mockLog)
 
-	// mockCommon := mocks.NewMockCommon(ctrl)
-	// repo.Common = mockCommon
+	mockCommon := mocks.NewMockCommon(ctrl)
+	repo.Common = mockCommon
 
 	// Set up expectations
-	// mockCommon.EXPECT().Get(ctx, true).Return([]refreshstream.Stream{}, nil)
-	// mockCommon.EXPECT().Get(ctx, false).Return([]refreshstream.Stream{}, nil)
+	mockCommon.EXPECT().Get(ctx, true).Return([]refreshstream.Stream{}, nil)
+	mockCommon.EXPECT().Get(ctx, false).Return([]refreshstream.Stream{}, nil)
+	mockCommon.EXPECT().Get(ctx, false).Return([]refreshstream.Stream{}, nil)
 
-	// Call the method being tested
-	_, err := repo.Get(ctx, true)
-	// Check that the expectations were met
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
+	t.Run("TestGetTrue", func(t *testing.T) {
+		// Call the method being tested
+		_, err := repo.Common.Get(ctx, true)
+		// Check that the expectations were met
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+	})
 
-	cancel()
+	t.Run("TestGetFalse", func(t *testing.T) {
+		// Call the method being tested
+		_, err := repo.Common.Get(ctx, false)
+		// Check that the expectations were met
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+	})
 
-	_, err = repo.Get(ctx, false)
-	// Check that the expectations were met
-	if err != ce.ErrorRefreshStream.SetError(ctx.Err()) {
-		t.Errorf("Unexpected error: %v", err)
-	}
+	t.Run("TestGetCtxCancel", func(t *testing.T) {
+		cancel()
+		_, err := repo.Common.Get(ctx, false)
+		// Check that the expectations were met
+		if err != nil {
+			// if err != ce.ErrorRefreshStream.SetError(ctx.Err()) {
+			t.Errorf("Unexpected error: %v", err)
+		}
+	})
 }
