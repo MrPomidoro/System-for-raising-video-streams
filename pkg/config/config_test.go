@@ -82,12 +82,16 @@ logger:
 			expectErr: errors.New("While parsing config: yaml: line 1: did not find expected key"),
 		},
 		{
-			name: "GetConfigErrorFileTabs",
-			yaml: "logger:\n\tlogLevel: DEBUG\n\tmaxSize: 500\n\tmaxAge: 28\n\tmaxBackups: 7\n\trewriteLog: true",
+			name: "GetConfigErrorFileHaveTabs",
+			yaml: `
+database:
+  port: 5432
+		  host: 192.168.0.32
+		  unknown: 1`,
 			expectCfg: &Config{
 				err: customError.ErrorConfig,
 			},
-			expectErr: errors.New("While parsing config: yaml: line 2: found character that cannot start any token"),
+			expectErr: errors.New("While parsing config: yaml: line 3: found a tab character that violates indentation"),
 		},
 	}
 
