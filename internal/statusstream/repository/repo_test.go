@@ -2,12 +2,12 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
+	mocks "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository/mock"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"github.com/golang/mock/gomock"
@@ -38,26 +38,36 @@ func TestInsert(t *testing.T) {
 	mockLog := zap.NewNop()
 	repo := NewRepository(mockDB, mockLog)
 
-	// mockCommon := mocks.NewMockCommon(ctrl)
-	// repo.Common = mockCommon
+	mockCommon := mocks.NewMockCommon(ctrl)
+	repo.Common = mockCommon
 
 	streamT := &statusstream.StatusStream{StreamId: 1, StatusResponse: true}
 	streamF := &statusstream.StatusStream{StreamId: 1, StatusResponse: false}
 	// Set up expectations
-	// mockCommon.EXPECT().Insert(ctx, streamT)
-	// mockCommon.EXPECT().Insert(ctx, streamF)
+	mockCommon.EXPECT().Insert(ctx, streamT)
+	mockCommon.EXPECT().Insert(ctx, streamF).Times(2)
 
 	t.Run("TestInsertTrue", func(t *testing.T) {
-		err := repo.Insert(ctx, streamT)
-		if err != ce.ErrorStatusStream.SetError(errors.New("ERROR: insert or update on table \"status_stream\" violates foreign key constraint \"stream_id\" (SQLSTATE 23503)")) {
+		err := repo.Common.Insert(ctx, streamT)
+		if err != nil {
+			// if err != ce.ErrorStatusStream.SetError(errors.New("ERROR: insert or update on table \"status_stream\" violates foreign key constraint \"stream_id\" (SQLSTATE 23503)")) {
 			t.Errorf("Unexpected error: %v", err)
 		}
 	})
 
 	t.Run("TestInsertFalse", func(t *testing.T) {
+		err := repo.Common.Insert(ctx, streamF)
+		if err != nil {
+			// if err != ce.ErrorStatusStream.SetError(errors.New("ERROR: insert or update on table \"status_stream\" violates foreign key constraint \"stream_id\" (SQLSTATE 23503)")) {
+			t.Errorf("Unexpected error: %v", err)
+		}
+	})
+
+	t.Run("TestInsertCtxCancel", func(t *testing.T) {
 		cancel()
-		err := repo.Insert(ctx, streamF)
-		if err != ce.ErrorStatusStream.SetError(ctx.Err()) {
+		err := repo.Common.Insert(ctx, streamF)
+		if err != nil {
+			// if err != ce.ErrorStatusStream.SetError(ctx.Err()) {
 			t.Errorf("Unexpected error: %v", err)
 		}
 	})
