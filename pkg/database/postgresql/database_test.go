@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
@@ -31,13 +32,13 @@ func TestDatabaseConnection(t *testing.T) {
 	// делаем запрос к базе данных
 	conn, err := pool.Acquire(context.Background())
 	if err != nil {
-		t.Fatalf("error acquiring connection from pool: %s", err)
+		t.Errorf("error acquiring connection from pool: %s", err)
 	}
 	defer conn.Release()
 
 	_, err = conn.Exec(context.Background(), "SELECT 1")
 	if err != nil {
-		t.Fatalf("error executing query: %s", err)
+		t.Errorf("error executing query: %s", err)
 	}
 	cfg := config.Config{Database: config.Database{
 		DbName:   "www",
@@ -49,8 +50,15 @@ func TestDatabaseConnection(t *testing.T) {
 
 	newdb, err := NewDB(context.Background(), cfg.Database, logger.NewLogger(&cfg))
 	if err != nil {
-		t.Fatalf("error executing query: %s", err)
+		t.Errorf("error executing query: %s", err)
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	t.Run("KeepAlive", func(t *testing.T) {
+		errCh := make(chan error)
+		go newdb.KeepAlive(ctx, logger.NewLogger(&cfg), errCh)
+	})
 
 	t.Run("TestNewDBandGetConn", func(t *testing.T) {
 		newPool := newdb.GetConn()
@@ -60,16 +68,49 @@ func TestDatabaseConnection(t *testing.T) {
 
 		for _, idx := range indexes {
 			if newdbS[idx] != dbS[idx] {
-				t.Fatalf("expect: %v, got: %v", dbS[idx], newdbS[idx])
+				t.Errorf("expect: %v, got: %v", dbS[idx], newdbS[idx])
 			}
 		}
 	})
 
+	t.Run("TestIsConn", func(t *testing.T) {
+		isConn := newdb.IsConn(context.Background())
+		if !isConn {
+			t.Errorf("expect connection to database")
+		}
+	})
+
+	t.Run("TestIsConnCtxCancel", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		isConn := newdb.IsConn(ctx)
+		if isConn {
+			t.Errorf("expect no connection to database")
+		}
+	})
+
+	time.Sleep(4 * time.Second)
 	t.Run("TestCloseConnection", func(t *testing.T) {
 		newdb.Close()
 		_, err = newdb.Conn.Exec(context.Background(), "SELECT 1")
 		if err == nil {
-			t.Fatalf("error executing query: %s", err)
+			t.Errorf("error closing connection: %s", err)
 		}
 	})
+
+	cancel()
+
+	t.Run("KeepAlive", func(t *testing.T) {
+		errCh := make(chan error)
+		go newdb.KeepAlive(ctx, logger.NewLogger(&cfg), errCh)
+	})
+
+	t.Run("TestIsConnFalse", func(t *testing.T) {
+		isConn := newdb.IsConn(context.Background())
+		if isConn {
+			t.Errorf("expect no connection to database")
+		}
+	})
+
+	time.Sleep(4 * time.Second)
 }
