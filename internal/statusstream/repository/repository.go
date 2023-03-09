@@ -29,6 +29,10 @@ func NewRepository(db *postgresql.DB, log *zap.Logger) *Repository {
 func (s Repository) Insert(ctx context.Context,
 	ss *statusstream.StatusStream) ce.IError {
 
+	if ss.StreamId == 0 {
+		ss.StreamId = 1
+	}
+
 	query := fmt.Sprintf(statusstream.InsertToStatusStream, ss.StreamId, ss.StatusResponse)
 	s.log.Debug("Query to database:\n\t" + query)
 
