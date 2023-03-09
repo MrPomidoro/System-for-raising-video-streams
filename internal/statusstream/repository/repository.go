@@ -10,14 +10,15 @@ import (
 	"go.uber.org/zap"
 )
 
-type repository struct {
-	db  *postgresql.DB
-	log *zap.Logger
-	err ce.IError
+type Repository struct {
+	Common statusstream.Common
+	db     *postgresql.DB
+	log    *zap.Logger
+	err    ce.IError
 }
 
-func NewRepository(db *postgresql.DB, log *zap.Logger) *repository {
-	return &repository{
+func NewRepository(db *postgresql.DB, log *zap.Logger) *Repository {
+	return &Repository{
 		db:  db,
 		log: log,
 		err: ce.ErrorStatusStream,
@@ -25,7 +26,7 @@ func NewRepository(db *postgresql.DB, log *zap.Logger) *repository {
 }
 
 // Insert отправляет запрос на добавление лога
-func (s repository) Insert(ctx context.Context,
+func (s Repository) Insert(ctx context.Context,
 	ss *statusstream.StatusStream) ce.IError {
 
 	query := fmt.Sprintf(statusstream.InsertToStatusStream, ss.StreamId, ss.StatusResponse)

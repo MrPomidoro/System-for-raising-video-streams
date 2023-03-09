@@ -44,6 +44,6 @@ func (m *MockCommon) Close() {
 	m.ctrl.Call(m, "Close")
 }
 
-func (mr MockCommonMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockCommonMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCall(mr.mock, "Get", arg0, arg1)
 }
