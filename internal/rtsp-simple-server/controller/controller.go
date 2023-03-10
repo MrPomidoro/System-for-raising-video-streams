@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
@@ -15,35 +16,43 @@ import (
 )
 
 type repository struct {
-	cfg *config.Config
-	log *zap.Logger
-	err ce.IError
+	cfg    *config.Config
+	log    *zap.Logger
+	err    ce.IError
+	client *http.Client
 }
 
 func NewRepository(cfg *config.Config, log *zap.Logger) *repository {
 	return &repository{
-		cfg: cfg,
-		log: log,
-		err: ce.ErrorRTSP,
+		cfg:    cfg,
+		log:    log,
+		err:    ce.ErrorRTSP,
+		client: &http.Client{},
 	}
 }
 
 // GetRtsp отправляет GET запрос на получение данных
 func (rtsp *repository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserver.SConf, ce.IError) {
 
-	// defer close(dataRTSPchan)
 	res := make(map[string]rtspsimpleserver.SConf)
 
 	// Формирование URL для get запроса
 	URLGet := fmt.Sprintf(rtsp.cfg.Url + rtsp.cfg.Rtsp.Api.UrlGet)
-	// URLGet := fmt.Sprintf(rtspsimpleserver.URLGetConst, rtsp.cfg.Url)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLGet)
+
+	payload := strings.NewReader(``)
+
+	req, err := http.NewRequest(http.MethodGet, URLGet, payload)
+	if err != nil {
+		return res, rtsp.err.SetError(err)
+	}
 
 	if ctx.Err() != nil {
 		return res, rtsp.err.SetError(ctx.Err())
 	}
+
 	// Get запрос и обработка ошибки
-	resp, err := http.Get(URLGet)
+	resp, err := rtsp.client.Do(req)
 	if err != nil {
 		return res, rtsp.err.SetError(err)
 	}
@@ -113,14 +122,26 @@ func (rtsp *repository) PostAddRTSP(ctx context.Context, cam rtspsimpleserver.SC
 	URLPostAdd := fmt.Sprintf(rtsp.cfg.Url + rtsp.cfg.Rtsp.Api.UrlAdd + cam.Stream)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostAdd)
 
-	if ctx.Err() != nil {
-		return rtsp.err.SetError(ctx.Err())
-	}
-	// Запрос
-	resp, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
+	req, err := http.NewRequest(http.MethodPost, URLPostAdd, bytes.NewBuffer(postJson))
 	if err != nil {
 		return rtsp.err.SetError(err)
 	}
+	req.Header.Add("Content-Type", "application/json")
+
+	if ctx.Err() != nil {
+		return rtsp.err.SetError(ctx.Err())
+	}
+
+	// Get запрос и обработка ошибки
+	resp, err := rtsp.client.Do(req)
+	if err != nil {
+		return rtsp.err.SetError(err)
+	}
+	// Запрос
+	// resp, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
+	// if err != nil {
+	// 	return rtsp.err.SetError(err)
+	// }
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -138,14 +159,26 @@ func (rtsp *repository) PostRemoveRTSP(ctx context.Context, camRTSP rtspsimplese
 
 	var buf []byte
 
-	if ctx.Err() != nil {
-		return rtsp.err.SetError(ctx.Err())
-	}
-	// Запрос
-	resp, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
+	req, err := http.NewRequest(http.MethodPost, URLPostRemove, bytes.NewBuffer(buf))
 	if err != nil {
 		return rtsp.err.SetError(err)
 	}
+	req.Header.Add("Content-Type", "application/json")
+
+	if ctx.Err() != nil {
+		return rtsp.err.SetError(ctx.Err())
+	}
+
+	// Get запрос и обработка ошибки
+	resp, err := rtsp.client.Do(req)
+	if err != nil {
+		return rtsp.err.SetError(err)
+	}
+	// Запрос
+	// resp, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
+	// if err != nil {
+	// 	return rtsp.err.SetError(err)
+	// }
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -171,14 +204,26 @@ func (rtsp *repository) PostEditRTSP(ctx context.Context, cam rtspsimpleserver.S
 	URLPostEdit := fmt.Sprintf(rtsp.cfg.Url + rtsp.cfg.Rtsp.Api.UrlEdit + cam.Stream)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostEdit)
 
-	if ctx.Err() != nil {
-		return rtsp.err.SetError(ctx.Err())
-	}
-	// Запрос
-	resp, err := http.Post(URLPostEdit, "application/json", bytes.NewBuffer(postJson))
+	req, err := http.NewRequest(http.MethodPost, URLPostEdit, bytes.NewBuffer(postJson))
 	if err != nil {
 		return rtsp.err.SetError(err)
 	}
+	req.Header.Add("Content-Type", "application/json")
+
+	if ctx.Err() != nil {
+		return rtsp.err.SetError(ctx.Err())
+	}
+
+	// Get запрос и обработка ошибки
+	resp, err := rtsp.client.Do(req)
+	if err != nil {
+		return rtsp.err.SetError(err)
+	}
+	// Запрос
+	// resp, err := http.Post(URLPostEdit, "application/json", bytes.NewBuffer(postJson))
+	// if err != nil {
+	// 	return rtsp.err.SetError(err)
+	// }
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
