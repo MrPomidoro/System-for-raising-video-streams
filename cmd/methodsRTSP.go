@@ -24,7 +24,7 @@ func (a *app) addRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
 	if len(camsAdd) != 0 {
 		err := a.addData(ctx, camsAdd)
 		if err != nil {
-			return err
+			a.log.Error(err.Error())
 		}
 	}
 
@@ -32,7 +32,7 @@ func (a *app) addRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
 	if len(camsRemove) != 0 {
 		err := a.removeData(ctx, camsRemove)
 		if err != nil {
-			return err
+			a.log.Error(err.Error())
 		}
 	}
 
