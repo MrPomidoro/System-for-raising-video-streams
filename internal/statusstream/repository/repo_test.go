@@ -9,7 +9,7 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
 	mocks "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository/mock"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
+	sqlMock "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql/mocks"
 	"github.com/golang/mock/gomock"
 	"go.uber.org/zap"
 )
@@ -17,7 +17,7 @@ import (
 func TestNewRepository(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockDB := postgresql.NewMockPgxIface(ctrl)
+	mockDB := sqlMock.NewMockIDB(ctrl)
 	mockLog := zap.NewNop()
 
 	repo := NewRepository(mockDB, mockLog)
@@ -34,7 +34,8 @@ func TestInsert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ctx, cancel := context.WithCancel(context.Background())
-	mockDB := postgresql.NewMockPgxIface(ctrl) // сделать мок на интерфейс бд
+	// mockDB := postgresql.NewMockPgxIface(ctrl) // сделать мок на интерфейс бд
+	mockDB := sqlMock.NewMockIDB(ctrl)
 	mockLog := zap.NewNop()
 	repo := NewRepository(mockDB, mockLog)
 
@@ -42,7 +43,7 @@ func TestInsert(t *testing.T) {
 	repo.Common = mockCommon
 
 	streamT := &statusstream.StatusStream{StreamId: 1, StatusResponse: true}
-	streamF := &statusstream.StatusStream{StreamId: 1, StatusResponse: false}
+	streamF := &statusstream.StatusStream{StreamId: 0, StatusResponse: false}
 	// Set up expectations
 	mockCommon.EXPECT().Insert(ctx, streamT)
 	mockCommon.EXPECT().Insert(ctx, streamF).Times(2)

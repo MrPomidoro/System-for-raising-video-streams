@@ -12,12 +12,12 @@ import (
 
 type Repository struct {
 	Common statusstream.Common
-	db     *postgresql.DB
+	db     postgresql.IDB
 	log    *zap.Logger
 	err    ce.IError
 }
 
-func NewRepository(db *postgresql.DB, log *zap.Logger) *Repository {
+func NewRepository(db postgresql.IDB, log *zap.Logger) *Repository {
 	return &Repository{
 		db:  db,
 		log: log,
@@ -36,7 +36,7 @@ func (s Repository) Insert(ctx context.Context,
 	query := fmt.Sprintf(statusstream.InsertToStatusStream, ss.StreamId, ss.StatusResponse)
 	s.log.Debug("Query to database:\n\t" + query)
 
-	_, err := s.db.Conn.Exec(ctx, query)
+	_, err := s.db.GetConn().Exec(ctx, query)
 	if err != nil {
 		return s.err.SetError(err)
 	}

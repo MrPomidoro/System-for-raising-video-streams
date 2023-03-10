@@ -11,7 +11,7 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	mocks "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository/mock"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
+	sqlMock "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql/mocks"
 	"github.com/golang/mock/gomock"
 	"go.uber.org/zap"
 )
@@ -19,7 +19,7 @@ import (
 func TestNewRepository(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockDB := postgresql.NewMockPgxIface(ctrl)
+	mockDB := sqlMock.NewMockIDB(ctrl)
 	mockLog := zap.NewNop()
 
 	repo := NewRepository(mockDB, mockLog)
@@ -36,7 +36,8 @@ func TestRepository_Get(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ctx, cancel := context.WithCancel(context.Background())
-	mockDB := postgresql.NewMockPgxIface(ctrl) // сделать мок на интерфейс бд
+	// mockDB := postgresql.NewMockPgxIface(ctrl) // сделать мок на интерфейс бд
+	mockDB := sqlMock.NewMockIDB(ctrl)
 	mockLog := zap.NewNop()
 	repo := NewRepository(mockDB, mockLog)
 
