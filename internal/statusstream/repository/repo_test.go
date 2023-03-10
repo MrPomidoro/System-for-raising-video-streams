@@ -34,7 +34,6 @@ func TestInsert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ctx, cancel := context.WithCancel(context.Background())
-	// mockDB := postgresql.NewMockPgxIface(ctrl) // сделать мок на интерфейс бд
 	mockDB := sqlMock.NewMockIDB(ctrl)
 	mockLog := zap.NewNop()
 	repo := NewRepository(mockDB, mockLog)
@@ -51,7 +50,6 @@ func TestInsert(t *testing.T) {
 	t.Run("TestInsertTrue", func(t *testing.T) {
 		err := repo.Common.Insert(ctx, streamT)
 		if err != nil {
-			// if err != ce.ErrorStatusStream.SetError(errors.New("ERROR: insert or update on table \"status_stream\" violates foreign key constraint \"stream_id\" (SQLSTATE 23503)")) {
 			t.Errorf("Unexpected error: %v", err)
 		}
 	})
@@ -59,7 +57,6 @@ func TestInsert(t *testing.T) {
 	t.Run("TestInsertFalse", func(t *testing.T) {
 		err := repo.Common.Insert(ctx, streamF)
 		if err != nil {
-			// if err != ce.ErrorStatusStream.SetError(errors.New("ERROR: insert or update on table \"status_stream\" violates foreign key constraint \"stream_id\" (SQLSTATE 23503)")) {
 			t.Errorf("Unexpected error: %v", err)
 		}
 	})
@@ -68,7 +65,6 @@ func TestInsert(t *testing.T) {
 		cancel()
 		err := repo.Common.Insert(ctx, streamF)
 		if err != nil {
-			// if err != ce.ErrorStatusStream.SetError(ctx.Err()) {
 			t.Errorf("Unexpected error: %v", err)
 		}
 	})

@@ -70,7 +70,6 @@ func (db *DB) ping(ctx context.Context, errCh chan error) {
 
 	tx, _ := conn.Begin(ctx)
 	defer conn.Release()
-	// defer tx.Rollback(ctx)
 
 	if _, err = tx.Exec(context.Background(), "SELECT 1"); err != nil {
 		select {
@@ -95,7 +94,6 @@ func (db *DB) IsConn(ctx context.Context) bool {
 
 	tx, _ := conn.Begin(ctx)
 	defer conn.Release()
-	// defer tx.Rollback(ctx)
 
 	if _, err = tx.Exec(context.Background(), "SELECT 1"); err != nil {
 		return false

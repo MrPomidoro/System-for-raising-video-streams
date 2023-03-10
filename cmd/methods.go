@@ -38,7 +38,6 @@ func (a *app) GetDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 	map[string]rtsp.SConf, ce.IError) {
 
 	// Отправка запроса к базе
-	// resDB, err := a.GetDB(ctx, mu)
 	resDB, err := a.refreshStreamRepo.Get(ctx, true)
 	if err != nil {
 		return nil, nil, err
@@ -46,7 +45,6 @@ func (a *app) GetDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.
 
 	// Отправка запроса к rtsp
 	resRTSP, err := a.rtspRepo.GetRtsp(ctx)
-	// resRTSP, err := a.GetRTSP(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -64,7 +62,7 @@ func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtsp.SConf {
 		runOnReady = ""
 	}
 
-	// Поле протокола не должно быть пустым
+	// Поле протокола не должно быть пустым;
 	// по умолчанию - tcp
 	var protocol = camDB.Protocol.String
 	if protocol == "" {
@@ -143,7 +141,6 @@ func (a *app) GetCamsAdd(dataDB []refreshstream.Stream,
 func (a *app) GetCamsRemove(dataDB []refreshstream.Stream,
 	dataRTSP map[string]rtsp.SConf) {
 
-	// fmt.Println("dataRTSP old", dataRTSP)
 	for _, camDB := range dataDB {
 		delete(dataRTSP, camDB.Stream)
 	}
