@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // В этом тесте можно обойтись и без моков, так как мы проверяем фактическое подключение к бд
@@ -48,7 +48,7 @@ func TestDatabaseConnection(t *testing.T) {
 		Password: "w3X{77PpCR",
 	}}
 
-	newdb, err := NewDB(context.Background(), cfg.Database, logger.NewLogger(&cfg))
+	newdb, err := NewDB(context.Background(), cfg.Database, zap.NewNop())
 	if err != nil {
 		t.Errorf("error executing query: %s", err)
 	}
