@@ -55,6 +55,11 @@ func TestDatabaseConnection(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
+	t.Run("KeepAliveGoOK", func(t *testing.T) {
+		errCh := make(chan error)
+		go newdb.KeepAlive(ctx, zap.NewNop(), errCh)
+	})
+
 	t.Run("KeepAliveConnOk", func(t *testing.T) {
 		errCh := make(chan error)
 		defer close(errCh)
@@ -118,11 +123,24 @@ func TestDatabaseConnection(t *testing.T) {
 		}
 	})
 
+	t.Run("KeepAliveGoCtxCancel", func(t *testing.T) {
+		errCh := make(chan error)
+		go newdb.KeepAlive(ctx, zap.NewNop(), errCh)
+	})
+	time.Sleep(3 * time.Second)
+
 	t.Run("TestCloseConnection", func(t *testing.T) {
 		newdb.Close()
 		_, err = newdb.Conn.Exec(context.Background(), "SELECT 1")
 		if err == nil {
 			t.Errorf("error closing connection: %s", err)
+		}
+	})
+
+	t.Run("TestIsConnClosed", func(t *testing.T) {
+		isConn := newdb.IsConn(context.Background())
+		if isConn {
+			t.Errorf("expect no connection to database")
 		}
 	})
 
@@ -143,10 +161,9 @@ func TestDatabaseConnection(t *testing.T) {
 		close(errCh)
 	})
 
-	t.Run("TestIsConnClosed", func(t *testing.T) {
-		isConn := newdb.IsConn(context.Background())
-		if isConn {
-			t.Errorf("expect no connection to database")
-		}
+	t.Run("KeepAliveGoConnClosed", func(t *testing.T) {
+		errCh := make(chan error)
+		go newdb.KeepAlive(ctx, zap.NewNop(), errCh)
 	})
+	time.Sleep(3 * time.Second)
 }
