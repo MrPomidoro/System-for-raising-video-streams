@@ -17,7 +17,7 @@ func main() {
 	// Чтение конфигурационного файла
 	cfg, err := config.GetConfig()
 	if err != nil || reflect.DeepEqual(cfg.Database, config.Database{}) {
-		fmt.Println("cannot read config")
+		fmt.Println("ERROR: cannot read config: file is empty")
 		return
 	}
 
