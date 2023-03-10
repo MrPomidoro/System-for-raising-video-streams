@@ -33,28 +33,20 @@ func (a *app) GracefulShutdown(cancel context.CancelFunc) {
 	a.log.Debug("Waiting...")
 }
 
-func (a *app) getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream, ce.IError) {
-	return a.refreshStreamRepo.Get(ctx, true)
-}
-
-func (a *app) getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IError) {
-	return a.rtspRepo.GetRtsp(ctx)
-}
-
 // getDBAndApi реализует получение камер с базы данных и с rtsp
-func getDBAndApi(ctx context.Context, a appIn, mu *sync.Mutex) ([]refreshstream.Stream,
+func (a *app) GetDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream,
 	map[string]rtsp.SConf, ce.IError) {
 
 	// Отправка запроса к базе
-	resDB, err := a.getDB(ctx, mu)
-	// resDB, err := a.refreshStreamRepo.Get(ctx, true)
+	// resDB, err := a.GetDB(ctx, mu)
+	resDB, err := a.refreshStreamRepo.Get(ctx, true)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Отправка запроса к rtsp
-	// resRTSP, err := a.rtspRepo.GetRtsp(ctx)
-	resRTSP, err := a.getRTSP(ctx)
+	resRTSP, err := a.rtspRepo.GetRtsp(ctx)
+	// resRTSP, err := a.GetRTSP(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -101,7 +93,7 @@ func rtspToCompare(camRTSP rtsp.SConf) rtsp.Conf {
 
 // getCamsEdit - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // возвращающая мапу камер, поля которых в бд и ртсп отличаются
-func (a *app) getCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtsp.SConf,
+func (a *app) GetCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtsp.SConf,
 	camsAdd map[string]rtsp.SConf, camsRemove map[string]rtsp.SConf) map[string]rtsp.SConf {
 
 	camsForEdit := make(map[string]rtsp.SConf)
@@ -129,7 +121,7 @@ func (a *app) getCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rts
 
 // getCamsAdd - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // возвращающая мапу камер, отсутствующих в rtsp, но имеющихся в базе
-func (a *app) getCamsAdd(dataDB []refreshstream.Stream,
+func (a *app) GetCamsAdd(dataDB []refreshstream.Stream,
 	dataRTSP map[string]rtsp.SConf) map[string]rtsp.SConf {
 
 	camsForAdd := make(map[string]rtsp.SConf)
@@ -148,7 +140,7 @@ func (a *app) getCamsAdd(dataDB []refreshstream.Stream,
 
 // getCamsRemove - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // удаляющая из мапы с результатом из rtsp камеры, которые не нужно
-func (a *app) getCamsRemove(dataDB []refreshstream.Stream,
+func (a *app) GetCamsRemove(dataDB []refreshstream.Stream,
 	dataRTSP map[string]rtsp.SConf) {
 
 	// fmt.Println("dataRTSP old", dataRTSP)

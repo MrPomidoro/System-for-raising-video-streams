@@ -12,7 +12,7 @@ import (
 
 // insertIntoStatusStream принимает результат выполнения запроса через API (ошибка) и список камер с бд
 // и выполняет вставку в таблицу status_stream
-func (a *app) insertIntoStatusStream(method string, ctx context.Context, cam rtsp.SConf, err ce.IError) ce.IError {
+func (a *app) InsertIntoStatusStream(method string, ctx context.Context, cam rtsp.SConf, err ce.IError) ce.IError {
 	if err != nil {
 		a.log.Error(err.Error())
 

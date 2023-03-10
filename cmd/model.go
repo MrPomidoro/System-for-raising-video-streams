@@ -24,19 +24,6 @@ import (
 type App interface {
 	Run(context.Context)
 	GracefulShutdown(cancel context.CancelFunc)
-
-	getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream, ce.IError)
-	getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IError)
-	addData(ctx context.Context, camsAdd map[string]rtsp.SConf) ce.IError
-	getCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtsp.SConf,
-		camsAdd map[string]rtsp.SConf, camsRemove map[string]rtsp.SConf) map[string]rtsp.SConf
-	addRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
-		dataRTSP map[string]rtsp.SConf, camsAdd map[string]rtsp.SConf,
-		camsRemove map[string]rtsp.SConf) ce.IError
-	getCamsAdd(dataDB []refreshstream.Stream,
-		dataRTSP map[string]rtsp.SConf) map[string]rtsp.SConf
-	getCamsRemove(dataDB []refreshstream.Stream,
-		dataRTSP map[string]rtsp.SConf)
 }
 
 // app - прототип приложения
@@ -84,7 +71,25 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	}, nil
 }
 
-type appIn interface {
-	getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream, ce.IError)
-	getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IError)
+type AppMock interface {
+	Run(context.Context)
+	GracefulShutdown(cancel context.CancelFunc)
+
+	GetDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream,
+		map[string]rtsp.SConf, ce.IError)
+
+	GetCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtsp.SConf,
+		camsAdd map[string]rtsp.SConf, camsRemove map[string]rtsp.SConf) map[string]rtsp.SConf
+	GetCamsAdd(dataDB []refreshstream.Stream,
+		dataRTSP map[string]rtsp.SConf) map[string]rtsp.SConf
+	GetCamsRemove(dataDB []refreshstream.Stream,
+		dataRTSP map[string]rtsp.SConf)
+
+	AddRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
+		dataRTSP map[string]rtsp.SConf, camsAdd map[string]rtsp.SConf,
+		camsRemove map[string]rtsp.SConf) ce.IError
+
+	AddData(ctx context.Context, camsAdd map[string]rtsp.SConf) ce.IError
+	RemoveData(ctx context.Context, dataRTSP map[string]rtsp.SConf) ce.IError
+	EditData(ctx context.Context, camsEdit map[string]rtsp.SConf) ce.IError
 }
