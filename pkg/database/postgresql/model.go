@@ -18,35 +18,3 @@ type IDB interface {
 	Close()
 	GetConn() *pgxpool.Pool
 }
-
-// type MockPgxPoolIface interface {
-// 	// using pgxpool interface
-// 	Begin(context.Context) (pgx.Tx, error)
-// 	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
-// 	QueryRow(context.Context, string, ...interface{}) pgx.Row
-// 	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
-// 	Ping(context.Context) error
-// 	Close()
-// }
-
-// type MockPgxIface struct {
-// 	Conn MockPgxPoolIface
-// }
-
-// func NewMockPgxIface(*gomock.Controller) *MockPgxIface {
-
-// 	config := getConfig(config.Database{
-// 		Host:     "192.168.0.32",
-// 		Port:     5432,
-// 		DbName:   "www",
-// 		User:     "sysadmin",
-// 		Password: "w3X{77PpCR",
-// 	})
-
-// 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
-// 	if err != nil {
-// 		return nil
-// 	}
-
-// 	return &MockPgxIface{pool}
-// }
