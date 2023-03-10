@@ -3,8 +3,6 @@ package postgresql
 import (
 	"context"
 
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -21,24 +19,34 @@ type IDB interface {
 	GetConn() *pgxpool.Pool
 }
 
-type MockPgxIface struct {
-	Conn *pgxpool.Pool
-}
+// type MockPgxPoolIface interface {
+// 	// using pgxpool interface
+// 	Begin(context.Context) (pgx.Tx, error)
+// 	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+// 	QueryRow(context.Context, string, ...interface{}) pgx.Row
+// 	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+// 	Ping(context.Context) error
+// 	Close()
+// }
 
-func NewMockPgxIface(*gomock.Controller) *DB {
+// type MockPgxIface struct {
+// 	Conn MockPgxPoolIface
+// }
 
-	config := getConfig(config.Database{
-		Host:     "192.168.0.32",
-		Port:     5432,
-		DbName:   "www",
-		User:     "sysadmin",
-		Password: "w3X{77PpCR",
-	})
+// func NewMockPgxIface(*gomock.Controller) *MockPgxIface {
 
-	pool, err := pgxpool.NewWithConfig(context.Background(), config)
-	if err != nil {
-		return nil
-	}
+// 	config := getConfig(config.Database{
+// 		Host:     "192.168.0.32",
+// 		Port:     5432,
+// 		DbName:   "www",
+// 		User:     "sysadmin",
+// 		Password: "w3X{77PpCR",
+// 	})
 
-	return &DB{pool}
-}
+// 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+// 	if err != nil {
+// 		return nil
+// 	}
+
+// 	return &MockPgxIface{pool}
+// }
