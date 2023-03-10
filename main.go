@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	service "github.com/Kseniya-cha/System-for-raising-video-streams/cmd"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
@@ -15,8 +16,8 @@ func main() {
 
 	// Чтение конфигурационного файла
 	cfg, err := config.GetConfig()
-	if err != nil {
-		fmt.Println(err.Error())
+	if err != nil || reflect.DeepEqual(cfg.Database, config.Database{}) {
+		fmt.Println("cannot read config")
 		return
 	}
 
@@ -34,6 +35,5 @@ func main() {
 	go appI.Run(ctx)
 
 	// Ожидание прерывающего сигнала
-	// app.GracefulShutdown(app.SigChan)
 	appI.GracefulShutdown(cancel)
 }
