@@ -57,13 +57,9 @@ func TestDatabaseConnection(t *testing.T) {
 
 	t.Run("KeepAliveConnOk", func(t *testing.T) {
 		errCh := make(chan error)
+		defer close(errCh)
 		go newdb.ping(ctx, errCh)
-		time.Sleep(1 * time.Second)
-
-		if ctx.Err() != nil {
-			close(errCh)
-			return
-		}
+		time.Sleep(500 * time.Millisecond)
 
 		select {
 		case <-ctx.Done():
@@ -95,12 +91,30 @@ func TestDatabaseConnection(t *testing.T) {
 		}
 	})
 
+	cancel()
+
 	t.Run("TestIsConnCtxCancel", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 		isConn := newdb.IsConn(ctx)
 		if isConn {
 			t.Errorf("expect no connection to database")
+		}
+	})
+
+	t.Run("KeepAliveCtxCancel", func(t *testing.T) {
+		errCh := make(chan error)
+		defer close(errCh)
+		go newdb.ping(ctx, errCh)
+		time.Sleep(500 * time.Millisecond)
+
+		after := time.After(500 * time.Millisecond)
+		select {
+		case <-ctx.Done():
+		case err := <-errCh:
+			t.Errorf("got value from errChan: %v", err)
+		case <-after:
+			t.Errorf("expexct error: closed pool; got nil")
 		}
 	})
 
@@ -114,50 +128,25 @@ func TestDatabaseConnection(t *testing.T) {
 
 	t.Run("KeepAliveConnClosed", func(t *testing.T) {
 		errCh := make(chan error)
+		ctx = context.Background()
 		go newdb.ping(ctx, errCh)
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 
-		if ctx.Err() != nil {
-			close(errCh)
-			return
-		}
-
+		after := time.After(500 * time.Millisecond)
 		select {
 		case <-ctx.Done():
-			close(errCh)
 			t.Error("context is closed")
-		case err := <-errCh:
-			t.Errorf("got value from errChan: %v", err)
-		default:
+		case <-errCh:
+		case <-after:
+			t.Errorf("expexct error: closed pool; got nil")
 		}
+		close(errCh)
 	})
 
-	cancel()
-
-	t.Run("TestIsConnFalse", func(t *testing.T) {
+	t.Run("TestIsConnClosed", func(t *testing.T) {
 		isConn := newdb.IsConn(context.Background())
 		if isConn {
 			t.Errorf("expect no connection to database")
-		}
-	})
-
-	t.Run("KeepAliveCtxCancel", func(t *testing.T) {
-		errCh := make(chan error)
-		go newdb.ping(ctx, errCh)
-		time.Sleep(1 * time.Second)
-
-		if ctx.Err() != nil {
-			close(errCh)
-			return
-		}
-
-		select {
-		case <-ctx.Done():
-			close(errCh)
-			t.Error("context is closed")
-		case err := <-errCh:
-			t.Errorf("got value from errChan: %v", err)
-		default:
 		}
 	})
 }
