@@ -1,7 +1,6 @@
 package transcode
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -40,32 +39,24 @@ func TestTranscode(t *testing.T) {
 				Transcode(in, &out)
 				if !reflect.DeepEqual(in, out) {
 					t.Errorf("%s --- FAIL: wanted %v, got %v", tt.name, tt.in, out)
-				} else {
-					fmt.Printf("%s --- OK\n", tt.name)
 				}
 			case []int:
 				out := []int{}
 				Transcode(in, &out)
 				if !reflect.DeepEqual(in, out) {
 					t.Errorf("%s --- FAIL: wanted %v, got %v", tt.name, tt.in, out)
-				} else {
-					fmt.Printf("%s --- OK\n", tt.name)
 				}
 			case [2]int:
 				out := [2]int{}
 				Transcode(in, &out)
 				if !reflect.DeepEqual(in, out) {
 					t.Errorf("%s --- FAIL: wanted %v, got %v", tt.name, tt.in, out)
-				} else {
-					fmt.Printf("%s --- OK\n", tt.name)
 				}
 			case string:
 				out := ""
 				Transcode(in, &out)
 				if !reflect.DeepEqual(in, out) {
 					t.Errorf("%s --- FAIL: wanted %v, got %v", tt.name, tt.in, out)
-				} else {
-					fmt.Printf("%s --- OK\n", tt.name)
 				}
 			}
 		})
