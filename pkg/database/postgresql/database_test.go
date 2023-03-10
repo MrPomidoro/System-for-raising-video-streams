@@ -55,9 +55,24 @@ func TestDatabaseConnection(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	t.Run("KeepAlive", func(t *testing.T) {
+	t.Run("KeepAliveConnOk", func(t *testing.T) {
 		errCh := make(chan error)
-		go newdb.KeepAlive(ctx, logger.NewLogger(&cfg), errCh)
+		go newdb.ping(ctx, errCh)
+		time.Sleep(1 * time.Second)
+
+		if ctx.Err() != nil {
+			close(errCh)
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			close(errCh)
+			t.Error("context is closed")
+		case err := <-errCh:
+			t.Errorf("got value from errChan: %v", err)
+		default:
+		}
 	})
 
 	t.Run("TestNewDBandGetConn", func(t *testing.T) {
@@ -89,7 +104,6 @@ func TestDatabaseConnection(t *testing.T) {
 		}
 	})
 
-	time.Sleep(4 * time.Second)
 	t.Run("TestCloseConnection", func(t *testing.T) {
 		newdb.Close()
 		_, err = newdb.Conn.Exec(context.Background(), "SELECT 1")
@@ -98,12 +112,27 @@ func TestDatabaseConnection(t *testing.T) {
 		}
 	})
 
-	cancel()
-
-	t.Run("KeepAlive", func(t *testing.T) {
+	t.Run("KeepAliveConnClosed", func(t *testing.T) {
 		errCh := make(chan error)
-		go newdb.KeepAlive(ctx, logger.NewLogger(&cfg), errCh)
+		go newdb.ping(ctx, errCh)
+		time.Sleep(1 * time.Second)
+
+		if ctx.Err() != nil {
+			close(errCh)
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			close(errCh)
+			t.Error("context is closed")
+		case err := <-errCh:
+			t.Errorf("got value from errChan: %v", err)
+		default:
+		}
 	})
+
+	cancel()
 
 	t.Run("TestIsConnFalse", func(t *testing.T) {
 		isConn := newdb.IsConn(context.Background())
@@ -112,5 +141,23 @@ func TestDatabaseConnection(t *testing.T) {
 		}
 	})
 
-	time.Sleep(4 * time.Second)
+	t.Run("KeepAliveCtxCancel", func(t *testing.T) {
+		errCh := make(chan error)
+		go newdb.ping(ctx, errCh)
+		time.Sleep(1 * time.Second)
+
+		if ctx.Err() != nil {
+			close(errCh)
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			close(errCh)
+			t.Error("context is closed")
+		case err := <-errCh:
+			t.Errorf("got value from errChan: %v", err)
+		default:
+		}
+	})
 }
