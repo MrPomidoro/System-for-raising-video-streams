@@ -8,6 +8,7 @@ import (
 	"context"
 	"reflect"
 	"sync"
+	// "fmt"
 	"database/sql"
 
 	refreshstream "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
@@ -44,6 +45,12 @@ func (m *MockAppMock) EXPECT() *MockAppMockMockRecorder {
 func (m *MockAppMock) AddData(arg0 context.Context, arg1 map[string]rtspsimpleserver.SConf) customError.IError {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddData", arg0, arg1)
+
+	err:= customError.ErrorRefreshStream.SetError(arg0.Err())
+	if arg0.Err()!=nil{
+		return err
+	}
+
 	ret0, _ := ret[0].(customError.IError)
 	return ret0
 }
@@ -56,8 +63,14 @@ func (mr *MockAppMockMockRecorder) AddData(arg0, arg1 interface{}) *gomock.Call 
 
 // AddRemoveData mocks base method.
 func (m *MockAppMock) AddRemoveData(arg0 context.Context, arg1 []refreshstream.Stream, arg2, arg3, arg4 map[string]rtspsimpleserver.SConf) customError.IError {
+
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddRemoveData", arg0, arg1, arg2, arg3, arg4)
+
+	if arg0.Err()!=nil{
+		return customError.ErrorApp.SetError(arg0.Err())
+	}
+
 	ret0, _ := ret[0].(customError.IError)
 	return ret0
 }
@@ -72,6 +85,12 @@ func (mr *MockAppMockMockRecorder) AddRemoveData(arg0, arg1, arg2, arg3, arg4 in
 func (m *MockAppMock) EditData(arg0 context.Context, arg1 map[string]rtspsimpleserver.SConf) customError.IError {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EditData", arg0, arg1)
+
+	err:= customError.ErrorApp.SetError(arg0.Err())
+	if arg0.Err()!=nil{
+		return err
+	}
+
 	ret0, _ := ret[0].(customError.IError)
 	return ret0
 }
@@ -120,6 +139,7 @@ func (mr *MockAppMockMockRecorder) GetCamsEdit(arg0, arg1, arg2, arg3 interface{
 func (m *MockAppMock) GetCamsRemove(arg0 []refreshstream.Stream, arg1 map[string]rtspsimpleserver.SConf) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "GetCamsRemove", arg0, arg1)
+
 	for _, camDB := range arg0 {
 		delete(arg1, camDB.Stream)
 	}
@@ -133,24 +153,26 @@ func (mr *MockAppMockMockRecorder) GetCamsRemove(arg0, arg1 interface{}) *gomock
 
 // GetDBAndApi mocks base method.
 func (m *MockAppMock) GetDBAndApi(arg0 context.Context, arg1 *sync.Mutex) ([]refreshstream.Stream, map[string]rtspsimpleserver.SConf, customError.IError) {
-
 	m.ctrl.T.Helper()
-	err:= customError.ErrorRefreshStream.SetError(arg0.Err())
+	m.ctrl.Call(m, "GetDBAndApi", arg0, arg1)
 
-	if arg0.Err()!=nil{
+	err := customError.ErrorRefreshStream.SetError(arg0.Err())
+	if arg0.Err() != nil{
 		return []refreshstream.Stream{}, make(map[string]rtspsimpleserver.SConf), err
 	}
 
-	m.ctrl.Call(m, "GetDBAndApi", arg0, arg1)
 	// ret0, _ := ret[0].([]refreshstream.Stream)
 	// ret1, _ := ret[1].(map[string]rtspsimpleserver.SConf)
 	// ret2, _ := ret[2].(customError.IError)
+
 	return []refreshstream.Stream{
 		{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
 			Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
-			Ip: sql.NullString{String: "1", Valid: true}}},  map[string]rtsp.SConf{
-				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}}}, nil
+			Ip: sql.NullString{String: "1", Valid: true}}},
+		map[string]rtsp.SConf{
+			"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
+				Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}}},
+		nil
 }
 
 // GetDBAndApi indicates an expected call of GetDBAndApi.
@@ -175,6 +197,12 @@ func (mr *MockAppMockMockRecorder) GracefulShutdown(arg0 interface{}) *gomock.Ca
 func (m *MockAppMock) RemoveData(arg0 context.Context, arg1 map[string]rtspsimpleserver.SConf) customError.IError {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveData", arg0, arg1)
+
+	err:= customError.ErrorApp.SetError(arg0.Err())
+	if arg0.Err()!=nil{
+		return err
+	}
+
 	ret0, _ := ret[0].(customError.IError)
 	return ret0
 }

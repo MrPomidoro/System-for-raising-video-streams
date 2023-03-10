@@ -76,14 +76,14 @@ type AppMock interface {
 	GracefulShutdown(cancel context.CancelFunc)
 
 	GetDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream,
-		map[string]rtsp.SConf, ce.IError)
+		map[string]rtsp.SConf, ce.IError) //
 
 	GetCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtsp.SConf,
-		camsAdd map[string]rtsp.SConf, camsRemove map[string]rtsp.SConf) map[string]rtsp.SConf
+		camsAdd map[string]rtsp.SConf, camsRemove map[string]rtsp.SConf) map[string]rtsp.SConf //
 	GetCamsAdd(dataDB []refreshstream.Stream,
-		dataRTSP map[string]rtsp.SConf) map[string]rtsp.SConf
+		dataRTSP map[string]rtsp.SConf) map[string]rtsp.SConf //
 	GetCamsRemove(dataDB []refreshstream.Stream,
-		dataRTSP map[string]rtsp.SConf)
+		dataRTSP map[string]rtsp.SConf) //
 
 	AddRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
 		dataRTSP map[string]rtsp.SConf, camsAdd map[string]rtsp.SConf,
