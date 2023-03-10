@@ -300,70 +300,6 @@ func TestDbToCompare(t *testing.T) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// func TestApp(t *testing.T) {
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
-// 	appMock := appM.NewMockAppMock(ctrl)
-
-// 	_, cancel := context.WithCancel(context.Background())
-// 	appMock.GracefulShutdown(cancel)
-
-// }
-
-func TestAddData(t *testing.T) {
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	a := appM.NewMockAppMock(ctrl)
-
-	var tests = []struct {
-		name      string
-		camsAdd   map[string]rtsp.SConf
-		isCanc    bool
-		expectErr error
-	}{
-		{
-			name: "TestOK",
-			camsAdd: map[string]rtsp.SConf{
-				"2": {Id: 0, Stream: "2", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
-			},
-			isCanc:    false,
-			expectErr: nil,
-		},
-		{
-			name:      "TestOK",
-			camsAdd:   map[string]rtsp.SConf{},
-			isCanc:    true,
-			expectErr: errors.New("context canceled"),
-		},
-	}
-
-	for _, tt := range tests {
-		ctx, cancel := context.WithCancel(context.Background())
-
-		t.Run(tt.name, func(t *testing.T) {
-
-			if tt.isCanc {
-				cancel()
-			}
-			a.EXPECT().AddData(ctx, tt.camsAdd)
-
-			err := a.AddData(ctx, tt.camsAdd)
-
-			if err != nil && tt.expectErr != nil {
-				gotErrA := strings.Split(err.Error(), ": ")
-
-				if tt.expectErr.Error() != gotErrA[len(gotErrA)-1] {
-					t.Errorf("unexpected error %v", err)
-				}
-			} else if (err == nil && tt.expectErr != nil) || (err != nil && tt.expectErr == nil) {
-				t.Errorf("unexpected error %v, expect %v", err, tt.expectErr)
-			}
-		})
-	}
-}
-
 func TestAddRemoveData(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
@@ -440,6 +376,168 @@ func TestAddRemoveData(t *testing.T) {
 			a.EXPECT().AddRemoveData(ctx, tt.dataDB, tt.dataRTSP, tt.camsAdd, tt.camsRemove)
 
 			err := a.AddRemoveData(ctx, tt.dataDB, tt.dataRTSP, tt.camsAdd, tt.camsRemove)
+
+			if err != nil && tt.expectErr != nil {
+				gotErrA := strings.Split(err.Error(), ": ")
+
+				if tt.expectErr.Error() != gotErrA[len(gotErrA)-1] {
+					t.Errorf("unexpected error %v", err)
+				}
+			} else if (err == nil && tt.expectErr != nil) || (err != nil && tt.expectErr == nil) {
+				t.Errorf("unexpected error %v, expect %v", err, tt.expectErr)
+			}
+		})
+	}
+}
+
+func TestAddData(t *testing.T) {
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	a := appM.NewMockAppMock(ctrl)
+
+	var tests = []struct {
+		name      string
+		camsAdd   map[string]rtsp.SConf
+		isCanc    bool
+		expectErr error
+	}{
+		{
+			name: "TestOK",
+			camsAdd: map[string]rtsp.SConf{
+				"2": {Id: 0, Stream: "2", Conf: rtsp.Conf{
+					Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
+			},
+			isCanc:    false,
+			expectErr: nil,
+		},
+		{
+			name:      "TestCtxCancel",
+			camsAdd:   map[string]rtsp.SConf{},
+			isCanc:    true,
+			expectErr: errors.New("context canceled"),
+		},
+	}
+
+	for _, tt := range tests {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.isCanc {
+				cancel()
+			}
+			a.EXPECT().AddData(ctx, tt.camsAdd)
+
+			err := a.AddData(ctx, tt.camsAdd)
+
+			if err != nil && tt.expectErr != nil {
+				gotErrA := strings.Split(err.Error(), ": ")
+
+				if tt.expectErr.Error() != gotErrA[len(gotErrA)-1] {
+					t.Errorf("unexpected error %v", err)
+				}
+			} else if (err == nil && tt.expectErr != nil) || (err != nil && tt.expectErr == nil) {
+				t.Errorf("unexpected error %v, expect %v", err, tt.expectErr)
+			}
+		})
+	}
+}
+
+func TestRemoveData(t *testing.T) {
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	a := appM.NewMockAppMock(ctrl)
+
+	var tests = []struct {
+		name       string
+		camsRemove map[string]rtsp.SConf
+		isCanc     bool
+		expectErr  error
+	}{
+		{
+			name: "TestOK",
+			camsRemove: map[string]rtsp.SConf{
+				"2": {Id: 0, Stream: "2", Conf: rtsp.Conf{
+					Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
+			},
+			isCanc:    false,
+			expectErr: nil,
+		},
+		{
+			name:       "TestCtxCancel",
+			camsRemove: map[string]rtsp.SConf{},
+			isCanc:     true,
+			expectErr:  errors.New("context canceled"),
+		},
+	}
+
+	for _, tt := range tests {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.isCanc {
+				cancel()
+			}
+			a.EXPECT().RemoveData(ctx, tt.camsRemove)
+
+			err := a.RemoveData(ctx, tt.camsRemove)
+
+			if err != nil && tt.expectErr != nil {
+				gotErrA := strings.Split(err.Error(), ": ")
+
+				if tt.expectErr.Error() != gotErrA[len(gotErrA)-1] {
+					t.Errorf("unexpected error %v", err)
+				}
+			} else if (err == nil && tt.expectErr != nil) || (err != nil && tt.expectErr == nil) {
+				t.Errorf("unexpected error %v, expect %v", err, tt.expectErr)
+			}
+		})
+	}
+}
+
+func TestEditData(t *testing.T) {
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	a := appM.NewMockAppMock(ctrl)
+
+	var tests = []struct {
+		name      string
+		camsEdit  map[string]rtsp.SConf
+		isCanc    bool
+		expectErr error
+	}{
+		{
+			name: "TestOK",
+			camsEdit: map[string]rtsp.SConf{
+				"2": {Id: 0, Stream: "2", Conf: rtsp.Conf{
+					Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
+			},
+			isCanc:    false,
+			expectErr: nil,
+		},
+		{
+			name:      "TestCtxCancel",
+			camsEdit:  map[string]rtsp.SConf{},
+			isCanc:    true,
+			expectErr: errors.New("context canceled"),
+		},
+	}
+
+	for _, tt := range tests {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.isCanc {
+				cancel()
+			}
+			a.EXPECT().EditData(ctx, tt.camsEdit)
+
+			err := a.EditData(ctx, tt.camsEdit)
 
 			if err != nil && tt.expectErr != nil {
 				gotErrA := strings.Split(err.Error(), ": ")
