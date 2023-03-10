@@ -16,7 +16,7 @@ type Repository struct {
 	err    ce.IError
 }
 
-func NewRepository(db *postgresql.DB, log *zap.Logger) *Repository {
+func NewRepository(db postgresql.IDB, log *zap.Logger) *Repository {
 	return &Repository{
 		db:  db,
 		log: log,
