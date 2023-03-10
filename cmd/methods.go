@@ -20,16 +20,12 @@ import (
 func (a *app) GracefulShutdown(cancel context.CancelFunc) {
 	defer time.Sleep(time.Second * 5)
 	defer close(a.sigChan)
-	defer close(a.doneChan)
 	defer cancel()
 
 	signal.Notify(a.sigChan, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case sign := <-a.sigChan:
-		a.log.Info(fmt.Sprintf("Got signal: %v, exiting", sign))
-	case <-a.doneChan:
-		a.log.Info("Found fatal error, exiting")
-	}
+
+	sign := <-a.sigChan
+	a.log.Info(fmt.Sprintf("Got signal: %v, exiting", sign))
 
 	a.db.Close()
 	a.log.Info("Close database connection")
