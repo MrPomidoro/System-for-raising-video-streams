@@ -77,7 +77,6 @@ type AppMock interface {
 
 	GetDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream,
 		map[string]rtsp.SConf, ce.IError)
-
 	GetCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtsp.SConf,
 		camsAdd map[string]rtsp.SConf, camsRemove map[string]rtsp.SConf) map[string]rtsp.SConf
 	GetCamsAdd(dataDB []refreshstream.Stream,
@@ -88,7 +87,6 @@ type AppMock interface {
 	AddRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
 		dataRTSP map[string]rtsp.SConf, camsAdd map[string]rtsp.SConf,
 		camsRemove map[string]rtsp.SConf) ce.IError
-
 	AddData(ctx context.Context, camsAdd map[string]rtsp.SConf) ce.IError
 	RemoveData(ctx context.Context, dataRTSP map[string]rtsp.SConf) ce.IError
 	EditData(ctx context.Context, camsEdit map[string]rtsp.SConf) ce.IError
