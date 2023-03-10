@@ -19,11 +19,11 @@ import (
 func TestGetDBAndApi(t *testing.T) {
 
 	var tests = []struct {
-		name     string
-		wantRTSP map[string]rtsp.SConf
-		wantDB   []refreshstream.Stream
-		wantErr  error
-		isCanc   bool
+		name      string
+		wantRTSP  map[string]rtsp.SConf
+		wantDB    []refreshstream.Stream
+		expectErr error
+		isCanc    bool
 	}{
 		{
 			name: "TestOK",
@@ -34,15 +34,15 @@ func TestGetDBAndApi(t *testing.T) {
 				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
 					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
 					Ip: sql.NullString{String: "1", Valid: true}}},
-			wantErr: nil,
-			isCanc:  false,
+			expectErr: nil,
+			isCanc:    false,
 		},
 		{
-			name:     "TestCtxCancel",
-			wantRTSP: nil,
-			wantDB:   nil,
-			wantErr:  errors.New("context canceled"),
-			isCanc:   true,
+			name:      "TestCtxCancel",
+			wantRTSP:  nil,
+			wantDB:    nil,
+			expectErr: errors.New("context canceled"),
+			isCanc:    true,
 		},
 	}
 
@@ -58,20 +58,19 @@ func TestGetDBAndApi(t *testing.T) {
 
 			if tt.isCanc {
 				cancel()
-			} else {
-				a.EXPECT().GetDBAndApi(ctx, &mu)
 			}
+			a.EXPECT().GetDBAndApi(ctx, &mu)
 
 			resDB, resRTSP, err := a.GetDBAndApi(ctx, &mu)
 
-			if err != nil && tt.wantErr != nil {
+			if err != nil && tt.expectErr != nil {
 				gotErrA := strings.Split(err.Error(), ": ")
 
-				if tt.wantErr.Error() != gotErrA[len(gotErrA)-1] {
+				if tt.expectErr.Error() != gotErrA[len(gotErrA)-1] {
 					t.Errorf("unexpected error %v", err)
 				}
-			} else if (err == nil && tt.wantErr != nil) || (err != nil && tt.wantErr == nil) {
-				t.Errorf("unexpected error %v, expect %v", err, tt.wantErr)
+			} else if (err == nil && tt.expectErr != nil) || (err != nil && tt.expectErr == nil) {
+				t.Errorf("unexpected error %v, expect %v", err, tt.expectErr)
 			}
 
 			if len(resDB) != len(tt.wantDB) || len(resRTSP) != len(tt.wantRTSP) {
@@ -147,7 +146,7 @@ func TestGetCamsRemove(t *testing.T) {
 		expect   map[string]rtsp.SConf
 	}{
 		{
-			name: "TesCamsRemoveOK",
+			name: "TesOK",
 			dataDB: []refreshstream.Stream{
 				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
 					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
@@ -193,7 +192,7 @@ func TestGetCamsEdit(t *testing.T) {
 		expect     map[string]rtsp.SConf
 	}{
 		{
-			name: "TestCamsEditOK",
+			name: "TestOK",
 			dataDB: []refreshstream.Stream{
 				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass2", Valid: true},
 					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
@@ -229,7 +228,6 @@ func TestGetCamsEdit(t *testing.T) {
 	}
 }
 
-// dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtsp.SConf
 func TestDbToCompare(t *testing.T) {
 
 	var tests = []struct {
@@ -239,7 +237,7 @@ func TestDbToCompare(t *testing.T) {
 		expect rtsp.SConf
 	}{
 		{
-			name: "Test have Run",
+			name: "TestHaveRunField",
 			cfg:  config.Config{Rtsp: config.Rtsp{Run: "usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --stream_path %s --camera_id %s"}},
 			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
 				Portsrv: "1", Protocol: sql.NullString{String: "udp", Valid: true}, CamId: sql.NullString{String: "1", Valid: true},
@@ -255,7 +253,7 @@ func TestDbToCompare(t *testing.T) {
 			},
 		},
 		{
-			name: "Test have not Run",
+			name: "TestHaveNotRunField",
 			cfg:  config.Config{Rtsp: config.Rtsp{Run: ""}},
 			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
 				Portsrv: "1", Protocol: sql.NullString{String: "udp", Valid: true}, CamId: sql.NullString{String: "1", Valid: true},
@@ -271,7 +269,7 @@ func TestDbToCompare(t *testing.T) {
 			},
 		},
 		{
-			name: "Test have not protocol",
+			name: "TestHaveNotProtocolField",
 			cfg:  config.Config{Rtsp: config.Rtsp{Run: ""}},
 			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
 				Portsrv: "1", Protocol: sql.NullString{String: "", Valid: false}, CamId: sql.NullString{String: "1", Valid: true},
@@ -311,3 +309,109 @@ func TestDbToCompare(t *testing.T) {
 // 	appMock.GracefulShutdown(cancel)
 
 // }
+
+// func TestAddData(t *testing.T) {
+
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
+// 	a := appM.NewMockAppMock(ctrl)
+
+// 	var tests = []struct {
+// 		name       string
+// 		camsAdd    map[string]rtsp.SConf
+// 		isCanc     bool
+// 		expectErr  error
+// 	}{
+// 		{},
+// 	}
+// }
+
+func TestAddRemoveData(t *testing.T) {
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	a := appM.NewMockAppMock(ctrl)
+
+	var tests = []struct {
+		name       string
+		dataDB     []refreshstream.Stream
+		dataRTSP   map[string]rtsp.SConf
+		camsAdd    map[string]rtsp.SConf
+		camsRemove map[string]rtsp.SConf
+		isCanc     bool
+		expectErr  error
+	}{
+		{
+			name: "TestOK",
+			dataDB: []refreshstream.Stream{
+				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+					Ip: sql.NullString{String: "1", Valid: true}},
+				{Id: 2, Stream: "2", Auth: sql.NullString{String: "login:pass", Valid: true},
+					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+					Ip: sql.NullString{String: "1", Valid: true}},
+			},
+			dataRTSP: map[string]rtsp.SConf{
+				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
+					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
+				"3": {Id: 3, Stream: "3", Conf: rtsp.Conf{
+					Source: "rtsp://login:pass@1/3", SourceProtocol: "udp"}},
+			},
+			camsAdd: map[string]rtsp.SConf{
+				"2": {Id: 2, Stream: "2", Conf: rtsp.Conf{
+					Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
+			},
+			camsRemove: map[string]rtsp.SConf{
+				"3": {Id: 0, Stream: "3", Conf: rtsp.Conf{
+					Source: "rtsp://login:pass@1/3", SourceProtocol: "udp"}},
+			},
+			isCanc:    false,
+			expectErr: nil,
+		},
+		{
+			name: "TestOKNothingChange",
+			dataDB: []refreshstream.Stream{
+				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+					Ip: sql.NullString{String: "1", Valid: true}},
+			},
+			dataRTSP: map[string]rtsp.SConf{
+				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
+					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
+			},
+			isCanc:    false,
+			expectErr: nil,
+		},
+		{
+			name:      "TestCtxCancel",
+			dataDB:    []refreshstream.Stream{},
+			dataRTSP:  map[string]rtsp.SConf{},
+			isCanc:    true,
+			expectErr: errors.New("context canceled"),
+		},
+	}
+
+	for _, tt := range tests {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.isCanc {
+				cancel()
+			}
+			a.EXPECT().AddRemoveData(ctx, tt.dataDB, tt.dataRTSP, tt.camsAdd, tt.camsRemove)
+
+			err := a.AddRemoveData(ctx, tt.dataDB, tt.dataRTSP, tt.camsAdd, tt.camsRemove)
+
+			if err != nil && tt.expectErr != nil {
+				gotErrA := strings.Split(err.Error(), ": ")
+
+				if tt.expectErr.Error() != gotErrA[len(gotErrA)-1] {
+					t.Errorf("unexpected error %v", err)
+				}
+			} else if (err == nil && tt.expectErr != nil) || (err != nil && tt.expectErr == nil) {
+				t.Errorf("unexpected error %v, expect %v", err, tt.expectErr)
+			}
+		})
+	}
+}
