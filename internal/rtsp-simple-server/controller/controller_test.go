@@ -2,6 +2,9 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,36 +20,36 @@ func TestRTSP(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		switch req.URL.Path {
 		case "/v1/paths/list":
-			json := []byte(`
-			{
+			jsonStruct := map[string]map[string]map[string]map[string]string{
 				"items": {
 					"cam1": {
-						"confName": "cam1",
 						"conf": {
-							"source": "rtsp://login:pass@1:123/cam1",
-							"sourceProtocol": "automatic",
-							"sourceAnyPortEnable": false,
-							"sourceOnDemand": false,
-							"sourceOnDemandStartTimeout": "10s",
-							"sourceOnDemandCloseAfter": "10s",
-							"runOnDemandStartTimeout": "10s",
-							"runOnDemandCloseAfter": "10s",
-							"runOnReady": "",
-							"runOnReadyRestart": true,
-							"runOnRead": "",
-							"runOnReadRestart": false
-						}
-					}
-				}
-			}`)
+							"source":         "rtsp://login:pass@1:123/cam1",
+							"sourceProtocol": "udp",
+							"runOnReady":     "",
+						},
+					},
+					"cam2": {
+						"conf": {
+							"source":         "rtsp://login:pass@1:321/cam2",
+							"sourceProtocol": "tcp",
+							"runOnReady":     "",
+						},
+					},
+				},
+			}
 
-			rw.Write(json)
+			jsonString, err := json.Marshal(jsonStruct)
+			if err != nil {
+				rw.WriteHeader(500)
+			}
+			rw.Write(jsonString)
 
 		case "/v1/config/paths/add/1":
 		case "/v1/config/paths/remove/1":
 		case "/v1/config/paths/edit/1":
 		default:
-			t.Errorf("unexpected request URL: %s", req.URL.Path)
+			rw.WriteHeader(404)
 		}
 	}))
 	defer server.Close()
@@ -78,8 +81,8 @@ func TestRTSP(t *testing.T) {
 		},
 	}
 
-	t.Run("TestGet", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Run("TestGetOK", func(t *testing.T) {
 
 		res, err := repo.GetRtsp(ctx)
 		if err != nil {
@@ -88,69 +91,87 @@ func TestRTSP(t *testing.T) {
 		if len(res) == 0 {
 			t.Error("have not response")
 		}
-
-		cancel()
-		_, err = repo.GetRtsp(ctx)
+	})
+	t.Run("TestGetInvalidURL", func(t *testing.T) {
+		cfg.Rtsp.Api.UrlGet = "/v/lists"
+		repo = NewRepository(cfg, log)
+		_, err := repo.GetRtsp(context.Background())
+		if err != customError.ErrorRTSP.SetError(errors.New("unexpected status code: 404")) {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+	cancel()
+	t.Run("TestGetCtxCancel", func(t *testing.T) {
+		_, err := repo.GetRtsp(ctx)
 		if err != customError.ErrorRTSP.SetError(ctx.Err()) {
 			t.Errorf("unexpected error: %v", err)
 		}
-
-		// cfg.Rtsp.Api.UrlGet = "/v1/paths/listsss"
-		// repo = NewRepository(cfg, log)
-		// _, err = repo.GetRtsp(context.Background())
-		// if err != customError.ErrorRTSP.SetError(errors.New("unexpected end of JSON input")) {
-		// 	t.Errorf("unexpected error: %v", err)
-		// }
 	})
 
-	t.Run("TestAdd", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-
+	ctx, cancel = context.WithCancel(context.Background())
+	t.Run("TestAddOK", func(t *testing.T) {
 		err := repo.PostAddRTSP(ctx, sconf)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-
-		cancel()
-		err = repo.PostAddRTSP(ctx, sconf)
+	})
+	t.Run("TestAddInvalidURL", func(t *testing.T) {
+		cfg.Rtsp.Api.UrlAdd = "/v1/config/adddd/"
+		repo = NewRepository(cfg, log)
+		err := repo.PostAddRTSP(context.Background(), sconf)
+		if err != customError.ErrorRTSP.SetError(fmt.Errorf("unexpected status code: 404")) {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+	cancel()
+	t.Run("TestAddCtxCancel", func(t *testing.T) {
+		err := repo.PostAddRTSP(ctx, sconf)
 		if err != customError.ErrorRTSP.SetError(ctx.Err()) {
 			t.Errorf("unexpected error: %v", err)
 		}
-
-		// cfg.Rtsp.Api.UrlAdd = "/v1/config/adddd/"
-		// repo = NewRepository(cfg, log)
-		// err = repo.PostAddRTSP(context.Background(), sconf)
-		// fmt.Println("err add", err)
-		// if err != customError.ErrorRTSP.SetError(fmt.Errorf("unexpected request URL: %s", cfg.Rtsp.Api.UrlAdd)) {
-		// 	t.Errorf("unexpected error: %v", err)
-		// }
 	})
 
-	t.Run("TestEdit", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-
+	ctx, cancel = context.WithCancel(context.Background())
+	t.Run("TestEditOK", func(t *testing.T) {
 		err := repo.PostEditRTSP(ctx, sconf)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-
-		cancel()
-		err = repo.PostEditRTSP(ctx, sconf)
+	})
+	t.Run("TestEditInvalidURL", func(t *testing.T) {
+		cfg.Rtsp.Api.UrlEdit = "/v1/config/ediiiit/"
+		repo = NewRepository(cfg, log)
+		err := repo.PostEditRTSP(context.Background(), sconf)
+		if err != customError.ErrorRTSP.SetError(fmt.Errorf("unexpected status code: 404")) {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+	cancel()
+	t.Run("TestEditCtxCancel", func(t *testing.T) {
+		err := repo.PostEditRTSP(ctx, sconf)
 		if err != customError.ErrorRTSP.SetError(ctx.Err()) {
 			t.Errorf("unexpected error: %v", err)
 		}
 	})
 
-	t.Run("TestRemove", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-
+	ctx, cancel = context.WithCancel(context.Background())
+	t.Run("TestRemoveOK", func(t *testing.T) {
 		err := repo.PostRemoveRTSP(ctx, sconf)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-
-		cancel()
-		err = repo.PostRemoveRTSP(ctx, sconf)
+	})
+	t.Run("TestRemoveInvalidURL", func(t *testing.T) {
+		cfg.Rtsp.Api.UrlRemove = "/v1/config/rem/"
+		repo = NewRepository(cfg, log)
+		err := repo.PostRemoveRTSP(context.Background(), sconf)
+		if err != customError.ErrorRTSP.SetError(fmt.Errorf("unexpected status code: 404")) {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+	cancel()
+	t.Run("TestRemoveCtxCancel", func(t *testing.T) {
+		err := repo.PostRemoveRTSP(ctx, sconf)
 		if err != customError.ErrorRTSP.SetError(ctx.Err()) {
 			t.Errorf("unexpected error: %v", err)
 		}
