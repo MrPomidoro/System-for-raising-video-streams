@@ -36,7 +36,6 @@ func TestRepository_Get(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ctx, cancel := context.WithCancel(context.Background())
-	// mockDB := postgresql.NewMockPgxIface(ctrl) // сделать мок на интерфейс бд
 	mockDB := sqlMock.NewMockIDB(ctrl)
 	mockLog := zap.NewNop()
 	repo := NewRepository(mockDB, mockLog)

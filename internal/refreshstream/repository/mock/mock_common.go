@@ -41,7 +41,6 @@ func (m *MockCommon) Get(ctx context.Context, status bool) ([]refreshstream.Stre
 	}
 
 	var ret0 []refreshstream.Stream
-	// ret0, _ := ret[0].([]refreshstream.Stream)
 	if status {
 		ret0 = []refreshstream.Stream{{
 			Id:           1,

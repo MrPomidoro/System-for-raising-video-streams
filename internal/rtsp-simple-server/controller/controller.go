@@ -137,11 +137,6 @@ func (rtsp *repository) PostAddRTSP(ctx context.Context, cam rtspsimpleserver.SC
 	if err != nil {
 		return rtsp.err.SetError(err)
 	}
-	// Запрос
-	// resp, err := http.Post(URLPostAdd, "application/json; charset=UTF-8", bytes.NewBuffer(postJson))
-	// if err != nil {
-	// 	return rtsp.err.SetError(err)
-	// }
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -174,11 +169,6 @@ func (rtsp *repository) PostRemoveRTSP(ctx context.Context, camRTSP rtspsimplese
 	if err != nil {
 		return rtsp.err.SetError(err)
 	}
-	// Запрос
-	// resp, err := http.Post(URLPostRemove, "application/json; charset=UTF-8", bytes.NewBuffer(buf))
-	// if err != nil {
-	// 	return rtsp.err.SetError(err)
-	// }
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -219,11 +209,6 @@ func (rtsp *repository) PostEditRTSP(ctx context.Context, cam rtspsimpleserver.S
 	if err != nil {
 		return rtsp.err.SetError(err)
 	}
-	// Запрос
-	// resp, err := http.Post(URLPostEdit, "application/json", bytes.NewBuffer(postJson))
-	// if err != nil {
-	// 	return rtsp.err.SetError(err)
-	// }
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {

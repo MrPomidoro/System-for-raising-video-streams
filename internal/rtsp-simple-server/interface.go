@@ -6,7 +6,6 @@ import (
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
-// Common ...
 type Common interface {
 	GetRtsp(ctx context.Context) (map[string]SConf, ce.IError)
 	PostAddRTSP(ctx context.Context, camDB SConf) ce.IError

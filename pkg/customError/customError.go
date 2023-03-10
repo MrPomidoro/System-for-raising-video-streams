@@ -68,32 +68,3 @@ func (e *Error) defineLevel() string {
 		return "unknown level"
 	}
 }
-
-//// NextError создаёт новую ошибку, наследуя переданную deep
-//// level, code, desc, err задаются отдельно функциями SetXXX
-//func (e *Error) NextError(deep IError) {
-//	e.deep = deep.getError()
-//}
-//
-//func (e *Error) getError() *Error {
-//	return e
-//}
-
-//// SetLevel настривает новый текст поля level
-//func (e *Error) SetLevel(level int) {
-//	e.level = level
-//}
-//
-//// SetCode настривает новый текст поля code
-//func (e *Error) SetCode(code string) {
-//	e.code = code
-//}
-//
-//// SetDesc настривает новый текст поля desc
-//func (e *Error) SetDesc(desc string) {
-//	e.desc = desc
-//}
-
-// func (e *Error) Marshal() {}
-
-// func (e *Error) UnMarshal() {}

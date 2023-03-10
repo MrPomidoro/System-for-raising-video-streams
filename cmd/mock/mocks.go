@@ -105,11 +105,10 @@ func (mr *MockAppMockMockRecorder) EditData(arg0, arg1 interface{}) *gomock.Call
 func (m *MockAppMock) GetCamsAdd(arg0 []refreshstream.Stream, arg1 map[string]rtspsimpleserver.SConf) map[string]rtspsimpleserver.SConf {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "GetCamsAdd", arg0, arg1)
-	// ret0, _ := ret[0].(map[string]rtspsimpleserver.SConf)
+	
 	return map[string]rtsp.SConf{
 		"2": {Id: 2, Stream: "2", Conf: rtsp.Conf{
 			Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}}}
-	// return ret0
 }
 
 // GetCamsAdd indicates an expected call of GetCamsAdd.
@@ -122,11 +121,9 @@ func (mr *MockAppMockMockRecorder) GetCamsAdd(arg0, arg1 interface{}) *gomock.Ca
 func (m *MockAppMock) GetCamsEdit(arg0 []refreshstream.Stream, arg1, arg2, arg3 map[string]rtspsimpleserver.SConf) map[string]rtspsimpleserver.SConf {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "GetCamsEdit", arg0, arg1, arg2, arg3)
-	// ret0, _ := ret[0].(map[string]rtspsimpleserver.SConf)
 	return map[string]rtsp.SConf{
 		"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
 			Source: "rtsp://login:pass2@1/1", SourceProtocol: "udp"}}}
-	// return ret0
 }
 
 // GetCamsEdit indicates an expected call of GetCamsEdit.
@@ -160,10 +157,6 @@ func (m *MockAppMock) GetDBAndApi(arg0 context.Context, arg1 *sync.Mutex) ([]ref
 	if arg0.Err() != nil{
 		return []refreshstream.Stream{}, make(map[string]rtspsimpleserver.SConf), err
 	}
-
-	// ret0, _ := ret[0].([]refreshstream.Stream)
-	// ret1, _ := ret[1].(map[string]rtspsimpleserver.SConf)
-	// ret2, _ := ret[2].(customError.IError)
 
 	return []refreshstream.Stream{
 		{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
