@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // В этом тесте можно обойтись и без моков, так как мы проверяем фактическое подключение к бд
@@ -48,12 +48,17 @@ func TestDatabaseConnection(t *testing.T) {
 		Password: "w3X{77PpCR",
 	}}
 
-	newdb, err := NewDB(context.Background(), cfg.Database, logger.NewLogger(&cfg))
+	newdb, err := NewDB(context.Background(), cfg.Database, zap.NewNop())
 	if err != nil {
 		t.Errorf("error executing query: %s", err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+
+	t.Run("KeepAliveGoOK", func(t *testing.T) {
+		errCh := make(chan error)
+		go newdb.KeepAlive(ctx, zap.NewNop(), errCh)
+	})
 
 	t.Run("KeepAliveConnOk", func(t *testing.T) {
 		errCh := make(chan error)
@@ -118,11 +123,24 @@ func TestDatabaseConnection(t *testing.T) {
 		}
 	})
 
+	t.Run("KeepAliveGoCtxCancel", func(t *testing.T) {
+		errCh := make(chan error)
+		go newdb.KeepAlive(ctx, zap.NewNop(), errCh)
+	})
+	time.Sleep(3 * time.Second)
+
 	t.Run("TestCloseConnection", func(t *testing.T) {
 		newdb.Close()
 		_, err = newdb.Conn.Exec(context.Background(), "SELECT 1")
 		if err == nil {
 			t.Errorf("error closing connection: %s", err)
+		}
+	})
+
+	t.Run("TestIsConnClosed", func(t *testing.T) {
+		isConn := newdb.IsConn(context.Background())
+		if isConn {
+			t.Errorf("expect no connection to database")
 		}
 	})
 
@@ -143,10 +161,9 @@ func TestDatabaseConnection(t *testing.T) {
 		close(errCh)
 	})
 
-	t.Run("TestIsConnClosed", func(t *testing.T) {
-		isConn := newdb.IsConn(context.Background())
-		if isConn {
-			t.Errorf("expect no connection to database")
-		}
+	t.Run("KeepAliveGoConnClosed", func(t *testing.T) {
+		errCh := make(chan error)
+		go newdb.KeepAlive(ctx, zap.NewNop(), errCh)
 	})
+	time.Sleep(3 * time.Second)
 }
