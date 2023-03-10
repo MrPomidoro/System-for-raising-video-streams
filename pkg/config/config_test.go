@@ -11,10 +11,6 @@ import (
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
-// const (
-// 	logS =
-// )
-
 func TestGetConfig(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -97,15 +93,17 @@ database:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path := "/home/ksenia/go/src/github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config/config.yaml"
+			path := "./config.yaml"
 			file, err := os.Create(path)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
 			defer os.Remove(path)
 
-			file.WriteString(tt.yaml)
-			file.Close()
+			if tt.yaml != "" {
+				file.WriteString(tt.yaml)
+			}
+			defer file.Close()
 
 			cfg, errGetCfg := GetConfig()
 

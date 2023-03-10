@@ -36,6 +36,10 @@ func (m *MockCommon) EXPECT() *MockCommonMockRecorder {
 func (m *MockCommon) Get(ctx context.Context, status bool) ([]refreshstream.Stream, ce.IError) {
 	ret := m.ctrl.Call(m, "Get", ctx, status)
 
+	if ctx.Err() != nil {
+		return nil, ce.ErrorRefreshStream.SetError(ctx.Err())
+	}
+
 	var ret0 []refreshstream.Stream
 	// ret0, _ := ret[0].([]refreshstream.Stream)
 	if status {
@@ -70,6 +74,7 @@ func (m *MockCommon) Get(ctx context.Context, status bool) ([]refreshstream.Stre
 		}}
 	}
 	ret1, _ := ret[1].(ce.IError)
+
 	return ret0, ret1
 }
 

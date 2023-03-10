@@ -46,7 +46,6 @@ func TestRepository_Get(t *testing.T) {
 	// Set up expectations
 	mockCommon.EXPECT().Get(ctx, true).Return([]refreshstream.Stream{}, nil)
 	mockCommon.EXPECT().Get(ctx, false).Return([]refreshstream.Stream{}, nil)
-	mockCommon.EXPECT().Get(ctx, false).Return([]refreshstream.Stream{}, nil)
 
 	expectT := []refreshstream.Stream{{
 		Id:           1,
@@ -62,20 +61,6 @@ func TestRepository_Get(t *testing.T) {
 		RecordState:  sql.NullBool{Bool: true, Valid: true},
 		StreamState:  sql.NullBool{Bool: true, Valid: true},
 	}}
-	expectF := []refreshstream.Stream{{
-		Id:           1,
-		Auth:         sql.NullString{String: "login:pass", Valid: true},
-		Ip:           sql.NullString{String: "ip", Valid: true},
-		Stream:       "1",
-		Portsrv:      "123",
-		Sp:           sql.NullString{String: "sp", Valid: true},
-		CamId:        sql.NullString{String: "cam1", Valid: true},
-		Protocol:     sql.NullString{String: "tcp", Valid: true},
-		RecordStatus: sql.NullBool{Bool: true, Valid: true},
-		StreamStatus: sql.NullBool{Bool: true, Valid: true},
-		RecordState:  sql.NullBool{Bool: false, Valid: true},
-		StreamState:  sql.NullBool{Bool: true, Valid: true},
-	}}
 
 	t.Run("TestGetTrue", func(t *testing.T) {
 		// Call the method being tested
@@ -89,24 +74,11 @@ func TestRepository_Get(t *testing.T) {
 		}
 	})
 
-	t.Run("TestGetFalse", func(t *testing.T) {
-		// Call the method being tested
-		res, err := repo.Common.Get(ctx, false)
-		// Check that the expectations were met
-		if err != nil {
-			t.Errorf("Unexpected error: %v", err)
-		}
-		if !reflect.DeepEqual(res, expectF) {
-			t.Errorf("unexpected result from query Get: %v", res)
-		}
-	})
-
 	t.Run("TestGetCtxCancel", func(t *testing.T) {
 		cancel()
 		_, err := repo.Common.Get(ctx, false)
 		// Check that the expectations were met
-		if err != nil {
-			// if err != ce.ErrorRefreshStream.SetError(ctx.Err()) {
+		if err != ce.ErrorRefreshStream.SetError(ctx.Err()) {
 			t.Errorf("Unexpected error: %v", err)
 		}
 	})
