@@ -3,43 +3,18 @@ package service
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
 
+	appM "github.com/Kseniya-cha/System-for-raising-video-streams/cmd/mock"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
-	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
-	"github.com/stretchr/testify/mock"
+	"github.com/golang/mock/gomock"
 )
-
-type mockClient struct{ mock.Mock }
-
-func newMockClient() *mockClient { return &mockClient{} }
-
-func (c *mockClient) getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream, ce.IError) {
-	args := c.Called(ctx, mu)
-
-	fmt.Println(args.Get(0).([]refreshstream.Stream))
-	fmt.Println(args.Get(0).([]refreshstream.Stream) == nil)
-
-	if args.Get(0) == nil {
-		e, _ := args.Error(1).(*ce.Error)
-		return nil, e
-	}
-	return args.Get(0).([]refreshstream.Stream), nil
-}
-
-func (c *mockClient) getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IError) {
-	args := c.Called(ctx)
-	if args.Get(0) == nil {
-		e, _ := args.Error(1).(*ce.Error)
-		return nil, e
-	}
-	return args.Get(0).(map[string]rtsp.SConf), nil
-}
 
 func TestGetDBAndApi(t *testing.T) {
 
@@ -47,9 +22,11 @@ func TestGetDBAndApi(t *testing.T) {
 		name     string
 		wantRTSP map[string]rtsp.SConf
 		wantDB   []refreshstream.Stream
+		wantErr  error
+		isCanc   bool
 	}{
 		{
-			name: "Test for case correct work",
+			name: "TestOK",
 			wantRTSP: map[string]rtsp.SConf{
 				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
 					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}}},
@@ -57,34 +34,58 @@ func TestGetDBAndApi(t *testing.T) {
 				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
 					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
 					Ip: sql.NullString{String: "1", Valid: true}}},
+			wantErr: nil,
+			isCanc:  false,
 		},
 		{
-			name:     "Test for case NOT correct work",
+			name:     "TestCtxCancel",
 			wantRTSP: nil,
 			wantDB:   nil,
+			wantErr:  errors.New("context canceled"),
+			isCanc:   true,
 		},
 	}
 
-	ctx := context.Background()
 	mu := sync.Mutex{}
 
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	a := appM.NewMockAppMock(ctrl)
+
 	for _, tt := range tests {
+		ctx, cancel := context.WithCancel(context.Background())
 		t.Run(tt.name, func(t *testing.T) {
 
-			c := newMockClient()
-
-			c.On("getDB", ctx, &mu).Return(tt.wantDB, ce.NewError(0, "", ""))
-			c.On("getRTSP", ctx).Return(tt.wantRTSP, nil)
-
-			resDB, resRTSP, err := getDBAndApi(ctx, c, &mu)
-
-			fmt.Println(err)
-
-			if !reflect.DeepEqual(resRTSP, tt.wantRTSP) {
-				t.Errorf("expect %v, got %v", tt.wantRTSP, resRTSP)
+			if tt.isCanc {
+				cancel()
+			} else {
+				a.EXPECT().GetDBAndApi(ctx, &mu)
 			}
-			if !reflect.DeepEqual(resDB, tt.wantDB) {
+
+			resDB, resRTSP, err := a.GetDBAndApi(ctx, &mu)
+
+			if err != nil && tt.wantErr != nil {
+				gotErrA := strings.Split(err.Error(), ": ")
+
+				if tt.wantErr.Error() != gotErrA[len(gotErrA)-1] {
+					t.Errorf("unexpected error %v", err)
+				}
+			} else if (err == nil && tt.wantErr != nil) || (err != nil && tt.wantErr == nil) {
+				t.Errorf("unexpected error %v, expect %v", err, tt.wantErr)
+			}
+
+			if len(resDB) != len(tt.wantDB) || len(resRTSP) != len(tt.wantRTSP) {
 				t.Errorf("expect %v, got %v", tt.wantDB, resDB)
+			}
+			for i := range resDB {
+				if resDB[i] != tt.wantDB[i] {
+					t.Errorf("expect %v, got %v", tt.wantDB, resDB)
+				}
+			}
+			for k := range resRTSP {
+				if resRTSP[k] != tt.wantRTSP[k] {
+					t.Errorf("expect %v, got %v", tt.wantRTSP, resRTSP)
+				}
 			}
 		})
 	}
@@ -102,7 +103,7 @@ func TestGetCamsAdd(t *testing.T) {
 		expect   map[string]rtsp.SConf
 	}{
 		{
-			name: "Test for get streams to add",
+			name: "TestCamsAddOK",
 			dataDB: []refreshstream.Stream{
 				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
 					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
@@ -122,14 +123,15 @@ func TestGetCamsAdd(t *testing.T) {
 		},
 	}
 
-	a, err := NewApp(context.Background(), &config.Config{})
-	if err != nil {
-		fmt.Println("cannot create app", err)
-	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	a := appM.NewMockAppMock(ctrl)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			camsAdd := a.getCamsAdd(tt.dataDB, tt.dataRTSP)
+			a.EXPECT().GetCamsAdd(tt.dataDB, tt.dataRTSP)
+
+			camsAdd := a.GetCamsAdd(tt.dataDB, tt.dataRTSP)
 			if !reflect.DeepEqual(camsAdd, tt.expect) {
 				t.Errorf("expect %v, got %v", tt.expect, camsAdd)
 			}
@@ -145,7 +147,7 @@ func TestGetCamsRemove(t *testing.T) {
 		expect   map[string]rtsp.SConf
 	}{
 		{
-			name: "Test for get streams to remove",
+			name: "TesCamsRemoveOK",
 			dataDB: []refreshstream.Stream{
 				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
 					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
@@ -164,15 +166,16 @@ func TestGetCamsRemove(t *testing.T) {
 		},
 	}
 
-	a, err := NewApp(context.Background(), &config.Config{})
-	if err != nil {
-		fmt.Println("cannot create app", err)
-	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	a := appM.NewMockAppMock(ctrl)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			a.EXPECT().GetCamsRemove(tt.dataDB, tt.dataRTSP)
+
 			camsRemove := tt.dataRTSP
-			a.getCamsRemove(tt.dataDB, camsRemove)
+			a.GetCamsRemove(tt.dataDB, camsRemove)
 			if !reflect.DeepEqual(camsRemove, tt.expect) {
 				t.Errorf("expect %v, got %v", tt.expect, camsRemove)
 			}
@@ -190,7 +193,7 @@ func TestGetCamsEdit(t *testing.T) {
 		expect     map[string]rtsp.SConf
 	}{
 		{
-			name: "Test for get streams to edit",
+			name: "TestCamsEditOK",
 			dataDB: []refreshstream.Stream{
 				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass2", Valid: true},
 					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
@@ -210,14 +213,15 @@ func TestGetCamsEdit(t *testing.T) {
 		},
 	}
 
-	a, err := NewApp(context.Background(), &config.Config{})
-	if err != nil {
-		fmt.Println("cannot create app", err)
-	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	a := appM.NewMockAppMock(ctrl)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			camsEdit := a.getCamsEdit(tt.dataDB, tt.dataRTSP, tt.camsAdd, tt.camsRemove)
+			a.EXPECT().GetCamsEdit(tt.dataDB, tt.dataRTSP, tt.camsAdd, tt.camsRemove)
+
+			camsEdit := a.GetCamsEdit(tt.dataDB, tt.dataRTSP, tt.camsAdd, tt.camsRemove)
 			if !reflect.DeepEqual(camsEdit, tt.expect) {
 				t.Errorf("expect %v, got %v", tt.expect, camsEdit)
 			}
@@ -293,3 +297,17 @@ func TestDbToCompare(t *testing.T) {
 		})
 	}
 }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// func TestApp(t *testing.T) {
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
+// 	appMock := appM.NewMockAppMock(ctrl)
+
+// 	_, cancel := context.WithCancel(context.Background())
+// 	appMock.GracefulShutdown(cancel)
+
+// }

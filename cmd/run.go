@@ -52,7 +52,7 @@ loop:
 			}
 
 			// Получение данных от базы данных и от rtsp
-			dataDB, dataRTSP, err := getDBAndApi(ctx, a, &mu)
+			dataDB, dataRTSP, err := a.GetDBAndApi(ctx, &mu)
 			if err != nil {
 				a.log.Error(err.Error())
 				continue loop
@@ -64,24 +64,24 @@ loop:
 
 			camsRemove := make(map[string]rtsp.SConf)
 			transcode.Transcode(dataRTSP, &camsRemove)
-			a.getCamsRemove(dataDB, camsRemove)
+			a.GetCamsRemove(dataDB, camsRemove)
 
-			camsAdd := a.getCamsAdd(dataDB, dataRTSP)
+			camsAdd := a.GetCamsAdd(dataDB, dataRTSP)
 
-			camsEdit := a.getCamsEdit(dataDB, dataRTSP, camsAdd, camsRemove)
+			camsEdit := a.GetCamsEdit(dataDB, dataRTSP, camsAdd, camsRemove)
 
 			if len(camsEdit) == 0 && len(camsRemove) == 0 && len(camsAdd) == 0 {
 				a.log.Info("Data is identity, waiting...")
 				continue loop
 			}
 
-			err = a.addRemoveData(ctx, dataDB, dataRTSP, camsAdd, camsRemove)
+			err = a.AddRemoveData(ctx, dataDB, dataRTSP, camsAdd, camsRemove)
 			if err != nil {
 				a.log.Error(err.Error())
 				continue loop
 			}
 
-			err = a.editData(ctx, camsEdit)
+			err = a.EditData(ctx, camsEdit)
 			if err != nil {
 				a.log.Error(err.Error())
 				continue loop

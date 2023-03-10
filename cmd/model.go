@@ -32,8 +32,7 @@ type app struct {
 	log *zap.Logger
 	db  postgresql.IDB
 
-	sigChan  chan os.Signal
-	doneChan chan struct{}
+	sigChan chan os.Signal
 
 	refreshStreamRepo refreshstream.Repository
 	statusStreamRepo  statusstream.Repository
@@ -48,7 +47,6 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	// err := ce.ErrorApp
 	log := logger.NewLogger(cfg)
 
 	db, err := postgresql.NewDB(ctx, cfg.Database, log)
@@ -57,15 +55,13 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	}
 
 	sigChan := make(chan os.Signal, 1)
-	doneChan := make(chan struct{})
 
 	return &app{
 		cfg: cfg,
 		db:  db,
 		log: log,
 
-		sigChan:  sigChan,
-		doneChan: doneChan,
+		sigChan: sigChan,
 
 		refreshStreamRepo: rsrepo.NewRepository(db, log),
 		statusStreamRepo:  ssrepo.NewRepository(db, log),
@@ -75,12 +71,25 @@ func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
 	}, nil
 }
 
-type appIn interface {
-	// addData(ctx context.Context, camsAdd map[string]rtsp.SConf) ce.IError
-	// removeData(ctx context.Context, dataRTSP map[string]rtsp.SConf) ce.IError
-	// editData(ctx context.Context, camsEdit map[string]rtsp.SConf) ce.IError
+type AppMock interface {
+	Run(context.Context)
+	GracefulShutdown(cancel context.CancelFunc)
 
-	//
-	getDB(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream, ce.IError)
-	getRTSP(ctx context.Context) (map[string]rtsp.SConf, ce.IError)
+	GetDBAndApi(ctx context.Context, mu *sync.Mutex) ([]refreshstream.Stream,
+		map[string]rtsp.SConf, ce.IError)
+
+	GetCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtsp.SConf,
+		camsAdd map[string]rtsp.SConf, camsRemove map[string]rtsp.SConf) map[string]rtsp.SConf
+	GetCamsAdd(dataDB []refreshstream.Stream,
+		dataRTSP map[string]rtsp.SConf) map[string]rtsp.SConf
+	GetCamsRemove(dataDB []refreshstream.Stream,
+		dataRTSP map[string]rtsp.SConf)
+
+	AddRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
+		dataRTSP map[string]rtsp.SConf, camsAdd map[string]rtsp.SConf,
+		camsRemove map[string]rtsp.SConf) ce.IError
+
+	AddData(ctx context.Context, camsAdd map[string]rtsp.SConf) ce.IError
+	RemoveData(ctx context.Context, dataRTSP map[string]rtsp.SConf) ce.IError
+	EditData(ctx context.Context, camsEdit map[string]rtsp.SConf) ce.IError
 }
