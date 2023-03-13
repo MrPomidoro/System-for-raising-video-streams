@@ -42,7 +42,7 @@ type app struct {
 }
 
 // NewApp инициализирует прототип приложения
-func NewApp(ctx context.Context, cfg *config.Config) (*app, ce.IError) {
+func NewApp(ctx context.Context, cfg *config.Config) (App, ce.IError) {
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
