@@ -64,7 +64,7 @@ func NewApp(ctx context.Context, cfg *config.Config) (App, ce.IError) {
 		sigChan: sigChan,
 
 		refreshStreamRepo: rsrepo.NewRepository(db, &cfg.Database, log),
-		statusStreamRepo:  ssrepo.NewRepository(db, log),
+		statusStreamRepo:  ssrepo.NewRepository(db, &cfg.Database, log),
 		rtspRepo:          rtspcontr.NewRepository(cfg, log),
 
 		err: ce.ErrorApp,
