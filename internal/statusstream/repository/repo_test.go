@@ -8,6 +8,7 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
 	mocks "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository/mock"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	sqlMock "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql/mocks"
 	"github.com/golang/mock/gomock"
@@ -20,7 +21,7 @@ func TestNewRepository(t *testing.T) {
 	mockDB := sqlMock.NewMockIDB(ctrl)
 	mockLog := zap.NewNop()
 
-	repo := NewRepository(mockDB, mockLog)
+	repo := NewRepository(mockDB, &config.Database{}, mockLog)
 	repoS := strings.Split(fmt.Sprint(repo), " ")
 	testRepoS := strings.Split(fmt.Sprint(&Repository{db: mockDB, log: mockLog, err: ce.ErrorStatusStream}), " ")
 	for i := range repoS {
@@ -36,7 +37,7 @@ func TestInsert(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	mockDB := sqlMock.NewMockIDB(ctrl)
 	mockLog := zap.NewNop()
-	repo := NewRepository(mockDB, mockLog)
+	repo := NewRepository(mockDB, &config.Database{}, mockLog)
 
 	mockCommon := mocks.NewMockCommon(ctrl)
 	repo.Common = mockCommon

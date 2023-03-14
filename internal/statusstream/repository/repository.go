@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"go.uber.org/zap"
@@ -13,13 +14,15 @@ import (
 type Repository struct {
 	Common statusstream.Common
 	db     postgresql.IDB
+	cfg    *config.Database
 	log    *zap.Logger
 	err    ce.IError
 }
 
-func NewRepository(db postgresql.IDB, log *zap.Logger) *Repository {
+func NewRepository(db postgresql.IDB, cfg *config.Database, log *zap.Logger) *Repository {
 	return &Repository{
 		db:  db,
+		cfg: cfg,
 		log: log,
 		err: ce.ErrorStatusStream,
 	}
@@ -29,7 +32,7 @@ func NewRepository(db postgresql.IDB, log *zap.Logger) *Repository {
 func (s Repository) Insert(ctx context.Context,
 	ss *statusstream.StatusStream) ce.IError {
 
-	query := fmt.Sprintf(statusstream.InsertToStatusStream, ss.StreamId, ss.StatusResponse)
+	query := fmt.Sprintf(statusstream.InsertToStatusStream, s.cfg.TableReportName, ss.StreamId, ss.StatusResponse)
 	s.log.Debug("Query to database:\n\t" + query)
 
 	_, err := s.db.GetConn().Exec(ctx, query)

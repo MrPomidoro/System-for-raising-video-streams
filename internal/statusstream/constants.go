@@ -1,6 +1,6 @@
 package statusstream
 
 const (
-	InsertToStatusStream = `INSERT INTO public."status_stream" ("stream_id", "date_create", "status_response")
+	InsertToStatusStream = `INSERT INTO public."%s" ("stream_id", "date_create", "status_response")
 	VALUES (%d, current_timestamp, %t)`
 )

@@ -83,12 +83,12 @@ func (rtsp *repository) GetRtsp(ctx context.Context) (map[string]rtspsimpleserve
 	rtsp.log.Debug("Success unmarshal body")
 
 	for _, ress := range item {
-		for stream, i := range ress {
+		for codeMp, i := range ress {
 			cam := rtspsimpleserver.SConf{}
-			cam.Stream = stream
+			cam.Stream = codeMp
 			cam.Conf = i.Conf
 
-			res[stream] = cam
+			res[codeMp] = cam
 		}
 	}
 
