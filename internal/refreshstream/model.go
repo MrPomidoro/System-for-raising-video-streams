@@ -1,20 +1,25 @@
 package refreshstream
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/jackc/pgtype"
+)
 
 // Stream -  Структура таблицы refresh_stream.
 // sql.Null* когда возможен null в столбце
 type Stream struct {
 	Id           int            `json:"id" db:"id"`
-	Auth         sql.NullString `json:"auth" db:"auth"`
-	Ip           sql.NullString `json:"ip" db:"ip"`
-	Stream       string         `json:"stream" db:"stream"`
-	Portsrv      string         `json:"portsrv" db:"portsrv"`
-	Sp           sql.NullString `json:"sp" db:"sp"`
-	CamId        sql.NullString `json:"camid" db:"camid"`
-	RecordStatus sql.NullBool   `json:"record_status" db:"record_status"`
-	StreamStatus sql.NullBool   `json:"stream_status" db:"stream_status"`
-	RecordState  sql.NullBool   `json:"record_state" db:"record_state"`
-	StreamState  sql.NullBool   `json:"stream_state" db:"stream_state"`
+	Login        sql.NullString `json:"login" db:"login"`
+	Pass         sql.NullString `json:"pass" db:"pass"`
+	Ip           pgtype.Inet    `json:"ip_address_out" db:"ip_address_out"`
+	CamPath      sql.NullString `json:"cam_path" db:"cam_path"`
+	StatePublic  sql.NullInt16  `json:"state_public" db:"state_public"`
+	StatusPublic sql.NullInt16  `json:"status_public" db:"status_public"`
+	CodeMp       string         `json:"code_mp" db:"code_mp"`
+	Port         string         // 554
 	Protocol     sql.NullString `json:"protocol" db:"protocol"`
+
+	// Stream       string         `json:"stream" db:"stream"`
+	// CamId       sql.NullString `json:"camid" db:"camid"`
 }

@@ -23,7 +23,7 @@ func (a *app) InsertIntoStatusStream(method string, ctx context.Context, cam rts
 		insertStructStatusStream := statusstream.StatusStream{StreamId: cam.Id, StatusResponse: false}
 		err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 		if err != nil {
-			return a.err.SetError(fmt.Errorf("cannot insert stream %s to table status_stream", cam.Stream))
+			return a.err.SetError(fmt.Errorf("cannot insert stream %s to table status_stream: %v", cam.Stream, err))
 		}
 		a.log.Debug("Success insert to table status_stream")
 
@@ -39,7 +39,7 @@ func (a *app) InsertIntoStatusStream(method string, ctx context.Context, cam rts
 	insertStructStatusStream := statusstream.StatusStream{StreamId: cam.Id, StatusResponse: true}
 	err = a.statusStreamRepo.Insert(ctx, &insertStructStatusStream)
 	if err == ce.ErrorStatusStream.SetError(errors.New("ERROR: insert or update on table \"status_stream\" violates foreign key constraint \"stream_id\" (SQLSTATE 23503)")) {
-		return a.err.SetError(fmt.Errorf("cannot insert into status_stream: stream not in database"))
+		return a.err.SetError(fmt.Errorf("cannot insert into status_stream: stream not in database: %v", err))
 	}
 	if err != nil {
 		return err
