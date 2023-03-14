@@ -110,6 +110,7 @@ func readFlags(cfg *Config) {
 	flag.IntVar(&cfg.Port, "port", cfg.Port, "The host parameter")
 	flag.StringVar(&cfg.Host, "host", cfg.Host, "The host parameter")
 	flag.StringVar(&cfg.DbName, "dbName", cfg.DbName, "The db_name parameter")
+	flag.StringVar(&cfg.TableName, "tableName", cfg.TableName, "The name of table")
 	flag.StringVar(&cfg.User, "user", cfg.User, "The user parameter")
 	flag.StringVar(&cfg.Password, "password", cfg.Password, "The password parameter")
 	flag.StringVar(&cfg.Driver, "driver", cfg.Driver, "The driver parameter")

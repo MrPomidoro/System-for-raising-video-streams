@@ -57,7 +57,7 @@ func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtsp.SConf {
 	// Парсинг поля RunOnReady
 	var runOnReady string
 	if cfg.Run != "" {
-		runOnReady = fmt.Sprintf(cfg.Run, camDB.Portsrv, camDB.Sp.String, camDB.CamId.String)
+		runOnReady = fmt.Sprintf(cfg.Run, camDB.Port, camDB.CamPath.String)
 	} else {
 		runOnReady = ""
 	}
@@ -70,11 +70,11 @@ func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtsp.SConf {
 	}
 
 	return rtsp.SConf{
-		Stream: camDB.Stream,
+		Stream: camDB.CamPath.String,
 		Conf: rtsp.Conf{
 			SourceProtocol: protocol,
 			RunOnReady:     runOnReady,
-			Source:         fmt.Sprintf("rtsp://%s@%s/%s", camDB.Auth.String, camDB.Ip.String, camDB.Stream),
+			Source:         fmt.Sprintf("rtsp://%s:%s@%v:554/%s", camDB.Login.String, camDB.Pass.String, camDB.Ip.IPNet.IP, camDB.CamPath.String),
 		},
 		Id: camDB.Id,
 	}
@@ -100,7 +100,7 @@ func (a *app) GetCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rts
 
 		cam := dbToCompare(a.cfg, camDB)
 		// Проверяется, совпадают ли данные
-		if reflect.DeepEqual(cam.Conf, rtspToCompare(dataRTSP[camDB.Stream])) {
+		if reflect.DeepEqual(cam.Conf, rtspToCompare(dataRTSP[camDB.CamPath.String])) {
 			continue
 		}
 		if _, ok := camsAdd[cam.Stream]; ok {
@@ -126,7 +126,7 @@ func (a *app) GetCamsAdd(dataDB []refreshstream.Stream,
 
 	for _, camDB := range dataDB {
 		// Если камера есть в бд, но отсутствует в ртсп, добавляется в список
-		if _, ok := dataRTSP[camDB.Stream]; ok {
+		if _, ok := dataRTSP[camDB.CamPath.String]; ok {
 			continue
 		}
 		cam := dbToCompare(a.cfg, camDB)
@@ -142,6 +142,6 @@ func (a *app) GetCamsRemove(dataDB []refreshstream.Stream,
 	dataRTSP map[string]rtsp.SConf) {
 
 	for _, camDB := range dataDB {
-		delete(dataRTSP, camDB.Stream)
+		delete(dataRTSP, camDB.CamPath.String)
 	}
 }

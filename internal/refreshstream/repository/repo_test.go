@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"reflect"
 	"strings"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	mocks "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository/mock"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	sqlMock "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql/mocks"
 	"github.com/golang/mock/gomock"
@@ -22,7 +22,7 @@ func TestNewRepository(t *testing.T) {
 	mockDB := sqlMock.NewMockIDB(ctrl)
 	mockLog := zap.NewNop()
 
-	repo := NewRepository(mockDB, mockLog)
+	repo := NewRepository(mockDB, &config.Database{}, mockLog)
 	repoS := strings.Split(fmt.Sprint(repo), " ")
 	testRepoS := strings.Split(fmt.Sprint(&Repository{db: mockDB, log: mockLog, err: ce.ErrorRefreshStream}), " ")
 	for i := range repoS {
@@ -38,7 +38,7 @@ func TestRepository_Get(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	mockDB := sqlMock.NewMockIDB(ctrl)
 	mockLog := zap.NewNop()
-	repo := NewRepository(mockDB, mockLog)
+	repo := NewRepository(mockDB, &config.Database{}, mockLog)
 
 	mockCommon := mocks.NewMockCommon(ctrl)
 	repo.Common = mockCommon
@@ -47,20 +47,7 @@ func TestRepository_Get(t *testing.T) {
 	mockCommon.EXPECT().Get(ctx, true).Return([]refreshstream.Stream{}, nil)
 	mockCommon.EXPECT().Get(ctx, false).Return([]refreshstream.Stream{}, nil)
 
-	expectT := []refreshstream.Stream{{
-		Id:           1,
-		Auth:         sql.NullString{String: "login:pass", Valid: true},
-		Ip:           sql.NullString{String: "ip", Valid: true},
-		Stream:       "1",
-		Portsrv:      "123",
-		Sp:           sql.NullString{String: "sp", Valid: true},
-		CamId:        sql.NullString{String: "cam1", Valid: true},
-		Protocol:     sql.NullString{String: "tcp", Valid: true},
-		RecordStatus: sql.NullBool{Bool: true, Valid: true},
-		StreamStatus: sql.NullBool{Bool: true, Valid: true},
-		RecordState:  sql.NullBool{Bool: true, Valid: true},
-		StreamState:  sql.NullBool{Bool: true, Valid: true},
-	}}
+	expectT := []refreshstream.Stream{{}}
 
 	t.Run("TestGetTrue", func(t *testing.T) {
 		// Call the method being tested

@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
+	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/database/postgresql"
 	"go.uber.org/zap"
@@ -13,13 +15,15 @@ type Repository struct {
 	Common refreshstream.Common
 	db     postgresql.IDB
 	log    *zap.Logger
+	cfg    *config.Database
 	err    ce.IError
 }
 
-func NewRepository(db postgresql.IDB, log *zap.Logger) *Repository {
+func NewRepository(db postgresql.IDB, cfg *config.Database, log *zap.Logger) *Repository {
 	return &Repository{
 		db:  db,
 		log: log,
+		cfg: cfg,
 		err: ce.ErrorRefreshStream,
 	}
 }
@@ -32,9 +36,9 @@ func (s Repository) Get(ctx context.Context, status bool) ([]refreshstream.Strea
 
 	switch status {
 	case true:
-		query = refreshstream.QueryStateTrue
+		query = fmt.Sprintf(refreshstream.QueryStateTrue, s.cfg.TableName)
 	case false:
-		query = refreshstream.QueryStateFalse
+		query = fmt.Sprintf(refreshstream.QueryStateFalse, s.cfg.TableName)
 	}
 
 	if ctx.Err() != nil {
@@ -51,14 +55,15 @@ func (s Repository) Get(ctx context.Context, status bool) ([]refreshstream.Strea
 
 	// Слайс копий структур
 	res := []refreshstream.Stream{}
+	// pgxscan.Select(ctx, s.db, &res, query)
 	for rows.Next() {
 		rs := refreshstream.Stream{}
-		err = rows.Scan(&rs.Id, &rs.Auth, &rs.Ip, &rs.Stream,
-			&rs.Portsrv, &rs.Sp, &rs.CamId, &rs.RecordStatus,
-			&rs.StreamStatus, &rs.RecordState, &rs.StreamState, &rs.Protocol)
+		err = rows.Scan(&rs.Id, &rs.Login, &rs.Pass, &rs.Ip,
+			&rs.CamPath, &rs.CodeMp, &rs.StatePublic, &rs.StatusPublic, &rs.Protocol)
 		if err != nil {
 			return nil, s.err.SetError(err)
 		}
+		rs.Port = "554"
 		res = append(res, rs)
 	}
 

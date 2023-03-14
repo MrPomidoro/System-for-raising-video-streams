@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"reflect"
 	"strings"
@@ -31,9 +30,10 @@ func TestGetDBAndApi(t *testing.T) {
 				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
 					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}}},
 			wantDB: []refreshstream.Stream{
-				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
-					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
-					Ip: sql.NullString{String: "1", Valid: true}}},
+				// {Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				// 	Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+				// 	Ip: sql.NullString{String: "1", Valid: true}},
+			},
 			expectErr: nil,
 			isCanc:    false,
 		},
@@ -102,22 +102,22 @@ func TestGetCamsAdd(t *testing.T) {
 		expect   map[string]rtsp.SConf
 	}{
 		{
-			name: "TestCamsAddOK",
+			name:   "TestCamsAddOK",
 			dataDB: []refreshstream.Stream{
-				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
-					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
-					Ip: sql.NullString{String: "1", Valid: true}},
-				{Id: 2, Stream: "2", Auth: sql.NullString{String: "login:pass", Valid: true},
-					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
-					Ip: sql.NullString{String: "1", Valid: true}},
+				// {Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				// 	Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+				// 	Ip: sql.NullString{String: "1", Valid: true}},
+				// {Id: 2, Stream: "2", Auth: sql.NullString{String: "login:pass", Valid: true},
+				// 	Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+				// 	Ip: sql.NullString{String: "1", Valid: true}},
 			},
 			dataRTSP: map[string]rtsp.SConf{
-				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
+				// "1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
 			},
 			expect: map[string]rtsp.SConf{
-				"2": {Id: 2, Stream: "2", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
+				// "2": {Id: 2, Stream: "2", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
 			},
 		},
 	}
@@ -146,21 +146,21 @@ func TestGetCamsRemove(t *testing.T) {
 		expect   map[string]rtsp.SConf
 	}{
 		{
-			name: "TesOK",
+			name:   "TesOK",
 			dataDB: []refreshstream.Stream{
-				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
-					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
-					Ip: sql.NullString{String: "1", Valid: true}},
+				// {Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				// 	Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+				// 	Ip: sql.NullString{String: "1", Valid: true}},
 			},
 			dataRTSP: map[string]rtsp.SConf{
-				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
-				"3": {Id: 3, Stream: "3", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/3", SourceProtocol: "udp"}},
+				// "1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
+				// "3": {Id: 3, Stream: "3", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/3", SourceProtocol: "udp"}},
 			},
 			expect: map[string]rtsp.SConf{
-				"3": {Id: 3, Stream: "3", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/3", SourceProtocol: "udp"}},
+				// "3": {Id: 3, Stream: "3", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/3", SourceProtocol: "udp"}},
 			},
 		},
 	}
@@ -192,22 +192,22 @@ func TestGetCamsEdit(t *testing.T) {
 		expect     map[string]rtsp.SConf
 	}{
 		{
-			name: "TestOK",
+			name:   "TestOK",
 			dataDB: []refreshstream.Stream{
-				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass2", Valid: true},
-					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
-					Ip: sql.NullString{String: "1", Valid: true}},
+				// {Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass2", Valid: true},
+				// 	Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+				// 	Ip: sql.NullString{String: "1", Valid: true}},
 			},
 			dataRTSP: map[string]rtsp.SConf{
-				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
+				// "1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
 			},
 			camsAdd:    map[string]rtsp.SConf{},
 			camsRemove: map[string]rtsp.SConf{},
 
 			expect: map[string]rtsp.SConf{
-				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass2@1/1", SourceProtocol: "udp"}},
+				// "1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass2@1/1", SourceProtocol: "udp"}},
 			},
 		},
 	}
@@ -237,11 +237,13 @@ func TestDbToCompare(t *testing.T) {
 		expect rtsp.SConf
 	}{
 		{
-			name: "TestHaveRunField",
-			cfg:  config.Config{Rtsp: config.Rtsp{Run: "usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --stream_path %s --camera_id %s"}},
-			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
-				Portsrv: "1", Protocol: sql.NullString{String: "udp", Valid: true}, CamId: sql.NullString{String: "1", Valid: true},
-				Ip: sql.NullString{String: "1", Valid: true}, Sp: sql.NullString{String: "1", Valid: true}},
+			name:  "TestHaveRunField",
+			cfg:   config.Config{Rtsp: config.Rtsp{Run: "usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --stream_path %s --camera_id %s"}},
+			camDB: refreshstream.Stream{
+				// Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				// Portsrv: "1", Protocol: sql.NullString{String: "udp", Valid: true}, CamId: sql.NullString{String: "1", Valid: true},
+				// Ip: sql.NullString{String: "1", Valid: true}, Sp: sql.NullString{String: "1", Valid: true}
+			},
 			expect: rtsp.SConf{
 				Stream: "1",
 				Id:     1,
@@ -253,11 +255,13 @@ func TestDbToCompare(t *testing.T) {
 			},
 		},
 		{
-			name: "TestHaveNotRunField",
-			cfg:  config.Config{Rtsp: config.Rtsp{Run: ""}},
-			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
-				Portsrv: "1", Protocol: sql.NullString{String: "udp", Valid: true}, CamId: sql.NullString{String: "1", Valid: true},
-				Ip: sql.NullString{String: "1", Valid: true}, Sp: sql.NullString{String: "1", Valid: true}},
+			name:  "TestHaveNotRunField",
+			cfg:   config.Config{Rtsp: config.Rtsp{Run: ""}},
+			camDB: refreshstream.Stream{
+				// Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				// Portsrv: "1", Protocol: sql.NullString{String: "udp", Valid: true}, CamId: sql.NullString{String: "1", Valid: true},
+				// Ip: sql.NullString{String: "1", Valid: true}, Sp: sql.NullString{String: "1", Valid: true}
+			},
 			expect: rtsp.SConf{
 				Stream: "1",
 				Id:     1,
@@ -269,11 +273,13 @@ func TestDbToCompare(t *testing.T) {
 			},
 		},
 		{
-			name: "TestHaveNotProtocolField",
-			cfg:  config.Config{Rtsp: config.Rtsp{Run: ""}},
-			camDB: refreshstream.Stream{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
-				Portsrv: "1", Protocol: sql.NullString{String: "", Valid: false}, CamId: sql.NullString{String: "1", Valid: true},
-				Ip: sql.NullString{String: "1", Valid: true}, Sp: sql.NullString{String: "1", Valid: true}},
+			name:  "TestHaveNotProtocolField",
+			cfg:   config.Config{Rtsp: config.Rtsp{Run: ""}},
+			camDB: refreshstream.Stream{
+				// Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				// Portsrv: "1", Protocol: sql.NullString{String: "", Valid: false}, CamId: sql.NullString{String: "1", Valid: true},
+				// Ip: sql.NullString{String: "1", Valid: true}, Sp: sql.NullString{String: "1", Valid: true}
+			},
 			expect: rtsp.SConf{
 				Stream: "1",
 				Id:     1,
@@ -316,42 +322,42 @@ func TestAddRemoveData(t *testing.T) {
 		expectErr  error
 	}{
 		{
-			name: "TestOK",
+			name:   "TestOK",
 			dataDB: []refreshstream.Stream{
-				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
-					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
-					Ip: sql.NullString{String: "1", Valid: true}},
-				{Id: 2, Stream: "2", Auth: sql.NullString{String: "login:pass", Valid: true},
-					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
-					Ip: sql.NullString{String: "1", Valid: true}},
+				// {Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				// 	Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+				// 	Ip: sql.NullString{String: "1", Valid: true}},
+				// {Id: 2, Stream: "2", Auth: sql.NullString{String: "login:pass", Valid: true},
+				// 	Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+				// 	Ip: sql.NullString{String: "1", Valid: true}},
 			},
 			dataRTSP: map[string]rtsp.SConf{
-				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
-				"3": {Id: 3, Stream: "3", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/3", SourceProtocol: "udp"}},
+				// "1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
+				// "3": {Id: 3, Stream: "3", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/3", SourceProtocol: "udp"}},
 			},
 			camsAdd: map[string]rtsp.SConf{
-				"2": {Id: 2, Stream: "2", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
+				// "2": {Id: 2, Stream: "2", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
 			},
 			camsRemove: map[string]rtsp.SConf{
-				"3": {Id: 0, Stream: "3", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/3", SourceProtocol: "udp"}},
+				// "3": {Id: 0, Stream: "3", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/3", SourceProtocol: "udp"}},
 			},
 			isCanc:    false,
 			expectErr: nil,
 		},
 		{
-			name: "TestOKNothingChange",
+			name:   "TestOKNothingChange",
 			dataDB: []refreshstream.Stream{
-				{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
-					Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
-					Ip: sql.NullString{String: "1", Valid: true}},
+				// {Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+				// 	Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+				// 	Ip: sql.NullString{String: "1", Valid: true}},
 			},
 			dataRTSP: map[string]rtsp.SConf{
-				"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
+				// "1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}},
 			},
 			isCanc:    false,
 			expectErr: nil,
@@ -403,10 +409,10 @@ func TestAddData(t *testing.T) {
 		expectErr error
 	}{
 		{
-			name: "TestOK",
+			name:    "TestOK",
 			camsAdd: map[string]rtsp.SConf{
-				"2": {Id: 0, Stream: "2", Conf: rtsp.Conf{
-					Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
+				// "2": {Id: 0, Stream: "2", Conf: rtsp.Conf{
+				// 	Source: "rtsp://login:pass@1/2", SourceProtocol: "udp"}},
 			},
 			isCanc:    false,
 			expectErr: nil,

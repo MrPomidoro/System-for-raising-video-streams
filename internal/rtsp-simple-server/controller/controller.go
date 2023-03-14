@@ -121,6 +121,7 @@ func (rtsp *repository) PostAddRTSP(ctx context.Context, cam rtspsimpleserver.SC
 	// Парсинг URL
 	URLPostAdd := fmt.Sprintf(rtsp.cfg.Url + rtsp.cfg.Rtsp.Api.UrlAdd + cam.Stream)
 	rtsp.log.Debug("Url for request to rtsp:\n\t" + URLPostAdd)
+	fmt.Println("body", string(postJson))
 
 	req, err := http.NewRequest(http.MethodPost, URLPostAdd, bytes.NewBuffer(postJson))
 	if err != nil {

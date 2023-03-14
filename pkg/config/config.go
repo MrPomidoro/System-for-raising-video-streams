@@ -40,6 +40,7 @@ type Database struct {
 	Port              int           `mapstructure:"port"`
 	Host              string        `mapstructure:"host"`
 	DbName            string        `mapstructure:"dbName"`
+	TableName         string        `mapstructure:"tableName"`
 	User              string        `mapstructure:"user"`
 	Password          string        `mapstructure:"password"`
 	Driver            string        `mapstructure:"driver"`

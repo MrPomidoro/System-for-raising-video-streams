@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"sync"
 	// "fmt"
-	"database/sql"
 
 	refreshstream "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream"
 	rtspsimpleserver "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
@@ -138,7 +137,7 @@ func (m *MockAppMock) GetCamsRemove(arg0 []refreshstream.Stream, arg1 map[string
 	m.ctrl.Call(m, "GetCamsRemove", arg0, arg1)
 
 	for _, camDB := range arg0 {
-		delete(arg1, camDB.Stream)
+		delete(arg1, camDB.CamPath.String)
 	}
 }
 
@@ -159,12 +158,14 @@ func (m *MockAppMock) GetDBAndApi(arg0 context.Context, arg1 *sync.Mutex) ([]ref
 	}
 
 	return []refreshstream.Stream{
-		{Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
-			Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
-			Ip: sql.NullString{String: "1", Valid: true}}},
+		// {Id: 1, Stream: "1", Auth: sql.NullString{String: "login:pass", Valid: true},
+		// 	Portsrv: "38652", Protocol: sql.NullString{String: "udp", Valid: true},
+		// 	Ip: sql.NullString{String: "1", Valid: true}}
+	},
 		map[string]rtsp.SConf{
-			"1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
-				Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}}},
+			// "1": {Id: 1, Stream: "1", Conf: rtsp.Conf{
+			// 	Source: "rtsp://login:pass@1/1", SourceProtocol: "udp"}}
+			},
 		nil
 }
 

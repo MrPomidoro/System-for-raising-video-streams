@@ -1,15 +1,13 @@
 package refreshstream
 
 const (
-	QueryStateTrue = `SELECT *
-	FROM public."refresh_stream"
-	WHERE "stream" IS NOT null AND "stream_state" = true`
+	QueryStateTrue = `SELECT "id", "login", "pass", "ip_address_out", "cam_path",
+	"code_mp", "state_public", "status_public", "protocol"
+	FROM public."%s"
+	WHERE "cam_path" IS NOT null AND "state_public" = 1`
 
-	QueryStateFalse = `SELECT *
-	FROM public."refresh_stream"
-	WHERE "stream" IS NOT null AND "stream_state" = false`
-
-	QueryEditStatus = `UPDATE public."refresh_stream"
-	SET "stream_status"='true'
-	WHERE "stream"='%s'`
+	QueryStateFalse = `SELECT "id", "login", "pass", "ip_address_out", "cam_path",
+	"code_mp", "state_public", "status_public", "protocol"
+	FROM public."%s"
+	WHERE "cam_path" IS NOT null AND "state_public" = 0`
 )
