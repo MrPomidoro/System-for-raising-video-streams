@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/signal"
 	"reflect"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -63,11 +64,11 @@ func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtsp.SConf {
 	}
 
 	return rtsp.SConf{
-		Stream: camDB.CodeMp,
+		Stream: strings.TrimSpace(camDB.CodeMp),
 		Conf: rtsp.Conf{
 			SourceProtocol: "tcp",
 			RunOnReady:     runOnReady,
-			Source:         fmt.Sprintf("rtsp://%s:%s@%v:554/%s", camDB.Login.String, camDB.Pass.String, camDB.Ip.IPNet.IP, camDB.CamPath.String),
+			Source:         fmt.Sprintf("rtsp://%s:%s@%v:554/%s", strings.TrimSpace(camDB.Login.String), strings.TrimSpace(camDB.Pass.String), camDB.Ip.IPNet.IP, strings.TrimSpace(camDB.CamPath.String)),
 		},
 		Id: camDB.Id,
 	}
