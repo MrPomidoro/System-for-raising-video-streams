@@ -1,8 +1,0 @@
-package statusstream
-
-// Структура таблицы status_stream
-type StatusStream struct {
-	StreamId int `json:"stream_id" db:"stream_id"`
-	// DateCreate     time.Time `json:"date_create" db:"date_create"`
-	StatusResponse bool `json:"status_response" db:"status_response"`
-}

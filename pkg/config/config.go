@@ -41,7 +41,6 @@ type Database struct {
 	Host              string        `mapstructure:"host"`
 	DbName            string        `mapstructure:"dbName"`
 	TableName         string        `mapstructure:"tableName"`
-	TableReportName   string        `mapstructure:"tableReportName"`
 	User              string        `mapstructure:"user"`
 	Password          string        `mapstructure:"password"`
 	Driver            string        `mapstructure:"driver"`
