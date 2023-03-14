@@ -59,7 +59,7 @@ func (s Repository) Get(ctx context.Context, status bool) ([]refreshstream.Strea
 	for rows.Next() {
 		rs := refreshstream.Stream{}
 		err = rows.Scan(&rs.Id, &rs.Login, &rs.Pass, &rs.Ip,
-			&rs.CamPath, &rs.CodeMp, &rs.StatePublic, &rs.StatusPublic, &rs.Protocol)
+			&rs.CamPath, &rs.CodeMp, &rs.StatePublic, &rs.StatusPublic)
 		if err != nil {
 			return nil, s.err.SetError(err)
 		}

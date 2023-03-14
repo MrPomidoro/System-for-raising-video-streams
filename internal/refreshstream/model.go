@@ -18,7 +18,7 @@ type Stream struct {
 	StatusPublic sql.NullInt16  `json:"status_public" db:"status_public"`
 	CodeMp       string         `json:"code_mp" db:"code_mp"`
 	Port         string         // 554
-	Protocol     sql.NullString `json:"protocol" db:"protocol"`
+	// Protocol     sql.NullString `json:"protocol" db:"protocol"`
 
 	// Stream       string         `json:"stream" db:"stream"`
 	// CamId       sql.NullString `json:"camid" db:"camid"`

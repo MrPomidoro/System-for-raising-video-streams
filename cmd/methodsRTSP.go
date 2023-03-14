@@ -54,18 +54,6 @@ func (a *app) AddData(ctx context.Context, camsAdd map[string]rtsp.SConf) ce.IEr
 		if err != nil {
 			return err
 		}
-
-		// err = a.refreshStreamRepo.Update(ctx, camAdd.Stream)
-		// if err != nil {
-		// 	return err
-		// }
-		// a.log.Debug("Success send request to update stream_status")
-
-		// Запись в базу данных результата выполнения
-		err = a.InsertIntoStatusStream("add", ctx, camAdd, err)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -83,12 +71,6 @@ func (a *app) RemoveData(ctx context.Context, dataRTSP map[string]rtsp.SConf) ce
 		}
 
 		err := a.rtspRepo.PostRemoveRTSP(ctx, cam)
-		if err != nil {
-			return err
-		}
-
-		// Запись в базу данных результата выполнения
-		err = a.InsertIntoStatusStream("remove", ctx, cam, err)
 		if err != nil {
 			return err
 		}
@@ -117,12 +99,6 @@ func (a *app) EditData(ctx context.Context, camsEdit map[string]rtsp.SConf) ce.I
 		}
 
 		err := a.rtspRepo.PostEditRTSP(ctx, cam)
-		if err != nil {
-			return err
-		}
-
-		// Запись в базу данных результата выполнения
-		err = a.InsertIntoStatusStream("edit", ctx, cam, err)
 		if err != nil {
 			return err
 		}

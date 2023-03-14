@@ -62,17 +62,10 @@ func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtsp.SConf {
 		runOnReady = ""
 	}
 
-	// Поле протокола не должно быть пустым;
-	// по умолчанию - tcp
-	var protocol = camDB.Protocol.String
-	if protocol == "" {
-		protocol = "tcp"
-	}
-
 	return rtsp.SConf{
 		Stream: camDB.CodeMp,
 		Conf: rtsp.Conf{
-			SourceProtocol: protocol,
+			SourceProtocol: "tcp",
 			RunOnReady:     runOnReady,
 			Source:         fmt.Sprintf("rtsp://%s:%s@%v:554/%s", camDB.Login.String, camDB.Pass.String, camDB.Ip.IPNet.IP, camDB.CamPath.String),
 		},

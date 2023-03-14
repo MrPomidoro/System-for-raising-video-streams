@@ -13,8 +13,6 @@ import (
 	rsrepo "github.com/Kseniya-cha/System-for-raising-video-streams/internal/refreshstream/repository"
 	rtsp "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server"
 	rtspcontr "github.com/Kseniya-cha/System-for-raising-video-streams/internal/rtsp-simple-server/controller"
-	"github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream"
-	ssrepo "github.com/Kseniya-cha/System-for-raising-video-streams/internal/statusstream/repository"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/config"
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 	"github.com/Kseniya-cha/System-for-raising-video-streams/pkg/logger"
@@ -35,7 +33,6 @@ type app struct {
 	sigChan chan os.Signal
 
 	refreshStreamRepo refreshstream.Repository
-	statusStreamRepo  statusstream.Repository
 	rtspRepo          rtsp.Repository
 
 	err ce.IError
@@ -64,7 +61,6 @@ func NewApp(ctx context.Context, cfg *config.Config) (App, ce.IError) {
 		sigChan: sigChan,
 
 		refreshStreamRepo: rsrepo.NewRepository(db, &cfg.Database, log),
-		statusStreamRepo:  ssrepo.NewRepository(db, &cfg.Database, log),
 		rtspRepo:          rtspcontr.NewRepository(cfg, log),
 
 		err: ce.ErrorApp,
