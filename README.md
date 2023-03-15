@@ -11,14 +11,6 @@ System for raising video streams for a parallel project(274)
 
 <img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/GetDatabaseAndApi.png" width=40%/>
 
-Блок-схема подпрограммы AddAndRemoveCameras
-
-<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/AddAndRemoveCameras.png" width=20%/>
-
-Блок-схема подпрограммы EditCameras
-
-<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/EditCameras.png" width=20%/>
-
 ### Структура конфигурационного файла:
 
 ```
