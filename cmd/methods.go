@@ -58,7 +58,7 @@ func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtsp.SConf {
 	// Парсинг поля RunOnReady
 	var runOnReady string
 	if cfg.Run != "" {
-		runOnReady = fmt.Sprintf(cfg.Run, camDB.Port, camDB.CamPath.String)
+		runOnReady = fmt.Sprintf(cfg.Run, camDB.CodeMp, camDB.CodeMp)
 	} else {
 		runOnReady = ""
 	}

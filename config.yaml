@@ -22,7 +22,7 @@ database:
   connect: true # разрешение на коннект
   connectionTimeout: 10s
 rtsp:
-  run: #usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --port %s --code_mp %s --camera_id %s
+  run: #/usr/bin/av_reader-1.1.7/av_reader --config_file /etc/rss/rss-av_reader.yml --stream_path %s --camera_id %s
   refreshTime: 10s # периодичность запроса и сверки
   url: http://127.0.0.1:9997 # адрес для подключения к api rtsp-simple-server
   api:  
