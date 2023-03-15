@@ -2,6 +2,8 @@ package config
 
 import (
 	"errors"
+	"flag"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"strings"
@@ -126,6 +128,155 @@ database:
 
 			if !reflect.DeepEqual(cfg, tt.expectCfg) {
 				t.Errorf("\nexpect\n%v, \ngot \n%v", tt.expectCfg, cfg)
+			}
+		})
+	}
+}
+
+func TestReadFlags(t *testing.T) {
+
+	cfg := &Config{}
+	readFlags(cfg)
+
+	tests := []struct {
+		name string
+		args []string
+		want Config
+	}{
+		{
+			name: "empty args",
+			args: []string{},
+			want: Config{},
+		},
+		{
+			name: "all flags",
+			args: []string{
+				"--logLevel=debug",
+				"--logFileEnable=true",
+				"--logStdoutEnable=false",
+				"--logpath=/var/log/myapp.log",
+				"--maxSize=1024",
+				"--maxAge=7",
+				"--maxBackups=3",
+				"--rewriteLog=true",
+				"--readTimeout=5s",
+				"--wriTetimeout=10s",
+				"--idleTimeout=60s",
+				"--port=8080",
+				"--host=localhost",
+				"--dbName=mydb",
+				"--tableName=mytable",
+				"--user=myuser",
+				"--password=mypassword",
+				"--driver=mysql",
+				"--connect=true",
+				"--connectionTimeout=30s",
+				"--run=server",
+				"--url=http://localhost:8080",
+				"--refreshTime=1m",
+				"--urlGet=http://localhost:8000/get",
+				"--urlAdd=http://localhost:8000/add",
+				"--urlRemove=http://localhost:8000/remove",
+				"--urlEdit=http://localhost:8000/edit",
+				"--configPath=./",
+			},
+			want: Config{
+				Logger: Logger{
+					LogLevel:        "debug",
+					LogFileEnable:   true,
+					LogStdoutEnable: false,
+					LogFile:         "/var/log/myapp.log",
+					MaxSize:         1024,
+					MaxAge:          7,
+					MaxBackups:      3,
+					RewriteLog:      true,
+				},
+				Server: Server{
+					ReadTimeout:  5 * time.Second,
+					WriteTimeout: 10 * time.Second,
+					IdleTimeout:  60 * time.Second,
+				},
+				Database: Database{
+					Port:              8080,
+					Host:              "localhost",
+					DbName:            "mydb",
+					TableName:         "mytable",
+					User:              "myuser",
+					Password:          "mypassword",
+					Driver:            "mysql",
+					Connect:           true,
+					ConnectionTimeout: 30 * time.Second,
+				},
+				Rtsp: Rtsp{
+					Run:         "server",
+					Url:         "http://localhost:8080",
+					RefreshTime: 1 * time.Minute,
+					Api: api{
+						UrlGet:    "http://localhost:8000/get",
+						UrlAdd:    "http://localhost:8000/add",
+						UrlRemove: "http://localhost:8000/remove",
+						UrlEdit:   "http://localhost:8000/edit",
+					},
+				},
+			},
+		},
+	}
+
+	// Run tests
+	for _, tt := range tests {
+
+		// Set command-line arguments
+		err := flag.CommandLine.Parse(tt.args)
+		if err != nil {
+			t.Fatalf("test %s: %v", tt.name, err)
+		}
+		// Compare the resulting Config struct with the expected one
+		if *cfg != tt.want {
+			t.Errorf("test %s readFlags(%v)\n got: %v\nwant: %v", tt.name, tt.args, *cfg, tt.want)
+			continue
+		}
+		t.Log("Good test", tt.name, *cfg)
+	}
+}
+
+func TestIsFileEmpty(t *testing.T) {
+
+	tests := []struct {
+		name           string
+		fileContents   string
+		expectedResult bool
+	}{
+		{
+			name:           "Empty file",
+			fileContents:   "",
+			expectedResult: true,
+		},
+		{
+			name:           "Non-empty file",
+			fileContents:   "Hello, World!",
+			expectedResult: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f, err := ioutil.TempFile("", "test")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.Remove(f.Name())
+
+			_, err = f.WriteString(tt.fileContents)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = f.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if got := isFileEmpty(f.Name()); got != tt.expectedResult {
+				t.Errorf("isFileEmpty() = %v, want %v", got, tt.expectedResult)
 			}
 		})
 	}

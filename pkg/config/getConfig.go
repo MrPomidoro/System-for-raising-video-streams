@@ -27,9 +27,10 @@ func isFileEmpty(path string) bool {
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
 		wr.WriteString(sc.Text())
+		wr.WriteString("\n")
 	}
 
-	return false
+	return wr.String() == ""
 }
 
 // GetConfig инициализирует и заполняет структуру конфигурационного файла
