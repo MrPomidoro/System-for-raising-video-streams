@@ -84,7 +84,6 @@ loop:
 			err = a.EditData(ctx, camsEdit)
 			if err != nil {
 				a.log.Error(err.Error())
-				continue loop
 			}
 		}
 	}
