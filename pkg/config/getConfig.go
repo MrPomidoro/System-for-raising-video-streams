@@ -1,9 +1,6 @@
 package config
 
 import (
-	"bufio"
-	"bytes"
-	"errors"
 	"flag"
 	"os"
 	"strings"
@@ -12,26 +9,27 @@ import (
 	"github.com/spf13/viper"
 )
 
-func isFileEmpty(path string) bool {
-	_, err := os.Stat(path)
-	if err != nil {
-		return true
-	}
+// func isFileEmpty(path string) bool {
+// 	_, err := os.Stat(path)
+// 	if err != nil {
+// 		return true
+// 	}
 
-	f, err := os.Open(path)
-	if err != nil {
-		return true
-	}
+// 	f, err := os.Open(path)
+// 	if err != nil {
+// 		return true
+// 	}
 
-	wr := bytes.Buffer{}
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		wr.WriteString(sc.Text())
-		wr.WriteString("\n")
-	}
+// 	wr := bytes.Buffer{}
+// 	sc := bufio.NewScanner(f)
+// 	for sc.Scan() {
+// 		wr.WriteString(sc.Text())
+// 		// wr.WriteString("\n")
+// 	}
 
-	return wr.String() == ""
-}
+// 	return false
+// 	// return wr.String() == ""
+// }
 
 // GetConfig инициализирует и заполняет структуру конфигурационного файла
 func GetConfig() (*Config, ce.IError) {
@@ -41,9 +39,9 @@ func GetConfig() (*Config, ce.IError) {
 	// Чтение пути до конфигурационного файла
 	configPath := readConfigPath()
 
-	if isFileEmpty(configPath) {
-		return &cfg, cfg.err.SetError(errors.New("file is empty"))
-	}
+	// if isFileEmpty(configPath) {
+	// 	return &cfg, cfg.err.SetError(errors.New("file is empty"))
+	// }
 
 	var v = viper.New()
 

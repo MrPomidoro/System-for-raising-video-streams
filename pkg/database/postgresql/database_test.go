@@ -76,7 +76,7 @@ func TestDatabaseConnection(t *testing.T) {
 		}
 	})
 
-	t.Run("TestNewDBandGetConn", func(t *testing.T) {
+	t.Run("TestGetConnOK", func(t *testing.T) {
 		newPool := newdb.GetConn()
 		newdbS := strings.Split(fmt.Sprint(newPool), " ")
 		dbS := strings.Split(fmt.Sprint(pool), " ")
@@ -166,4 +166,13 @@ func TestDatabaseConnection(t *testing.T) {
 		go newdb.KeepAlive(ctx, zap.NewNop(), errCh)
 	})
 	time.Sleep(3 * time.Second)
+
+	t.Run("TestNewDBCtxCancel", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, err := NewDB(ctx, config.Database{}, zap.NewNop())
+		if err == nil {
+			t.Errorf("unexpected error: %v, expect %v", err, ctx.Err())
+		}
+	})
 }

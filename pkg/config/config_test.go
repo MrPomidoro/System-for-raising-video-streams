@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"flag"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"strings"
@@ -239,45 +238,45 @@ func TestReadFlags(t *testing.T) {
 	}
 }
 
-func TestIsFileEmpty(t *testing.T) {
+// func TestIsFileEmpty(t *testing.T) {
 
-	tests := []struct {
-		name           string
-		fileContents   string
-		expectedResult bool
-	}{
-		{
-			name:           "Empty file",
-			fileContents:   "",
-			expectedResult: true,
-		},
-		{
-			name:           "Non-empty file",
-			fileContents:   "Hello, World!",
-			expectedResult: false,
-		},
-	}
+// 	tests := []struct {
+// 		name           string
+// 		fileContents   string
+// 		expectedResult bool
+// 	}{
+// 		{
+// 			name:           "Empty file",
+// 			fileContents:   "",
+// 			expectedResult: true,
+// 		},
+// 		{
+// 			name:           "Non-empty file",
+// 			fileContents:   "Hello, World!",
+// 			expectedResult: false,
+// 		},
+// 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			f, err := ioutil.TempFile("", "test")
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer os.Remove(f.Name())
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			f, err := ioutil.TempFile("", "test")
+// 			if err != nil {
+// 				t.Fatal(err)
+// 			}
+// 			defer os.Remove(f.Name())
 
-			_, err = f.WriteString(tt.fileContents)
-			if err != nil {
-				t.Fatal(err)
-			}
-			err = f.Close()
-			if err != nil {
-				t.Fatal(err)
-			}
+// 			_, err = f.WriteString(tt.fileContents)
+// 			if err != nil {
+// 				t.Fatal(err)
+// 			}
+// 			err = f.Close()
+// 			if err != nil {
+// 				t.Fatal(err)
+// 			}
 
-			if got := isFileEmpty(f.Name()); got != tt.expectedResult {
-				t.Errorf("isFileEmpty() = %v, want %v", got, tt.expectedResult)
-			}
-		})
-	}
-}
+// 			if got := isFileEmpty(f.Name()); got != tt.expectedResult {
+// 				t.Errorf("isFileEmpty() = %v, want %v", got, tt.expectedResult)
+// 			}
+// 		})
+// 	}
+// }
