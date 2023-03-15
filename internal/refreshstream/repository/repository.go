@@ -54,7 +54,8 @@ func (s Repository) Get(ctx context.Context, status bool) ([]refreshstream.Strea
 	defer rows.Close()
 
 	// Слайс копий структур
-	res := []refreshstream.Stream{}
+	var res []refreshstream.Stream
+
 	// pgxscan.Select(ctx, s.db, &res, query)
 	for rows.Next() {
 		rs := refreshstream.Stream{}

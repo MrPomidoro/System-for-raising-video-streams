@@ -83,7 +83,7 @@ func rtspToCompare(camRTSP rtsp.SConf) rtsp.Conf {
 	}
 }
 
-// getCamsEdit - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
+// GetCamsEdit - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // возвращающая мапу камер, поля которых в бд и ртсп отличаются
 func (a *app) GetCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rtsp.SConf,
 	camsAdd map[string]rtsp.SConf, camsRemove map[string]rtsp.SConf) map[string]rtsp.SConf {
@@ -111,7 +111,7 @@ func (a *app) GetCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rts
 	return camsForEdit
 }
 
-// getCamsAdd - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
+// GetCamsAdd - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // возвращающая мапу камер, отсутствующих в rtsp, но имеющихся в базе
 func (a *app) GetCamsAdd(dataDB []refreshstream.Stream,
 	dataRTSP map[string]rtsp.SConf) map[string]rtsp.SConf {
@@ -130,7 +130,7 @@ func (a *app) GetCamsAdd(dataDB []refreshstream.Stream,
 	return camsForAdd
 }
 
-// getCamsRemove - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
+// GetCamsRemove - функция, принимающая на вход результат выполнения get запроса к базе и запроса к rtsp,
 // удаляющая из мапы с результатом из rtsp камеры, которые не нужно
 func (a *app) GetCamsRemove(dataDB []refreshstream.Stream,
 	dataRTSP map[string]rtsp.SConf) {

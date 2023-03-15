@@ -8,7 +8,7 @@ import (
 	ce "github.com/Kseniya-cha/System-for-raising-video-streams/pkg/customError"
 )
 
-// addAndRemoveData - метод, в которым выполняются функции, получающие списки
+// AddRemoveData - метод, в которым выполняются функции, получающие списки
 // отличающихся данных, выполняется удаление лишних камер и добавление недостающих
 func (a *app) AddRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
 	dataRTSP map[string]rtsp.SConf, camsAdd map[string]rtsp.SConf,
@@ -39,7 +39,7 @@ func (a *app) AddRemoveData(ctx context.Context, dataDB []refreshstream.Stream,
 	return nil
 }
 
-// addCamerasToRTSP - функция, принимающая на вход список камер, которые необходимо добавить
+// AddData - функция, принимающая на вход список камер, которые необходимо добавить
 // в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на добавление камер,
 // добавляет в таблицу status_stream запись с результатом выполнения запроса
 func (a *app) AddData(ctx context.Context, camsAdd map[string]rtsp.SConf) ce.IError {
@@ -58,7 +58,7 @@ func (a *app) AddData(ctx context.Context, camsAdd map[string]rtsp.SConf) ce.IEr
 	return nil
 }
 
-// removeCamerasFromRTSP - функция, принимающая на вход список камер, которые необходимо удалить
+// RemoveData - функция, принимающая на вход список камер, которые необходимо удалить
 // с rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на удаление камер,
 // добавляет в таблицу status_stream запись с результатом выполнения запроса
 func (a *app) RemoveData(ctx context.Context, dataRTSP map[string]rtsp.SConf) ce.IError {
@@ -79,7 +79,7 @@ func (a *app) RemoveData(ctx context.Context, dataRTSP map[string]rtsp.SConf) ce
 	return nil
 }
 
-// editData - функция, принимающая на вход список камер, которые необходимо изменить
+// EditData - функция, принимающая на вход список камер, которые необходимо изменить
 // в rtsp-simple-server, и список камер из базы данных. Отправляет Post запрос к rtsp на изменение камер,
 // добавляет в таблицу status_stream запись с результатом выполнения запроса
 func (a *app) EditData(ctx context.Context, camsEdit map[string]rtsp.SConf) ce.IError {
