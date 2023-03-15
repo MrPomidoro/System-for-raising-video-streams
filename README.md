@@ -5,11 +5,11 @@ System for raising video streams for a parallel project(274)
 
 Блок-схема алгоритма
 
-<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/algorithm.png" width=60%/>
+<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/algorithm.png" width=40%/>
 
 Блок-схема подпрограммы GetDatabaseAndApi
 
-<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/GetDatabaseAndApi.png" width=60%/>
+<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/GetDatabaseAndApi.png" width=80%/>
 
 ### Структура конфигурационного файла:
 
