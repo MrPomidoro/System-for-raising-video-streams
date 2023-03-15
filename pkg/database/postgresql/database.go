@@ -23,6 +23,10 @@ func NewDB(ctx context.Context, cfg config.Database, log *zap.Logger) (db *DB, e
 		return nil, err.SetError(e)
 	}
 
+	if ctx.Err() != nil {
+		return &DB{}, err.SetError(ctx.Err())
+	}
+
 	return &DB{pool}, nil
 }
 
