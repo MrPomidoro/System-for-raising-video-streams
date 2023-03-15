@@ -16,10 +16,7 @@ func NewDB(ctx context.Context, cfg config.Database, log *zap.Logger) (db *DB, e
 
 	err = ce.ErrorDatabase
 
-	config, e := getConfig(cfg)
-	if e != nil {
-		return nil, err.SetError(e)
-	}
+	config := getConfig(cfg)
 
 	pool, e := pgxpool.NewWithConfig(ctx, config)
 	if e != nil {
@@ -102,12 +99,10 @@ func (db *DB) IsConn(ctx context.Context) bool {
 	return true
 }
 
-func getConfig(cfg config.Database) (*pgxpool.Config, error) {
+func getConfig(cfg config.Database) *pgxpool.Config {
 	// Настраиваем конфигурацию пула подключений к базе данных
-	config, err := pgxpool.ParseConfig("")
-	if err != nil {
-		return config, err
-	}
+	config, _ := pgxpool.ParseConfig("")
+
 	config.ConnConfig.User = cfg.User
 	config.ConnConfig.Password = cfg.Password
 	config.ConnConfig.Host = cfg.Host
@@ -117,7 +112,7 @@ func getConfig(cfg config.Database) (*pgxpool.Config, error) {
 	// Устанавливаем максимальное количество соединений в пуле
 	config.MaxConns = 2
 
-	return config, nil
+	return config
 }
 
 func (db *DB) Close() {
