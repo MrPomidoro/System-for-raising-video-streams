@@ -87,9 +87,11 @@ rtsp_simple_server:
 ```SQL
 SELECT "id", "login", "pass", "ip_address_out",
 "cam_path", "code_mp", "state_public", "status_public"
-FROM public."`tableName`"
+FROM public."{tableName}"
 WHERE "cam_path" IS NOT null AND "state_public" = 1
 ```
+
+Параметр `tableName` указывается в конфигурационном файле.
 
 Программа выполняется периодически через установленный промежуток времени. Далее описан алгоритм для одного цикла.
 
