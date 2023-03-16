@@ -1,16 +1,6 @@
 # System-for-raising-video-streams
 System for raising video streams for a parallel project(274)
 
-### Блок-схемы:
-
-Блок-схема алгоритма
-
-<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/algorithm.png" width=60%/>
-
-Блок-схема подпрограммы GetDatabaseAndApi
-
-<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/GetDatabaseAndApi.png" width=50%/>
-
 ### Структура конфигурационного файла:
 
 ```
@@ -139,3 +129,13 @@ WHERE "cam_path" IS NOT null AND "state_public" = 1
 Поля `source` и `runOnReady` заполняются аналогичным образом. Изменение выполняется в том случае, если значения полей `source` и `runOnReady` полученного с сервера потока отличаются от значений, сформированных на основе шаблона с использованием данных из базы данных.
 
 Если на одном из этапов возникает ошибка, цикл прерывается, программа ожидает указанное в конфигурационном файле время и запускает новый цикл.
+
+### Блок-схемы:
+
+Блок-схема алгоритма
+
+<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/algorithm.png" width=60%/>
+
+Блок-схема подпрограммы GetDatabaseAndApi
+
+<img src="https://github.com/Kseniya-cha/System-for-raising-video-streams/raw/main/pictures/GetDatabaseAndApi.png" width=50%/>
