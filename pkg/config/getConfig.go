@@ -9,44 +9,18 @@ import (
 	"github.com/spf13/viper"
 )
 
-// func isFileEmpty(path string) bool {
-// 	_, err := os.Stat(path)
-// 	if err != nil {
-// 		return true
-// 	}
-
-// 	f, err := os.Open(path)
-// 	if err != nil {
-// 		return true
-// 	}
-
-// 	wr := bytes.Buffer{}
-// 	sc := bufio.NewScanner(f)
-// 	for sc.Scan() {
-// 		wr.WriteString(sc.Text())
-// 		// wr.WriteString("\n")
-// 	}
-
-// 	return false
-// 	// return wr.String() == ""
-// }
-
 // GetConfig инициализирует и заполняет структуру конфигурационного файла
 func GetConfig() (*Config, ce.IError) {
 	var cfg Config
 	cfg.err = ce.ErrorConfig
 
 	// Чтение пути до конфигурационного файла
-	configPath := readConfigPath()
-
-	// if isFileEmpty(configPath) {
-	// 	return &cfg, cfg.err.SetError(errors.New("file is empty"))
-	// }
+	configPath, configName, configType := readConfigPath()
 
 	var v = viper.New()
 
-	v.SetConfigName("config")
-	v.SetConfigType("yaml")
+	v.SetConfigName(configName)
+	v.SetConfigType(configType)
 	v.AddConfigPath(configPath)
 
 	err := readParametersFromConfig(v, &cfg)
@@ -72,20 +46,33 @@ func readParametersFromConfig(v *viper.Viper, cfg *Config) ce.IError {
 }
 
 // checkConfigPath проверяет, есть ли среди флагов путь до конфигурационного файла
-func readConfigPath() string {
-	var configPath string
+func readConfigPath() (string, string, string) {
+	var absoluteConfigPath, configPath, configName, configType string
+
 	args := os.Args
 	for _, arg := range args {
 		if strings.Split(arg, "=")[0][1:] == "configPath" {
-			configPath = strings.Split(arg, "=")[1]
+			absoluteConfigPath = strings.Split(arg, "=")[1]
+			configPath, configName, configType = getParamsConf(absoluteConfigPath)
 			break
 		}
 	}
 	// Если путь не был указан, выставляется по умолчанию ./
-	if configPath == "" {
+	if absoluteConfigPath == "" {
 		configPath = "./"
+		configName = "config"
+		configType = "yaml"
 	}
-	return configPath
+	return configPath, configName, configType
+}
+
+func getParamsConf(absoluteConfigPath string) (string, string, string) {
+
+	pathSplit := strings.Split(absoluteConfigPath, "/")
+	configNameType := strings.Split(pathSplit[len(pathSplit)-1], ".")
+	configPath := strings.Join(pathSplit[:len(pathSplit)-1], "/") + "/"
+
+	return configPath, configNameType[0], configNameType[1]
 }
 
 // readFlags реализует возможность передачи параметров
