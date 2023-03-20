@@ -35,10 +35,10 @@ database:
   driver: postgres                          #- драйвер БД
   connect: true                             #- разрешение на коннект к БД
   connectionTimeout: 10s                    #- длительность проверки коннекта
-rtsp_simple_server:
+rtsp:
   run:                                      #- шаблон поля runOnReady
   url: http://localhost:9997                #- адрес для подключения к API севера
-  refresh_time: 10s                         #- периодичность выполнения программы
+  refreshTime: 10s                          #- периодичность выполнения программы
   api: 
     urlGet: /v1/paths/list                  #- url запроса для получения списка потоков
     urlAdd: /v1/config/paths/add/           #- url запроса для добавления потока
