@@ -63,15 +63,23 @@ func dbToCompare(cfg *config.Config, camDB refreshstream.Stream) rtsp.SConf {
 		runOnReady = ""
 	}
 
-	return rtsp.SConf{
+	res := rtsp.SConf{
 		Stream: strings.TrimSpace(camDB.CodeMp),
 		Conf: rtsp.Conf{
 			SourceProtocol: "tcp",
 			RunOnReady:     runOnReady,
-			Source:         fmt.Sprintf("rtsp://%s:%s@%v:554/%s", strings.TrimSpace(camDB.Login.String), strings.TrimSpace(camDB.Pass.String), camDB.Ip.IPNet.IP, strings.TrimSpace(camDB.CamPath.String)),
 		},
 		Id: camDB.Id,
 	}
+
+	s1 := "user=%s&password=%s&channel=1"
+	if camDB.CamPath.String == s1 {
+		res.Conf.Source = fmt.Sprintf("rtsp://%s:554/%s", camDB.Ip.IPNet.IP, fmt.Sprintf(s1, strings.TrimSpace(camDB.Login.String), strings.TrimSpace(camDB.Pass.String)))
+	} else {
+		res.Conf.Source = fmt.Sprintf("rtsp://%s:%s@%v:554/%s", strings.TrimSpace(camDB.Login.String), strings.TrimSpace(camDB.Pass.String), camDB.Ip.IPNet.IP, strings.TrimSpace(camDB.CamPath.String))
+	}
+
+	return res
 }
 
 // rtspToCompare приводит данные от ртсп к виду, который можно сравнить с бд
@@ -92,20 +100,22 @@ func (a *app) GetCamsEdit(dataDB []refreshstream.Stream, dataRTSP map[string]rts
 
 	for _, camDB := range dataDB {
 
-		cam := dbToCompare(a.cfg, camDB)
+		camCompDB := dbToCompare(a.cfg, camDB)
+		camCompRTSP := rtspToCompare(dataRTSP[camDB.CodeMp])
+
 		// Проверяется, совпадают ли данные
-		if reflect.DeepEqual(cam.Conf, rtspToCompare(dataRTSP[camDB.CodeMp])) {
+		if reflect.DeepEqual(camCompDB.Conf, camCompRTSP) {
 			continue
 		}
-		if _, ok := camsAdd[cam.Stream]; ok {
+		if _, ok := camsAdd[camCompDB.Stream]; ok {
 			continue
 		}
-		if _, ok := camsRemove[cam.Stream]; ok {
+		if _, ok := camsRemove[camCompDB.Stream]; ok {
 			continue
 		}
 		// Если камеры не совпадают и отсутствуют в списках на добавление и удаление,
 		// камера добавляется в мапу
-		camsForEdit[cam.Stream] = cam
+		camsForEdit[camCompDB.Stream] = camCompDB
 	}
 
 	return camsForEdit
